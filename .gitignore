@@ -1,0 +1,6 @@
+.env
+.env.*
+!.env.example
+data/
+*.jsonl
+npm-debug.log*

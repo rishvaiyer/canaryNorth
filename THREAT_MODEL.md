@@ -20,10 +20,10 @@
 
 ## Production hardening checklist
 
-- Bind capabilities to workload identity and audience; never accept bearer capabilities from arbitrary callers.
+- Bind capabilities to workload identity and audience; never accept bearer capabilities from arbitrary callers. The demo now protects API routes with an operator token when auth is enabled, but this is not a substitute for workload identity.
 - Store signing keys in KMS/HSM, rotate them, and include key IDs in receipts.
 - Use a durable append-only ledger with monotonic sequence/transaction IDs.
-- Add nonce/replay protection, rate limits, schema validation, and tenant isolation.
+- Add nonce/replay protection and tenant isolation. The demo now has basic rate limiting, request validation, and server-side time enforcement; these remain deployment-grade requirements for production.
 - Make policy versions and approval provenance explicit in every receipt.
 - Keep secret manager responses in a non-model process and scrub logs/traces.
 - Treat DLP as layered detection plus human review, not a guarantee.

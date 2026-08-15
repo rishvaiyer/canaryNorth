@@ -1,12 +1,24 @@
-# ContextSeal
+# ContextSeal — AI Action Receipts
+
+Every AI-generated file should carry its own provenance—privately.
 
 ContextSeal is a security reference implementation for AI agents that need to call tools without receiving raw provider credentials. It places a deny-by-default policy proxy between the agent and the tool, gives the agent an opaque capability reference, inspects each request, and records every allow or deny decision in a signed, hash-chained receipt.
+It is also a trust-metadata layer for AI-generated work: the current demo shows decision-level receipts, while the product direction extends them to artifact hashes and private embedded or sidecar provenance.
 
 The project is deliberately small and dependency-free. It demonstrates the security boundary clearly; it is not a production credential broker or complete MCP server.
 
 ## The problem
 
 An agent may need authority to read a forecast, update a ticket, or call another API. Putting a reusable API key in model context creates unnecessary risk: untrusted content can influence the model, logs may retain context, and a broad credential can outlive the task that needed it.
+
+- **Opaque capabilities:** `cap_*` references are safe to put in model context; the provider key never is.
+- **Structural policy:** action and resource allowlists, expiry, and deny-by-default enforcement happen in the proxy.
+- **Content firewall:** prompt-injection and credential-shaped payloads are quarantined before forwarding.
+- **Evidence:** every allow/deny decision produces a tamper-evident action receipt with a previous-receipt link.
+- **Private provenance:** receipts expose process and evidence—not secrets, private identities, or unnecessary personal data.
+- **MCP audit:** `POST /mcp/audit` supports a read-only `contextseal.audit` method.
+
+The sample data is synthetic. The demo does not call an external tool or connect to a secret vault. After running the safe path, use **[ bind artifact ]** to download `weather-brief.md` plus a `.receipt.json` sidecar containing the artifact hash, receipt hash, and signed manifest. This is the product's first portable artifact-provenance slice; it is not yet format-safe embedding inside arbitrary PDFs, DOCX files, or images.
 
 ContextSeal changes what the agent receives. Instead of a provider key, the agent sees a reference such as:
 
@@ -116,6 +128,12 @@ Open `http://localhost:4178`.
 
 The scripts wrap Node's built-in test runner and syntax checker. The project has no runtime or development dependencies.
 
+Production mode (`NODE_ENV=production`) fails closed unless `RECEIPT_SIGNING_KEY` and `CONTEXTSEAL_AUTH_TOKEN` are set to values at least 32 characters long. Authenticated requests use `Authorization: Bearer <CONTEXTSEAL_AUTH_TOKEN>`. `CONTEXTSEAL_DEMO_MODE=1` is an explicit exception for this public synthetic demo only; it must never be used for real workloads or real receipts. Local development remains an explicitly unauthenticated synthetic demo unless `CONTEXTSEAL_REQUIRE_AUTH=1` is set.
+
+Outside demo mode, `RECEIPT_LEDGER_PATH` is also required. The service fsyncs an append-only JSONL receipt ledger and refuses to start if the ledger is missing or malformed. Mount that path on durable, access-controlled storage; an ephemeral container filesystem is not an audit store.
+
+The hosted synthetic demo is [context-seal-production.up.railway.app](https://context-seal-production.up.railway.app/). It contains no external tool connection, real capability store, identity provider, or user data. A real deployment must disable demo mode, add identity-bound authorization, configure durable ledger storage, and complete an independent security review before exposing receipt APIs.
+
 ## Verify
 
 ```bash
@@ -126,7 +144,7 @@ npm test
 npm run lint
 ```
 
-The suite covers allowed and denied policy paths, capability expiration, action scope, prompt-injection and DLP blocking, inspection output, deterministic HMAC signing, graph explanations and bounds, and allowed versus denied walkthrough paths.
+The suite covers allowed and denied policy paths, capability expiration, action scope, prompt-injection and DLP blocking, inspection output, deterministic HMAC signing, artifact binding and tamper detection, graph explanations and bounds, and allowed versus denied walkthrough paths.
 
 After starting the server:
 
@@ -156,6 +174,8 @@ curl -X POST http://localhost:4178/mcp/audit \
 | `POST` | `/api/authorize` | Evaluate `{ capabilityId, action, resource, input }` and mint a receipt |
 | `GET` | `/api/receipts` | Return the current in-memory ledger |
 | `POST` | `/mcp/audit` | Serve the read-only `contextseal.audit` JSON-RPC method |
+| `POST` | `/api/artifacts/export` | Bind an allowed receipt to a synthetic artifact and return a signed sidecar |
+| `POST` | `/api/artifacts/verify` | Verify artifact bytes, manifest hash, and server signature |
 
 An allow returns HTTP `200`. A policy denial returns `403` and still includes a receipt. Invalid JSON or an unsupported audit method returns `400`; payloads over 100 KB return `413`.
 
@@ -178,7 +198,8 @@ Denial codes:
 │   ├── index.html      # Interactive demo structure
 │   └── styles.css      # Visual system and responsive layout
 ├── src/policy.mjs      # Capability checks, inspection, hashes, signatures
-├── test/               # Policy, signing, graph, and walkthrough tests
+├── src/artifacts.mjs   # Artifact hashing, manifests, and verification
+├── test/               # Policy, signing, artifact, graph, and walkthrough tests
 ├── server.mjs          # HTTP server, API, ledger, and static files
 ├── THREAT_MODEL.md     # Trust boundaries and production hardening
 ├── HANDOFF.md          # Demo and deployment handoff
@@ -236,3 +257,4 @@ The current implementation has 16 passing tests, clean JavaScript syntax checks,
 ## License
 
 No license file is currently included. Add one before inviting external reuse or contributions.
+This is a focused reference implementation: its ledger is in-memory, capability storage is fixture-backed, signatures use an HMAC secret, and the DLP/injection detectors are intentionally small. Production artifact provenance additionally needs canonical artifact hashing, format-safe embedding or private sidecars, durable storage, key rotation/HSM, identity binding, replay protection, policy versioning, a real secret manager, and a full content-security test corpus.

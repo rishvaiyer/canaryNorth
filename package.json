@@ -2,7 +2,7 @@
   "name": "context-seal",
   "version": "0.1.0",
   "private": false,
-  "description": "A secretless MCP policy proxy demo with scoped capabilities and tamper-evident receipts.",
+  "description": "Private AI action receipts for provenance, policy, and tamper-evident tool decisions.",
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
