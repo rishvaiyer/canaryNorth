@@ -13,7 +13,7 @@ ContextSeal is a trust-metadata layer for AI-generated work. Its policy proxy ke
 - **Private provenance:** receipts expose process and evidence—not secrets, private identities, or unnecessary personal data.
 - **MCP audit:** `POST /mcp/audit` supports a read-only `contextseal.audit` method.
 
-The sample data is synthetic. The demo does not call an external tool or connect to a secret vault. It does not yet attach receipts to generated files; artifact binding is the next product layer.
+The sample data is synthetic. The demo does not call an external tool or connect to a secret vault. After running the safe path, use **[ bind artifact ]** to download `weather-brief.md` plus a `.receipt.json` sidecar containing the artifact hash, receipt hash, and signed manifest. This is the product's first portable artifact-provenance slice; it is not yet format-safe embedding inside arbitrary PDFs, DOCX files, or images.
 
 ## Run
 
@@ -39,6 +39,8 @@ The hosted synthetic demo is [context-seal-production.up.railway.app](https://co
 - `POST /api/authorize` — evaluate `{ capabilityId, action, resource, input }`.
 - `GET /api/receipts` — current in-memory ledger.
 - `POST /mcp/audit` — read-only JSON-RPC audit (`{ "method": "contextseal.audit", "id": 1 }`).
+- `POST /api/artifacts/export` — bind an allowed receipt to a synthetic artifact and return the artifact plus signed receipt sidecar.
+- `POST /api/artifacts/verify` — verify the artifact hash, manifest hash, and server signature.
 
 ## Limits
 
