@@ -14,7 +14,7 @@ Public-ready synthetic security demo showing how an AI agent can request tool ac
 
 ## Verification
 
-- `npm test`: 12 passing policy and graph tests.
+- `npm test`: 16 passing policy, graph, and artifact tests.
 - `npm run lint`: syntax checks for server, policy, and browser JavaScript.
 - `GET /health`, `GET /api/bootstrap`, `POST /api/authorize`, and `POST /mcp/audit`: smoke-tested locally on August 15, 2026.
 

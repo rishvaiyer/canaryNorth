@@ -119,7 +119,7 @@ The scripts wrap Node's built-in test runner and syntax checker. The project has
 ## Verify
 
 ```bash
-# 12 unit tests
+# 16 unit tests
 npm test
 
 # Server, policy, and browser JavaScript syntax
@@ -231,7 +231,7 @@ See [THREAT_MODEL.md](THREAT_MODEL.md) for the full production hardening checkli
 
 ## Status
 
-The current implementation has 12 passing tests, clean JavaScript syntax checks, and locally smoke-tested health, bootstrap, authorization, and read-only audit endpoints.
+The current implementation has 16 passing tests, clean JavaScript syntax checks, and locally smoke-tested health, bootstrap, authorization, artifact export/verification, and read-only audit endpoints.
 
 ## License
 
