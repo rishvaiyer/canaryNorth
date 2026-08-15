@@ -1,7 +1,54 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ContextSeal — secretless authorization</title><link rel="stylesheet" href="/styles.css"></head>
-<body><main class="shell"><header class="topbar"><div class="brand"><span class="mark">◈</span><span>ContextSeal</span></div><span class="eyebrow">SECRETLESS MCP POLICY PROXY</span><span id="health" class="health">checking…</span></header>
-<section class="hero"><div><p class="kicker">A safer boundary for agents that act</p><h1>Give agents capabilities.<br><em>Keep secrets out.</em></h1><p class="lede">ContextSeal evaluates every tool call against an opaque capability, a scoped resource, an expiry window, and a content firewall—then leaves a signed receipt.</p><div class="hero-actions"><button class="primary" data-demo="safe">Run safe forecast ↗</button><button class="ghost" data-demo="injection">Quarantine injection</button><button class="ghost" data-demo="dlp">Block secret-shaped input</button></div></div><div class="principle"><span>01</span><strong>THE MODEL SEES</strong><b>cap_weather_read_7f3d</b><small>opaque reference · read:forecast</small><hr><span>02</span><strong>THE VAULT HOLDS</strong><b class="blurred">provider key · never serialized</b><small>server-side lookup only</small></div></section>
-<section class="grid"><article class="card graph-card"><div class="card-head"><div><p class="kicker">LIVE POLICY GRAPH</p><h2>Every edge is a decision</h2></div><span class="status-dot">● policy online</span></div><div id="graph" class="graph" aria-label="Interactive permission graph"></div><div class="legend"><span><i class="agent"></i>agent context</span><span><i class="proxy"></i>policy boundary</span><span><i class="tool"></i>tool</span><span><i class="vault"></i>secret vault</span></div></article><article class="card caps-card"><div class="card-head"><div><p class="kicker">ISSUED CAPABILITIES</p><h2>Least privilege, visible</h2></div><span class="count" id="cap-count">0</span></div><div id="capabilities" class="cap-list"></div></article></section>
-<section class="grid lower"><article class="card receipt-card"><div class="card-head"><div><p class="kicker">TAMPER-EVIDENT RECEIPTS</p><h2>What happened while away</h2></div><button class="link-btn" id="audit">Read-only MCP audit ↗</button></div><div id="receipts" class="receipts"><div class="empty">Run a policy decision to mint the first receipt.</div></div></article><aside class="card model-card"><p class="kicker">THREAT MODEL</p><h2>Default deny.<br>Useful by design.</h2><ul><li><b>Opaque capabilities</b><span>raw credentials never enter model context</span></li><li><b>Content firewall</b><span>DLP and injection patterns stop at the proxy</span></li><li><b>Scoped expiry</b><span>resource and time bounds are structural</span></li><li><b>Signed chain</b><span>receipts make silent mutation detectable</span></li></ul></aside></section>
-<footer><span>ContextSeal / synthetic demo</span><span>Read-only audit · No secrets · No external tools called</span></footer></main><div id="toast" role="status" aria-live="polite"></div><script type="module" src="/app.js"></script></body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#081a2a">
+  <title>ContextSeal — a map of every agent decision</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand"><span class="mark">◈</span><span>ContextSeal</span></div>
+      <span class="eyebrow">SECRETLESS MCP POLICY PROXY</span>
+      <span id="health" class="health">checking…</span>
+    </header>
+    <section class="hero">
+      <div>
+        <p class="kicker">A safer boundary for agents that act</p>
+        <h1>See the decision.<br><em>Keep secrets out.</em></h1>
+        <p class="lede">ContextSeal is a small, strict checkpoint between an AI agent and a real tool. Drag the map, select any node, then run a request to watch the checkpoint make an allow or deny decision.</p>
+        <div class="hero-actions" aria-label="Policy walkthroughs">
+          <button class="primary" data-demo="safe">Run safe forecast <span>↗</span></button>
+          <button class="ghost" data-demo="injection">Quarantine injection</button>
+          <button class="ghost" data-demo="dlp">Block secret-shaped input</button>
+        </div>
+      </div>
+      <div class="principle">
+        <div class="principle-row"><span>01</span><div><strong>THE MODEL SEES</strong><b>cap_weather_read_7f3d</b><small>opaque reference · read:forecast</small></div></div>
+        <div class="principle-rule"></div>
+        <div class="principle-row"><span>02</span><div><strong>THE VAULT HOLDS</strong><b class="blurred">provider key · never serialized</b><small>server-side lookup only</small></div></div>
+        <p class="principle-note">The agent can ask. It never receives the key.</p>
+      </div>
+    </section>
+    <section class="card graph-card" aria-labelledby="map-title">
+      <div class="card-head graph-head">
+        <div><p class="kicker">LIVE POLICY MAP</p><h2 id="map-title">Every line is a decision boundary</h2><p class="subhead">Drag a node to make the architecture yours. Select one to see what it does.</p></div>
+        <div class="map-actions"><span class="status-dot">● policy online</span><button class="small-btn" id="reset-layout">Reset map</button></div>
+      </div>
+      <div class="map-workspace"><div id="graph" class="graph" aria-label="Interactive permission graph"></div><aside id="inspector" class="inspector" aria-live="polite"></aside></div>
+      <div class="map-help"><span><kbd>drag</kbd> move a node</span><span><kbd>click</kbd> inspect it</span><span><kbd>tab</kbd> focus · <kbd>arrows</kbd> nudge</span></div>
+      <div class="legend"><span><i class="agent"></i>agent context</span><span><i class="proxy"></i>policy boundary</span><span><i class="tool"></i>tool</span><span><i class="vault"></i>secret vault</span><span><i class="ledger"></i>receipt ledger</span></div>
+    </section>
+    <section class="grid metrics-grid">
+      <article class="card caps-card"><div class="card-head"><div><p class="kicker">ISSUED CAPABILITIES</p><h2>Least privilege, visible</h2></div><span class="count" id="cap-count">0</span></div><div id="capabilities" class="cap-list"></div></article>
+      <article class="card walkthrough-card"><div class="card-head"><div><p class="kicker">HOW TO READ IT</p><h2>Three checks. One receipt.</h2></div><span class="step-count" id="walkthrough-step">READY</span></div><ol class="walkthrough"><li><span>01</span><div><b>Capability</b><small>Is the opaque reference known and still alive?</small></div></li><li><span>02</span><div><b>Scope + content</b><small>Does the action fit, and is the input safe?</small></div></li><li><span>03</span><div><b>Receipt</b><small>Record the decision before a tool could run.</small></div></li></ol><div id="decision-banner" class="decision-banner" role="status"><span class="decision-icon">→</span><div><b>Run a walkthrough above</b><small>The highlighted path will explain itself.</small></div></div></article>
+    </section>
+    <section class="grid lower"><article class="card receipt-card"><div class="card-head"><div><p class="kicker">TAMPER-EVIDENT RECEIPTS</p><h2>What happened while away</h2></div><button class="link-btn" id="audit">Read-only MCP audit ↗</button></div><div id="receipts" class="receipts"><div class="empty">Run a policy decision to mint the first receipt.</div></div></article><aside class="card model-card"><p class="kicker">THREAT MODEL</p><h2>Default deny.<br>Useful by design.</h2><ul><li><b>Opaque capabilities</b><span>raw credentials never enter model context</span></li><li><b>Content firewall</b><span>DLP and injection patterns stop at the proxy</span></li><li><b>Scoped expiry</b><span>resource and time bounds are structural</span></li><li><b>Signed chain</b><span>receipts make silent mutation detectable</span></li></ul></aside></section>
+    <footer><span>ContextSeal / synthetic demo</span><span>Read-only audit · No secrets · No external tools called</span></footer>
+  </main>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
