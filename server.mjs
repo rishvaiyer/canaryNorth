@@ -24,7 +24,14 @@ function graph() {
     { from: 'vault', to: 'proxy', label: 'server-side lookup' }, { from: 'proxy', to: 'ledger', label: 'signed receipt' }
   ] };
 }
-async function body(req) { let raw = ''; for await (const chunk of req) raw += chunk; if (raw.length > 100_000) throw new Error('payload-too-large'); return raw ? JSON.parse(raw) : {}; }
+async function body(req) {
+  let raw = '';
+  for await (const chunk of req) {
+    raw += chunk;
+    if (raw.length > 100_000) throw new Error('payload-too-large');
+  }
+  return raw ? JSON.parse(raw) : {};
+}
 function makeReceipt(result, request) {
   const prior = receipts.at(-1)?.receiptHash || 'GENESIS';
   const base = { id: `rcpt_${String(++sequence).padStart(4, '0')}`, timestamp: new Date().toISOString(), principal: result.capability?.principal || 'unknown', action: request.action || 'unknown', resource: request.resource || 'unknown', decision: result.allowed ? 'allow' : 'deny', reasonCode: result.allowed ? 'policy-passed' : result.code, capabilityId: request.capabilityId || null, previousReceipt: prior };
@@ -34,7 +41,8 @@ function makeReceipt(result, request) {
 function staticFile(res, pathname) {
   const safe = pathname === '/' ? '/index.html' : pathname;
   const file = path.normalize(path.join(publicDir, safe));
-  if (!file.startsWith(publicDir)) return json(res, 403, { error: 'forbidden' });
+  const relative = path.relative(publicDir, file);
+  if (relative.startsWith('..') || path.isAbsolute(relative)) return json(res, 403, { error: 'forbidden' });
   fs.readFile(file, (err, content) => { if (err) return json(res, 404, { error: 'not-found' }); const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml' }; res.writeHead(200, { 'content-type': types[path.extname(file)] || 'text/plain; charset=utf-8' }); res.end(content); });
 }
 const server = http.createServer(async (req, res) => {
