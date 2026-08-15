@@ -8,4 +8,8 @@ export const NODE_DETAILS = Object.freeze({
   ledger: { type: 'ledger', typeLabel: 'EVIDENCE', title: 'Signed receipt ledger', what: 'Each decision leaves a small receipt with a hash and a link to the previous receipt.', security: 'A tamper-evident chain makes silent edits detectable. This demo ledger is in memory and resets on restart.' }
 });
 export function clampPosition([x, y]) { return [Math.max(52, Math.min(948, Number(x))), Math.max(52, Math.min(508, Number(y)))]; }
-export function demoPath(step) { return [['agent', 'proxy'], ['proxy', 'weather'], ['proxy', 'ledger']][step] || []; }
+export function demoPath(step, allowed = true) {
+  const allowedSteps = [['agent', 'proxy'], ['proxy', 'weather'], ['proxy', 'ledger']];
+  const deniedSteps = [['agent', 'proxy'], ['proxy'], ['proxy', 'ledger']];
+  return (allowed ? allowedSteps : deniedSteps)[step] || [];
+}
