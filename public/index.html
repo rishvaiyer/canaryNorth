@@ -11,18 +11,18 @@
   <main class="shell">
     <header class="topbar">
       <div class="brand"><span class="mark">◈</span><span>ContextSeal</span></div>
-      <span class="eyebrow">AI ACTION RECEIPTS // OPERATOR CONSOLE</span>
+      <span class="eyebrow">AI ACTION RECEIPTS</span>
       <span id="health" class="health">checking…</span>
     </header>
     <section class="hero">
       <div>
-        <p class="kicker">$ contextseal --inspect artifact</p>
-        <h1>Trace the action.<br><em>Trust the output.</em></h1>
+        <p class="kicker">Private provenance for AI work</p>
+        <h1>Know what happened.<br><em>Trust what ships.</em></h1>
         <p class="lede">ContextSeal creates private, tamper-evident action receipts for AI-generated work. This demo shows the policy checkpoint behind each receipt: what ran, what was approved, and why a request stopped.</p>
         <div class="hero-actions" aria-label="Policy walkthroughs">
-          <button class="primary" data-demo="safe">[ run safe path ]</button>
-          <button class="ghost" data-demo="injection">[ inject hostile text ]</button>
-          <button class="ghost" data-demo="dlp">[ inject secret shape ]</button>
+          <button class="primary" data-demo="safe">Run a safe example</button>
+          <button class="ghost" data-demo="injection">Test prompt injection</button>
+          <button class="ghost" data-demo="dlp">Test sensitive input</button>
         </div>
         <label class="demo-toggle"><input id="strict-policy" type="checkbox" checked><span class="toggle-track"></span><span><b>Strict policy checks</b><small>Demo-only: toggle expiry and content screening.</small></span></label>
       </div>
@@ -39,19 +39,19 @@
     </section>
     <section class="card graph-card" aria-labelledby="map-title">
       <div class="card-head graph-head">
-        <div><p class="kicker">01 / LIVE POLICY GRAPH</p><h2 id="map-title">Watch the request hit the boundary</h2><p class="subhead">Drag a node. Inspect the trust boundary. Fire a synthetic path.</p></div>
-        <div class="map-actions"><span class="status-dot">● LINK ACTIVE</span><button class="small-btn" id="reset-layout">reset graph</button></div>
+        <div><p class="kicker">01 / HOW A REQUEST IS CHECKED</p><h2 id="map-title">See the trust boundary</h2><p class="subhead">Select a component to understand its role, then run an example below.</p></div>
+        <div class="map-actions"><span class="status-dot">● POLICY ONLINE</span><button class="small-btn" id="reset-layout">Reset layout</button></div>
       </div>
       <div class="map-workspace"><div id="graph" class="graph" aria-label="Interactive permission graph"></div><aside id="inspector" class="inspector" aria-live="polite"></aside></div>
       <div class="map-help"><span><kbd>drag</kbd> move a node</span><span><kbd>click</kbd> inspect it</span><span><kbd>tab</kbd> focus · <kbd>arrows</kbd> nudge</span></div>
       <div class="legend"><span><i class="agent"></i>agent context</span><span><i class="proxy"></i>policy boundary</span><span><i class="tool"></i>tool</span><span><i class="vault"></i>secret vault</span><span><i class="ledger"></i>receipt ledger</span></div>
     </section>
     <section class="grid metrics-grid">
-      <article class="card caps-card"><div class="card-head"><div><p class="kicker">02 / CAPABILITY TABLE</p><h2>Least privilege, visible</h2></div><span class="count" id="cap-count">0</span></div><div id="capabilities" class="cap-list"></div></article>
-      <article class="card walkthrough-card"><div class="card-head"><div><p class="kicker">03 / EXECUTION TRACE</p><h2>Three checks. One receipt.</h2></div><span class="step-count" id="walkthrough-step">READY</span></div><ol class="walkthrough"><li><span>01</span><div><b>Capability</b><small>Is the opaque reference known and still alive?</small></div></li><li><span>02</span><div><b>Scope + content</b><small>Does the action fit, and is the input safe?</small></div></li><li><span>03</span><div><b>Receipt</b><small>Record the decision before a tool could run.</small></div></li></ol><div id="decision-banner" class="decision-banner" role="status"><span class="decision-icon">→</span><div><b>Awaiting synthetic path</b><small>Run a command above to stream the verdict.</small></div></div></article>
+      <article class="card caps-card"><div class="card-head"><div><p class="kicker">02 / WHAT THE AGENT CAN USE</p><h2>Permissions, made visible</h2></div><span class="count" id="cap-count">0</span></div><div id="capabilities" class="cap-list"></div></article>
+      <article class="card walkthrough-card"><div class="card-head"><div><p class="kicker">03 / THE DECISION</p><h2>Three checks. One receipt.</h2></div><span class="step-count" id="walkthrough-step">READY</span></div><ol class="walkthrough"><li><span>01</span><div><b>Capability</b><small>Is this capability known and still valid?</small></div></li><li><span>02</span><div><b>Scope and content</b><small>Does the request fit, and is the input safe?</small></div></li><li><span>03</span><div><b>Receipt</b><small>Record the decision before anything could run.</small></div></li></ol><div id="decision-banner" class="decision-banner" role="status"><span class="decision-icon">→</span><div><b>Waiting for an example</b><small>Run a safe or blocked example to see the result.</small></div></div></article>
     </section>
-    <section class="grid lower"><article class="card receipt-card"><div class="card-head"><div><p class="kicker">04 / RECEIPT STREAM</p><h2>Evidence, not vibes.</h2></div><div class="card-actions"><button class="link-btn" id="export-artifact" disabled>[ bind artifact ]</button><button class="link-btn" id="audit">[ read MCP audit ]</button></div></div><div id="receipts" class="receipts"><div class="empty">// no receipt yet — run a path</div></div></article><aside class="card model-card"><p class="kicker">05 / THREAT MODEL</p><h2>Default deny.<br>Useful by design.</h2><ul><li><b>Opaque capabilities</b><span>raw credentials never enter model context</span></li><li><b>Content firewall</b><span>DLP and injection patterns stop at the proxy</span></li><li><b>Scoped expiry</b><span>resource and time bounds are structural</span></li><li><b>Signed chain</b><span>receipts make silent mutation detectable</span></li></ul></aside></section>
-    <footer><span>ContextSeal / AI Action Receipts / synthetic demo</span><span>Read-only audit · No secrets · No external tools called</span></footer>
+    <section class="grid lower"><article class="card receipt-card"><div class="card-head"><div><p class="kicker">04 / THE EVIDENCE</p><h2>Receipts you can inspect</h2></div><div class="card-actions"><button class="link-btn" id="export-artifact" disabled>Download bound artifact</button><button class="link-btn" id="audit">View MCP audit</button></div></div><div id="receipts" class="receipts"><div class="empty">Run an example to create the first receipt.</div></div></article><aside class="card model-card"><p class="kicker">05 / WHAT IT PROTECTS</p><h2>Useful context.<br>No unnecessary exposure.</h2><ul><li><b>Opaque capabilities</b><span>The model sees a reference, never a raw credential.</span></li><li><b>Content firewall</b><span>Injection and sensitive patterns stop at the boundary.</span></li><li><b>Scoped access</b><span>Every action is limited by tool, resource, and time.</span></li><li><b>Tamper evidence</b><span>Receipts make silent changes detectable.</span></li></ul></aside></section>
+    <footer><span>ContextSeal · AI Action Receipts · synthetic demo</span><span>Read-only audit · No secrets · No external tools called</span></footer>
   </main>
   <div id="toast" role="status" aria-live="polite"></div>
   <script type="module" src="/app.js"></script>
