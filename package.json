@@ -1,0 +1,13 @@
+{
+  "name": "context-seal",
+  "version": "0.1.0",
+  "private": false,
+  "description": "A secretless MCP policy proxy demo with scoped capabilities and tamper-evident receipts.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test",
+    "lint": "node --check server.mjs && node --check src/policy.mjs && node --check public/app.js"
+  },
+  "engines": { "node": ">=20" }
+}
