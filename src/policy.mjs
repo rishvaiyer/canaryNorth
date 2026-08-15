@@ -18,17 +18,17 @@ export const DEMO_CAPABILITIES = [
   {
     id: 'cap_weather_read_7f3d', principal: 'weather-agent', label: 'Forecast reader',
     tool: 'weather.get_forecast', resource: 'weather://nyc', scopes: ['read:forecast'],
-    expiresAt: '2026-08-15T23:59:59.000Z', status: 'active', reason: 'Approved for a synthetic demo forecast.'
+    expiresAt: '2030-08-15T23:59:59.000Z', status: 'active', reason: 'Approved for a synthetic demo forecast.'
   },
   {
     id: 'cap_ticket_update_91ae', principal: 'support-agent', label: 'Ticket updater',
     tool: 'tickets.update', resource: 'ticket://demo-482', scopes: ['write:ticket'],
-    expiresAt: '2026-08-15T18:00:00.000Z', status: 'active', reason: 'Limited to one synthetic support ticket.'
+    expiresAt: '2030-08-15T18:00:00.000Z', status: 'active', reason: 'Limited to one synthetic support ticket.'
   },
   {
     id: 'cap_docs_export_2c18', principal: 'research-agent', label: 'Document exporter',
     tool: 'docs.export', resource: 'docs://public/demo', scopes: ['read:public-doc'],
-    expiresAt: '2026-08-14T18:00:00.000Z', status: 'expired', reason: 'Expired capability retained for audit visibility.'
+    expiresAt: '2025-08-14T18:00:00.000Z', status: 'expired', reason: 'Expired capability retained for audit visibility.'
   }
 ];
 
