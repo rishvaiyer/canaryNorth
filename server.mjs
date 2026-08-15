@@ -9,7 +9,7 @@ const root = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.join(root, 'public');
 const port = Number(process.env.PORT || 4178);
 const isProduction = process.env.NODE_ENV === 'production';
-const demoMode = process.env.CONTEXTSEAL_DEMO_MODE === '1';
+const demoMode = process.env.CONTEXTSEAL_DEMO_MODE === '1' || !isProduction;
 const requireAuth = !demoMode && (isProduction || process.env.CONTEXTSEAL_REQUIRE_AUTH === '1');
 const signingSecret = process.env.RECEIPT_SIGNING_KEY || (isProduction ? null : 'context-seal-dev-signing-key');
 const authToken = process.env.CONTEXTSEAL_AUTH_TOKEN || null;
@@ -65,7 +65,10 @@ function validateAuthorizationRequest(request) {
   if (request.input !== undefined && typeof request.input !== 'string' && (typeof request.input !== 'object' || request.input === null)) throw new Error('invalid-input');
   const input = request.input === undefined ? '' : request.input;
   if (JSON.stringify(input).length > 50_000) throw new Error('input-too-large');
-  return { capabilityId: request.capabilityId, action: request.action, resource: request.resource, input };
+  const demoControls = request.demoControls === undefined ? undefined : request.demoControls;
+  if (demoControls !== undefined && (!demoMode || !demoControls || typeof demoControls !== 'object' || Array.isArray(demoControls))) throw new Error('demo-controls-disabled');
+  if (demoControls && Object.values(demoControls).some((value) => typeof value !== 'boolean')) throw new Error('invalid-demo-controls');
+  return { capabilityId: request.capabilityId, action: request.action, resource: request.resource, input, demoControls };
 }
 function makeReceipt(result, request) {
   const prior = receipts.at(-1)?.receiptHash || 'GENESIS';

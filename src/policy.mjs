@@ -39,13 +39,13 @@ export function inspectInput(input = '') {
   return { clean: !injection && !dlp, injection: injection ? 'prompt-injection' : null, dlp: dlp ? dlp.kind : null };
 }
 
-export function authorize({ capabilityId, action, resource, input = '', now = new Date() }) {
+export function authorize({ capabilityId, action, resource, input = '', now = new Date(), demoControls = {} }) {
   const capability = DEMO_CAPABILITIES.find((item) => item.id === capabilityId);
   if (!capability) return deny('unknown-capability', 'Capability reference is not recognized.', null);
-  if (now >= new Date(capability.expiresAt)) return deny('expired-capability', 'Capability has expired.', capability);
+  if (demoControls.expiry !== false && now >= new Date(capability.expiresAt)) return deny('expired-capability', 'Capability has expired.', capability);
   if (capability.tool !== action) return deny('action-not-allowlisted', 'Tool action is outside the capability allowlist.', capability);
   if (capability.resource !== resource) return deny('resource-out-of-scope', 'Resource is outside the capability scope.', capability);
-  const inspection = inspectInput(input);
+  const inspection = demoControls.contentFirewall === false ? { clean: true, injection: null, dlp: null, bypassed: true } : inspectInput(input);
   if (inspection.injection) return deny('prompt-injection', 'Untrusted instruction pattern was quarantined.', capability, inspection);
   if (inspection.dlp) return deny('dlp-block', `Sensitive ${inspection.dlp} pattern was blocked before tool execution.`, capability, inspection);
   return { allowed: true, reason: 'Policy checks passed.', capability, inspection };
