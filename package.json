@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server.mjs",
     "test": "node --test",
-    "lint": "node --check server.mjs && node --check src/policy.mjs && node --check public/app.js"
+    "lint": "node --check server.mjs && node --check src/policy.mjs && node --check public/app.js && node --check public/graph.mjs"
   },
   "engines": { "node": ">=20" }
 }

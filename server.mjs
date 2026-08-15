@@ -43,7 +43,7 @@ function staticFile(res, pathname) {
   const file = path.normalize(path.join(publicDir, safe));
   const relative = path.relative(publicDir, file);
   if (relative.startsWith('..') || path.isAbsolute(relative)) return json(res, 403, { error: 'forbidden' });
-  fs.readFile(file, (err, content) => { if (err) return json(res, 404, { error: 'not-found' }); const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml' }; res.writeHead(200, { 'content-type': types[path.extname(file)] || 'text/plain; charset=utf-8' }); res.end(content); });
+  fs.readFile(file, (err, content) => { if (err) return json(res, 404, { error: 'not-found' }); const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml' }; res.writeHead(200, { 'content-type': types[path.extname(file)] || 'text/plain; charset=utf-8' }); res.end(content); });
 }
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
