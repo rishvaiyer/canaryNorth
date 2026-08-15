@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { authorize, inspectInput, signReceipt } from '../src/policy.mjs';
+import { authorize, hashReceipt, inspectInput, signReceipt } from '../src/policy.mjs';
 
 const base = { capabilityId: 'cap_weather_read_7f3d', action: 'weather.get_forecast', resource: 'weather://nyc' };
 test('allows an in-scope synthetic action', () => assert.equal(authorize({ ...base, now: new Date('2026-08-15T12:00:00Z') }).allowed, true));
@@ -11,3 +11,4 @@ test('blocks prompt injection before forwarding', () => assert.equal(authorize({
 test('blocks credential-shaped data', () => assert.equal(authorize({ ...base, input: 'client_secret=sk_live_123456789012345', now: new Date('2026-08-15T12:00:00Z') }).code, 'dlp-block'));
 test('inspection returns no raw input', () => assert.deepEqual(inspectInput('safe synthetic forecast'), { clean: true, injection: null, dlp: null }));
 test('receipt signatures are deterministic for a fixed secret', () => assert.equal(signReceipt({ id: 'x' }, 'demo'), signReceipt({ id: 'x' }, 'demo')));
+test('receipt hashes retain full SHA-256 strength', () => assert.equal(hashReceipt({ id: 'x' }).length, 64));

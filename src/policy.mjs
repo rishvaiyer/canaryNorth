@@ -56,4 +56,4 @@ function deny(code, message, capability, inspection = { clean: false, injection:
 }
 
 export function signReceipt(receipt, secret) { return crypto.createHmac('sha256', secret).update(JSON.stringify(receipt)).digest('hex'); }
-export function hashReceipt(receipt) { return crypto.createHash('sha256').update(JSON.stringify(receipt)).digest('hex').slice(0, 16); }
+export function hashReceipt(receipt) { return crypto.createHash('sha256').update(JSON.stringify(receipt)).digest('hex'); }
