@@ -15,14 +15,30 @@ const signingSecret = process.env.RECEIPT_SIGNING_KEY || (isProduction ? null : 
 const authToken = process.env.CONTEXTSEAL_AUTH_TOKEN || null;
 if (isProduction && !demoMode && (!signingSecret || signingSecret.length < 32)) throw new Error('RECEIPT_SIGNING_KEY must be at least 32 characters in production');
 if (requireAuth && (!authToken || authToken.length < 32)) throw new Error('CONTEXTSEAL_AUTH_TOKEN must be at least 32 characters when authentication is enabled');
+const ledgerPath = process.env.RECEIPT_LEDGER_PATH || null;
+if (isProduction && !demoMode && !ledgerPath) throw new Error('RECEIPT_LEDGER_PATH is required outside synthetic demo mode');
 const startedAt = new Date().toISOString();
-const receipts = [];
 let sequence = 0;
+const receipts = loadReceipts();
 const requestWindows = new Map();
 const MAX_REQUESTS_PER_MINUTE = 60;
 
-function securityHeaders() { return { 'content-security-policy': "default-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'", 'x-content-type-options': 'nosniff', 'x-frame-options': 'DENY', 'referrer-policy': 'no-referrer', 'permissions-policy': 'camera=(), microphone=(), geolocation=()' }; }
+function securityHeaders() { return { 'content-security-policy': "default-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'", 'x-content-type-options': 'nosniff', 'x-frame-options': 'DENY', 'referrer-policy': 'no-referrer', 'permissions-policy': 'camera=(), microphone=(), geolocation=()', ...(isProduction ? { 'strict-transport-security': 'max-age=31536000; includeSubDomains' } : {}) }; }
 function json(res, status, body) { res.writeHead(status, { ...securityHeaders(), 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }); res.end(JSON.stringify(body)); }
+function loadReceipts() {
+  if (!ledgerPath) return [];
+  fs.mkdirSync(path.dirname(ledgerPath), { recursive: true });
+  if (!fs.existsSync(ledgerPath)) return [];
+  const entries = fs.readFileSync(ledgerPath, 'utf8').split('\n').filter(Boolean).map((line) => JSON.parse(line));
+  for (const entry of entries) if (!entry?.receipt?.receiptHash || !entry.receipt.signature) throw new Error('receipt-ledger-integrity-failure');
+  sequence = entries.reduce((max, entry) => Math.max(max, Number(entry.receipt.id?.replace('rcpt_', '')) || 0), 0);
+  return entries;
+}
+function persistReceipt(entry) {
+  if (!ledgerPath) return;
+  const fd = fs.openSync(ledgerPath, 'a');
+  try { fs.writeSync(fd, `${JSON.stringify(entry)}\n`); fs.fsyncSync(fd); } finally { fs.closeSync(fd); }
+}
 function graph() {
   return { nodes: [
     { id: 'agent', label: 'Agent context', type: 'agent', note: 'opaque refs only' }, { id: 'proxy', label: 'ContextSeal', type: 'proxy', note: 'policy + DLP + expiry' },
@@ -41,7 +57,7 @@ async function body(req) {
   }
   return raw ? JSON.parse(raw) : {};
 }
-function clientKey(req) { return req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || 'unknown'; }
+function clientKey(req) { return req.socket.remoteAddress || 'unknown'; }
 function rateLimited(req) {
   const now = Date.now();
   const key = clientKey(req);
@@ -49,6 +65,7 @@ function rateLimited(req) {
   if (now - window.startedAt >= 60_000) { window.startedAt = now; window.count = 0; }
   window.count += 1;
   requestWindows.set(key, window);
+  if (requestWindows.size > 10_000) for (const [entryKey, entry] of requestWindows) if (now - entry.startedAt >= 60_000) requestWindows.delete(entryKey);
   return window.count > MAX_REQUESTS_PER_MINUTE;
 }
 function authorized(req) {
@@ -69,6 +86,11 @@ function validateAuthorizationRequest(request) {
   if (demoControls !== undefined && (!demoMode || !demoControls || typeof demoControls !== 'object' || Array.isArray(demoControls))) throw new Error('demo-controls-disabled');
   if (demoControls && Object.values(demoControls).some((value) => typeof value !== 'boolean')) throw new Error('invalid-demo-controls');
   return { capabilityId: request.capabilityId, action: request.action, resource: request.resource, input, demoControls };
+}
+function validateAuditRequest(request) {
+  if (!request || Array.isArray(request) || typeof request !== 'object' || request.method !== 'contextseal.audit') throw new Error('read-only-audit-method-required');
+  if (request.id !== undefined && request.id !== null && !['string', 'number'].includes(typeof request.id)) throw new Error('invalid-jsonrpc-id');
+  return request;
 }
 function makeReceipt(result, request) {
   const prior = receipts.at(-1)?.receiptHash || 'GENESIS';
@@ -93,11 +115,12 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === 'GET' && url.pathname === '/api/bootstrap') return json(res, 200, { capabilities: DEMO_CAPABILITIES.map(({ id, principal, label, tool, resource, scopes, expiresAt, status, reason }) => ({ id, principal, label, tool, resource, scopes, expiresAt, status, reason })), graph: graph(), receipts });
     if (req.method === 'GET' && url.pathname === '/api/receipts') return json(res, 200, { receipts });
-    if (req.method === 'POST' && url.pathname === '/api/authorize') { const request = validateAuthorizationRequest(await body(req)); const result = authorize(request); const receipt = makeReceipt(result, request); receipts.push({ receipt, execution: result.allowed ? 'would-forward-to-tool' : 'quarantined' }); return json(res, result.allowed ? 200 : 403, { allowed: result.allowed, reason: result.reason, code: result.code, inspection: result.inspection, receipt: { ...receipt, signature: `${receipt.signature.slice(0, 14)}…` } }); }
-    if (req.method === 'POST' && url.pathname === '/mcp/audit') { const request = await body(req); if (request.method !== 'contextseal.audit') return json(res, 400, { error: 'read-only-audit-method-required' }); return json(res, 200, { jsonrpc: '2.0', result: { service: 'context-seal', capabilities: DEMO_CAPABILITIES.length, receipts: receipts.map(({ receipt }) => receipt), policy: 'deny-by-default' }, id: request.id ?? 1 }); }
+    if (req.method === 'POST' && !req.headers['content-type']?.toLowerCase().startsWith('application/json')) return json(res, 415, { error: 'application-json-required' });
+    if (req.method === 'POST' && url.pathname === '/api/authorize') { const request = validateAuthorizationRequest(await body(req)); const result = authorize(request); const receipt = makeReceipt(result, request); const entry = { receipt, execution: result.allowed ? 'would-forward-to-tool' : 'quarantined' }; persistReceipt(entry); receipts.push(entry); return json(res, result.allowed ? 200 : 403, { allowed: result.allowed, reason: result.reason, code: result.code, inspection: result.inspection, receipt: { ...receipt, signature: `${receipt.signature.slice(0, 14)}…` } }); }
+    if (req.method === 'POST' && url.pathname === '/mcp/audit') { const request = validateAuditRequest(await body(req)); return json(res, 200, { jsonrpc: '2.0', result: { service: 'context-seal', capabilities: DEMO_CAPABILITIES.length, receipts: receipts.map(({ receipt }) => receipt), policy: 'deny-by-default' }, id: request.id ?? 1 }); }
     if (req.method === 'GET') return staticFile(res, url.pathname);
     return json(res, 405, { error: 'method-not-allowed' });
-  } catch (error) { return json(res, error.message === 'payload-too-large' ? 413 : 400, { error: 'invalid-request', detail: error.message }); }
+  } catch (error) { const status = error.message === 'payload-too-large' || error.message === 'input-too-large' ? 413 : error.message === 'receipt-ledger-integrity-failure' ? 503 : 400; return json(res, status, { error: status === 503 ? 'service-unavailable' : 'invalid-request', ...(isProduction ? {} : { detail: error.message }) }); }
 });
 server.requestTimeout = 15_000;
 server.headersTimeout = 10_000;

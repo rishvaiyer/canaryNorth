@@ -28,7 +28,9 @@ Set `RECEIPT_SIGNING_KEY` in a real deployment. The development fallback is inte
 
 Production mode (`NODE_ENV=production`) fails closed unless `RECEIPT_SIGNING_KEY` and `CONTEXTSEAL_AUTH_TOKEN` are set to values at least 32 characters long. Authenticated requests use `Authorization: Bearer <CONTEXTSEAL_AUTH_TOKEN>`. `CONTEXTSEAL_DEMO_MODE=1` is an explicit exception for this public synthetic demo only; it must never be used for real workloads or real receipts. Local development remains an explicitly unauthenticated synthetic demo unless `CONTEXTSEAL_REQUIRE_AUTH=1` is set.
 
-The hosted synthetic demo is [context-seal-production.up.railway.app](https://context-seal-production.up.railway.app/). It contains no external tool connection, real capability store, identity provider, or user data. A real deployment must disable demo mode and add identity-bound authorization before exposing receipt APIs.
+Outside demo mode, `RECEIPT_LEDGER_PATH` is also required. The service fsyncs an append-only JSONL receipt ledger and refuses to start if the ledger is missing or malformed. Mount that path on durable, access-controlled storage; an ephemeral container filesystem is not an audit store.
+
+The hosted synthetic demo is [context-seal-production.up.railway.app](https://context-seal-production.up.railway.app/). It contains no external tool connection, real capability store, identity provider, or user data. A real deployment must disable demo mode, add identity-bound authorization, configure durable ledger storage, and complete an independent security review before exposing receipt APIs.
 
 ## API
 
