@@ -19,7 +19,7 @@ export function verifyToolAttestation(manifest, expected = {}) {
   const actualCapabilities = [...(manifest.capabilities || [])].sort();
   if (expectedCapabilities.length && JSON.stringify(expectedCapabilities) !== JSON.stringify(actualCapabilities)) return result(false, 'tool-attestation-capability-drift');
   if (typeof manifest.digest !== 'string' || !manifest.digest.startsWith('sha256:')) return result(false, 'tool-attestation-digest-missing');
-  return result(true, 'tool-attestation-passed', { tool: manifest.tool, version: manifest.version });
+  return result(true, 'tool-attestation-passed', { tool: manifest.tool, version: manifest.version, verificationMode: 'structural-metadata-only' });
 }
 
 export function evaluateMemoryContext({ originTrust, tenantId, workspaceId, policyVersion, currentPolicyVersion, ageSeconds, maxAgeSeconds = 3600, expectedTenantId, expectedWorkspaceId } = {}) {
@@ -36,7 +36,7 @@ export function evaluateProvenanceBoundary({ sourceTrust, sourceId, destinationA
   if (!sourceId || !destinationAgentId || destinationAgentId !== intendedRecipient) return result(false, 'provenance-recipient-mismatch');
   if (expectedRecipient && destinationAgentId !== expectedRecipient) return result(false, 'provenance-destination-not-capability');
   if (authority !== 'delegated' || delegated !== true) return result(false, 'provenance-delegation-missing');
-  return result(true, 'provenance-boundary-passed', { authorityPreserved: true });
+  return result(true, 'provenance-boundary-passed', { authorityPreserved: true, verificationMode: 'metadata-only' });
 }
 
 export function evaluateCanaryRequest({ resource, canaryResource = 'canary://synthetic-protected-resource' } = {}) {

@@ -13,7 +13,7 @@
 |---|---|---|
 | Prompt injection attempts to override policy | injection quarantine before forwarding | Pattern detector is not a full classifier |
 | Hidden or direction-changing content | Unicode control-character signal and quarantine | Benign documents may require human review; this is not image steganography detection |
-| Tool shadowing or fake tool metadata | Tool-shaped metadata signal plus deny-before-forwarding | Structured descriptors need independent signature and registry verification |
+| Tool shadowing or fake tool metadata | Tool-shaped metadata signal plus deny-before-forwarding | The optional descriptor check is structural metadata consistency only; independent cryptographic signature and registry verification are not connected |
 | Memory poisoning | Durable-memory mutation cue is quarantined | No production memory service is connected |
 | Broad export or exfiltration intent | Protected-data export signal and deny-before-forwarding | Custom data classes require broader DLP coverage |
 | Unsafe active-content output format | HTML/script and executable-format signal | Output sanitization is still required at every renderer |
@@ -26,6 +26,7 @@
 | Evidence package tampering or key misuse | AES-256-GCM envelope encryption, manifest and content hashes, local decrypt, separate integrity signature | Key custody, rotation, recovery, and deletion are not implemented as a managed service |
 | Steganographic or malware content | Canonical event types and explicit `signal` or `not-run` labels | No live steganography or malware scanner is connected |
 | Model drift or unusual agent behavior | Planned redacted-feature baseline and shadow-mode risk scoring | No trained model or labeled production corpus is shipped |
+| Forged delegation or provenance metadata | Optional provenance recipient, delegation, and source-trust checks | Current checks are metadata-only predicates, not cryptographic proof of signer, delegation expiry, or replay resistance |
 
 ## Production hardening checklist
 
