@@ -4,7 +4,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { DEMO_CAPABILITIES, POLICY_VERSION, authorize, hashReceipt, signReceipt } from './src/policy.mjs';
-import { artifactManifest, verifyArtifact } from './src/artifacts.mjs';
+import { artifactManifest, verifyApprovedArtifact, verifyArtifact } from './src/artifacts.mjs';
 import { createReceiptStore } from './src/storage.mjs';
 import { createApprovalStore } from './src/approvals.mjs';
 import { createEvidenceEvent, createEvidencePackage } from './src/evidence.mjs';
@@ -213,6 +213,10 @@ function validateArtifactRequest(request) {
 function validateVerifyRequest(request) {
   if (!request || Array.isArray(request) || typeof request !== 'object') throw new Error('request-object-required');
   if (typeof request.filename !== 'string' || typeof request.content !== 'string' || !request.manifest || typeof request.manifest !== 'object') throw new Error('artifact-package-required');
+  if (request.approved !== undefined) {
+    if (!request.approved || typeof request.approved !== 'object' || typeof request.approved.filename !== 'string' || typeof request.approved.content !== 'string' || !request.approved.manifest || typeof request.approved.manifest !== 'object') throw new Error('approved-artifact-package-required');
+    if (request.approved.content.length > 100_000 || request.content.length > 100_000) throw new Error('artifact-content-too-large');
+  }
   return request;
 }
 function validateEvidencePackageRequest(request) {
@@ -328,7 +332,7 @@ const server = http.createServer(async (req, res) => {
       return json(res, result.allowed ? 200 : 403, { allowed: result.allowed, status: 'approved', approvalId, reason: result.allowed ? 'Human approval accepted and policy checks passed.' : result.reason, code: result.allowed ? 'approved' : result.code, execution: result.allowed ? 'would-forward-to-tool' : 'quarantined', inspection: result.inspection, receipt: { ...entry.receipt, signature: `${entry.receipt.signature.slice(0, 14)}…` } });
     }
     if (req.method === 'POST' && url.pathname === '/api/artifacts/export') { const request = validateArtifactRequest(await body(req)); const headerScope = scopeForRequest(req); if (!demoMode && (request.tenantId !== headerScope.tenantId || request.workspaceId !== headerScope.workspaceId)) throw new Error('scope-binding-required'); const entry = await receiptStore.findByReceiptId(request.receiptId, { tenantId: request.tenantId, workspaceId: request.workspaceId }); if (!entry) return json(res, 404, { error: 'receipt-not-found' }); if (entry.receipt.decision !== 'allow') return json(res, 409, { error: 'artifact-requires-allowed-receipt' }); const manifest = artifactManifest({ filename: request.filename, content: request.content, receipt: entry.receipt, secret: signingSecret }); return json(res, 200, { artifact: { filename: request.filename, content: request.content }, manifest }); }
-    if (req.method === 'POST' && url.pathname === '/api/artifacts/verify') { const request = validateVerifyRequest(await body(req)); return json(res, 200, verifyArtifact({ ...request, secret: signingSecret })); }
+    if (req.method === 'POST' && url.pathname === '/api/artifacts/verify') { const request = validateVerifyRequest(await body(req)); const result = request.approved ? verifyApprovedArtifact({ approved: request.approved, observed: { filename: request.filename, content: request.content, manifest: request.manifest }, secret: signingSecret }) : verifyArtifact({ ...request, secret: signingSecret }); return json(res, 200, result); }
     if (req.method === 'POST' && url.pathname === '/api/evidence/package') {
       if (!evidenceWrappingKey) return json(res, 503, { error: 'evidence-export-unconfigured', reason: 'Configure CONTEXTSEAL_EVIDENCE_WRAPPING_KEY before enabling encrypted evidence export.' });
       const request = validateEvidencePackageRequest(await body(req));

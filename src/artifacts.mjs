@@ -29,3 +29,18 @@ export function verifyArtifact({ filename, content, manifest, secret }) {
   const validSignature = expected.signature === manifest.signature;
   return { valid: validHash && validManifest && validSignature, checks: { artifactHash: validHash, manifestHash: validManifest, signature: validSignature } };
 }
+
+export function verifyApprovedArtifact({ approved, observed, secret }) {
+  if (!approved || !observed) return { valid: false, reason: 'approved-and-observed-packages-required' };
+  const approvedIntegrity = verifyArtifact({ ...approved, secret });
+  const observedIntegrity = verifyArtifact({ ...observed, secret });
+  const exactArtifact = approved.manifest?.artifactHash === observed.manifest?.artifactHash && approved.filename === observed.filename;
+  const sameReceipt = approved.manifest?.receiptId === observed.manifest?.receiptId && approved.manifest?.receiptHash === observed.manifest?.receiptHash;
+  const approvedDecision = approved.manifest?.decision === 'allow';
+  const valid = approvedIntegrity.valid && observedIntegrity.valid && exactArtifact && sameReceipt && approvedDecision;
+  return {
+    valid,
+    reason: valid ? 'approved-artifact-matches-observed' : 'approved-artifact-drift',
+    checks: { approvedIntegrity: approvedIntegrity.valid, observedIntegrity: observedIntegrity.valid, exactArtifact, sameReceipt, approvedDecision }
+  };
+}

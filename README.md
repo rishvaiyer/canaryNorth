@@ -56,7 +56,7 @@ Connect the database service's `DATABASE_URL` to the app service using Railway's
 
 The hosted synthetic demo is [context-seal-production.up.railway.app](https://context-seal-production.up.railway.app/). It contains no external tool connection, real capability store, identity provider, or user data. A real deployment must disable demo mode, add identity-bound authorization, configure durable ledger storage, and complete an independent security review before exposing receipt APIs.
 
-The first three real metadata-policy evaluator slices are explained in [`DEFENSE_EVALUATORS_FOR_HUMANS.md`](./DEFENSE_EVALUATORS_FOR_HUMANS.md): Causal Cut, Trust Debt, and Delegation Expiry. They are deterministic authorization gates, not malware scanners or trained ML.
+The first three real metadata-policy evaluator slices are explained in [`DEFENSE_EVALUATORS_FOR_HUMANS.md`](./DEFENSE_EVALUATORS_FOR_HUMANS.md): Causal Cut, Trust Debt, and Delegation Expiry. They are deterministic authorization gates, not malware scanners or trained ML. Artifact verification now also supports an approved-versus-observed comparison for the private `Shadow Invoice` rehearsal.
 
 ## API
 
