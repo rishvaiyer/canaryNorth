@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#081a2a">
-  <title>ContextSeal — AI Action Receipts</title>
+  <title>ContextSeal - AI Action Receipts</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
@@ -23,6 +23,7 @@
           <button class="primary" data-demo="safe">Run a safe example</button>
           <button class="ghost" data-demo="injection">Test prompt injection</button>
           <button class="ghost" data-demo="dlp">Test sensitive input</button>
+          <a class="ghost" href="/pen-entry.html">Project Pentesting <span aria-hidden="true">↗</span></a>
         </div>
         <label class="demo-toggle"><input id="strict-policy" type="checkbox" checked><span class="toggle-track"></span><span><b>Strict policy checks</b><small>Demo-only: toggle expiry and content screening.</small></span></label>
       </div>
@@ -33,6 +34,39 @@
         <p class="principle-note">The agent can ask. It never receives the key. The receipt records the decision without exposing it.</p>
       </div>
     </section>
+    <section class="card approval-card" aria-labelledby="approval-title" aria-describedby="approval-boundary">
+      <div class="card-head approval-head">
+        <div>
+          <p class="kicker">01 / HUMAN APPROVAL</p>
+          <h2 id="approval-title">Review a synthetic ticket update</h2>
+          <p class="subhead">Request a decision for one scoped support-ticket change, then record whether the human reviewer approves or denies it.</p>
+        </div>
+        <span class="badge">NO REAL TOOL RUNS</span>
+      </div>
+      <div id="approval-boundary" class="approval-boundary"><strong>Synthetic only.</strong> This workflow changes an approval record for demo ticket <code>demo-482</code>. It never calls a ticket system, changes a real ticket, or runs an external tool.</div>
+      <div id="approval-status" class="approval-status" role="status" aria-live="polite" aria-atomic="true">
+        <div class="approval-status-main"><span class="approval-status-dot" aria-hidden="true"></span><div><strong>No approval requested</strong><p>Request a synthetic update to begin.</p></div></div>
+      </div>
+      <div class="approval-actions">
+        <button class="primary" id="request-approval" type="button" aria-label="Request approval for the synthetic ticket update">Request approval</button>
+        <div class="approval-decision-actions" aria-label="Synthetic approval decision">
+          <button class="small-btn approve-btn" id="approve-approval" type="button" aria-label="Approve the synthetic ticket update" hidden>Approve</button>
+          <button class="small-btn deny-btn" id="deny-approval" type="button" aria-label="Deny the synthetic ticket update" hidden>Deny</button>
+        </div>
+      </div>
+      <p id="approval-error" class="approval-error" role="alert" hidden></p>
+      <div id="approval-history" class="approval-history" aria-live="polite"></div>
+    </section>
+    <section id="evidence-ledger" class="card evidence-card" aria-labelledby="evidence-title">
+      <div class="card-head evidence-head">
+        <div><p class="kicker">02 / HUMAN-FACING EVIDENCE</p><h2 id="evidence-title">What the human sees</h2><p class="subhead">A readable ledger for reviewing safe event categories, decisions, and references without opening sensitive payloads.</p></div>
+        <span class="badge">SYNTHETIC EXAMPLES</span>
+      </div>
+      <div class="evidence-owner-summary" role="status"><span class="evidence-summary-icon" aria-hidden="true">✓</span><div><strong>Six example events, one calm review surface</strong><p>Start with category, severity, status, and reason. Open a safe detail view only when you need more context.</p></div></div>
+      <div class="evidence-warning" role="note"><strong>Raw payloads are not shown.</strong> These rows contain synthetic metadata and safe summaries. A hash helps identify evidence, but it is not the original content.</div>
+      <div id="evidence-events" class="evidence-events" role="list" aria-label="Synthetic evidence ledger events"></div>
+      <div class="evidence-export"><div><strong>Local export and decryption</strong><p>The export control below downloads a synthetic artifact and its receipt sidecar to your device. This browser page does not securely store a private key, and no decryption happens here. A real encrypted export would need an explicit key-management flow outside this demo.</p></div><a class="link-btn" href="#evidence-receipts">See receipt references</a></div>
+    </section>
     <section class="grid" aria-label="AI provenance receipt preview">
       <article class="card"><div class="card-head"><div><p class="kicker">AI ACTION RECEIPT</p><h2>One artifact. A readable chain of trust.</h2><p class="subhead">A private receipt explains the work without exposing the person, prompt, or secret behind it.</p></div><span class="badge">SYNTHETIC</span></div><div class="cap-list"><div class="cap active"><div class="cap-title"><span>weather-brief.md</span><span class="badge">PROVENANCE READY</span></div><div class="cap-meta">generated by <b>forecast-agent</b><br>tool path <b>weather.get_forecast</b> → signed receipt<br>artifact hash <b>sha256: demo-bound</b></div><small>Sources: public synthetic forecast · approval: policy passed · verification: tool path verified</small></div></div></article>
       <aside class="card model-card"><p class="kicker">WHY THIS MATTERS</p><h2>AI work, with the fog lifted.</h2><ul><li><b>Process, not identity</b><span>Provenance without doxxing or secret leakage.</span></li><li><b>Evidence, not vibes</b><span>Every decision leaves a signed, chained receipt.</span></li><li><b>Honest uncertainty</b><span>Unverified claims stay visible instead of becoming fake confidence.</span></li></ul></aside>
@@ -40,17 +74,22 @@
     <section class="card graph-card" aria-labelledby="map-title">
       <div class="card-head graph-head">
         <div><p class="kicker">01 / HOW A REQUEST IS CHECKED</p><h2 id="map-title">See the trust boundary</h2><p class="subhead">Select a component to understand its role, then run an example below.</p></div>
-        <div class="map-actions"><span class="status-dot">● POLICY ONLINE</span><button class="small-btn" id="reset-layout">Reset layout</button></div>
+        <div class="map-actions"><span class="status-dot">● POLICY ONLINE</span><button class="small-btn" id="recenter-node">Recenter selected</button><button class="small-btn" id="reset-layout">Reset layout</button></div>
       </div>
       <div class="map-workspace"><div id="graph" class="graph" aria-label="Interactive permission graph"></div><aside id="inspector" class="inspector" aria-live="polite"></aside></div>
-      <div class="map-help"><span><kbd>drag</kbd> move a node</span><span><kbd>click</kbd> inspect it</span><span><kbd>tab</kbd> focus · <kbd>arrows</kbd> nudge</span></div>
+      <div class="scenario-console" aria-label="Guided graph playback">
+        <div class="scenario-console-head"><div><span class="inspect-label">GUIDED PATH</span><p id="scenario-summary" class="scenario-summary">A scoped synthetic request reaches the boundary and would-forward to the allowlisted tool.</p></div><span class="scenario-note">visual guide only · no external tool invoked</span></div>
+        <div class="scenario-controls"><div class="scenario-tabs" role="group" aria-label="Choose a guided scenario"><button class="scenario-tab" data-scenario="safe" aria-pressed="true">Safe request</button><button class="scenario-tab" data-scenario="injection" aria-pressed="false">Prompt injection</button><button class="scenario-tab" data-scenario="dlp" aria-pressed="false">Sensitive input</button></div><div class="playback-controls"><button class="small-btn" id="step-prev" disabled>Previous</button><button class="small-btn play-btn" id="play-scenario" aria-pressed="false">Play path</button><button class="small-btn" id="step-next">Next</button></div></div>
+        <ol id="event-trail" class="event-trail" aria-label="Scenario event trail"></ol>
+      </div>
+      <div class="map-help"><span><kbd>drag</kbd> move a node</span><span><kbd>hover</kbd> trace relationships</span><span><kbd>tab</kbd> focus · <kbd>arrows</kbd> nudge · <kbd>home</kbd> recenter</span></div>
       <div class="legend"><span><i class="agent"></i>agent context</span><span><i class="proxy"></i>policy boundary</span><span><i class="tool"></i>tool</span><span><i class="vault"></i>secret vault</span><span><i class="ledger"></i>receipt ledger</span></div>
     </section>
     <section class="grid metrics-grid">
       <article class="card caps-card"><div class="card-head"><div><p class="kicker">02 / WHAT THE AGENT CAN USE</p><h2>Permissions, made visible</h2></div><span class="count" id="cap-count">0</span></div><div id="capabilities" class="cap-list"></div></article>
       <article class="card walkthrough-card"><div class="card-head"><div><p class="kicker">03 / THE DECISION</p><h2>Three checks. One receipt.</h2></div><span class="step-count" id="walkthrough-step">READY</span></div><ol class="walkthrough"><li><span>01</span><div><b>Capability</b><small>Is this capability known and still valid?</small></div></li><li><span>02</span><div><b>Scope and content</b><small>Does the request fit, and is the input safe?</small></div></li><li><span>03</span><div><b>Receipt</b><small>Record the decision before anything could run.</small></div></li></ol><div id="decision-banner" class="decision-banner" role="status"><span class="decision-icon">→</span><div><b>Waiting for an example</b><small>Run a safe or blocked example to see the result.</small></div></div></article>
     </section>
-    <section class="grid lower"><article class="card receipt-card"><div class="card-head"><div><p class="kicker">04 / THE EVIDENCE</p><h2>Receipts you can inspect</h2></div><div class="card-actions"><button class="link-btn" id="export-artifact" disabled>Download bound artifact</button><button class="link-btn" id="audit">View MCP audit</button></div></div><div id="receipts" class="receipts"><div class="empty">Run an example to create the first receipt.</div></div></article><aside class="card model-card"><p class="kicker">05 / WHAT IT PROTECTS</p><h2>Useful context.<br>No unnecessary exposure.</h2><ul><li><b>Opaque capabilities</b><span>The model sees a reference, never a raw credential.</span></li><li><b>Content firewall</b><span>Injection and sensitive patterns stop at the boundary.</span></li><li><b>Scoped access</b><span>Every action is limited by tool, resource, and time.</span></li><li><b>Tamper evidence</b><span>Receipts make silent changes detectable.</span></li></ul></aside></section>
+    <section id="evidence-receipts" class="grid lower"><article class="card receipt-card"><div class="card-head"><div><p class="kicker">04 / THE EVIDENCE</p><h2>Receipts you can inspect</h2></div><div class="card-actions"><button class="link-btn" id="export-artifact" disabled>Download bound artifact</button><button class="link-btn" id="audit">View MCP audit</button></div></div><div id="receipts" class="receipts"><div class="empty">Run an example to create the first receipt.</div></div></article><aside class="card model-card"><p class="kicker">05 / WHAT IT PROTECTS</p><h2>Useful context.<br>No unnecessary exposure.</h2><ul><li><b>Opaque capabilities</b><span>The model sees a reference, never a raw credential.</span></li><li><b>Content firewall</b><span>Injection and sensitive patterns stop at the boundary.</span></li><li><b>Scoped access</b><span>Every action is limited by tool, resource, and time.</span></li><li><b>Tamper evidence</b><span>Receipts make silent changes detectable.</span></li></ul></aside></section>
     <footer><span>ContextSeal · AI Action Receipts · synthetic demo</span><span>Read-only audit · No secrets · No external tools called</span></footer>
   </main>
   <div id="toast" role="status" aria-live="polite"></div>

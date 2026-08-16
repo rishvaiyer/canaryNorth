@@ -9,5 +9,10 @@
     "test": "node --test",
     "lint": "node --check server.mjs && node --check src/policy.mjs && node --check public/app.js && node --check public/graph.mjs"
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "pg": "^8.23.0"
+  }
 }

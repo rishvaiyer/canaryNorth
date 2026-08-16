@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#081a2a">
+  <title>ContextSeal - Threat Lab</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/threat-lab.css">
+</head>
+<body>
+  <main class="shell threat-shell">
+    <header class="topbar"><a class="brand threat-brand" href="/"><span class="mark">◈</span><span>ContextSeal</span></a><span class="eyebrow">CONTROLLED THREAT LAB</span><a class="health" href="/pen-entry.html">Project Pentesting ↗</a></header>
+    <section class="threat-hero">
+      <div>
+        <p class="kicker">A safe attack rehearsal</p>
+        <h1>Files arrive.<br><em>The guard wakes up.</em></h1>
+        <p class="lede">Watch a controlled, synthetic attack move through the boundary. ContextSeal identifies the signals, stops the dangerous path, and writes a calm human report.</p>
+        <div class="hero-actions"><button class="primary" id="run-lab">Start simulated attack</button><button class="ghost" id="reset-lab">Reset lab</button></div>
+      </div>
+      <div class="safety-card"><span class="badge">SAFE DEMO BOUNDARY</span><h2>No real malware runs here.</h2><p>Every sample is inert metadata or plain text generated in your browser. No executable payloads, real secrets, external tools, or live scanners are used.</p><div class="safety-list"><span>✓ simulated inputs</span><span>✓ no network attack</span><span>✓ redacted evidence</span></div></div>
+    </section>
+
+    <section class="lab-status card" aria-live="polite"><div class="lab-status-main"><span id="guard-dot" class="guard-dot"></span><div><span class="inspect-label">AI SECURITY GUARD</span><h2 id="lab-status-title">Standing by</h2><p id="lab-status-copy">Start the rehearsal to watch five synthetic attack signals move through the guard.</p></div></div><div class="lab-counter"><strong id="blocked-count">0</strong><span>blocked or quarantined</span></div></section>
+
+    <section class="attack-map card" aria-labelledby="map-title"><div class="card-head"><div><p class="kicker">01 / THE ATTACK CHAIN</p><h2 id="map-title">From suspicious file to safe receipt</h2></div><span class="badge" id="chain-badge">READY</span></div><div class="chain"><div class="chain-node" data-chain="drop"><span>01</span><b>File lands</b><small>synthetic fixture</small></div><i>→</i><div class="chain-node" data-chain="inspect"><span>02</span><b>Guard inspects</b><small>signals + policy</small></div><i>→</i><div class="chain-node" data-chain="stop"><span>03</span><b>Path stops</b><small>quarantine</small></div><i>→</i><div class="chain-node" data-chain="ledger"><span>04</span><b>Report saved</b><small>redacted receipt</small></div></div></section>
+
+    <section class="lab-grid" aria-label="Synthetic attack fixtures"><div class="card fixture-card"><div class="card-head"><div><p class="kicker">02 / THE INTRUDERS</p><h2>Five inert attack fixtures</h2></div><span class="count" id="fixture-count">0/5</span></div><div id="fixtures" class="fixtures"></div></div><aside class="card report-card"><div class="card-head"><div><p class="kicker">03 / THE HUMAN REPORT</p><h2>What was found</h2></div><span class="badge">REDACTED</span></div><div id="report-empty" class="report-empty">The guard report will appear here as the rehearsal runs.</div><div id="report" class="report" hidden></div><div class="report-note"><strong>Why redact?</strong><p>The human needs the reason, category, severity, and evidence reference. Repeating a secret or hostile instruction could spread the problem.</p></div></aside></section>
+
+    <section class="card timeline-card"><div class="card-head"><div><p class="kicker">04 / LIVE REHEARSAL</p><h2>Guard timeline</h2></div><span class="scenario-note">visual simulation only</span></div><ol id="lab-timeline" class="lab-timeline"><li class="timeline-empty">No simulated attack has started.</li></ol></section>
+    <footer><span>ContextSeal · Threat Lab · synthetic rehearsal</span><span>No malware generated · no external tools called</span></footer>
+  </main>
+  <script type="module" src="/threat-lab.js"></script>
+</body>
+</html>

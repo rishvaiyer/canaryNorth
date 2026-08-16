@@ -3,4 +3,5 @@
 !.env.example
 data/
 *.jsonl
+node_modules/
 npm-debug.log*

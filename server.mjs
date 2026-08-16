@@ -12,8 +12,8 @@ import { createEvidenceEvent, createEvidencePackage } from './src/evidence.mjs';
 const root = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.join(root, 'public');
 const port = Number(process.env.PORT || 4178);
-const host = process.env.HOST || '127.0.0.1';
 const isProduction = process.env.NODE_ENV === 'production';
+const host = process.env.HOST || (isProduction ? '0.0.0.0' : '127.0.0.1');
 const demoMode = process.env.CONTEXTSEAL_DEMO_MODE === '1' || !isProduction;
 const requireAuth = !demoMode && (isProduction || process.env.CONTEXTSEAL_REQUIRE_AUTH === '1');
 const signingSecret = process.env.RECEIPT_SIGNING_KEY || (isProduction ? null : 'context-seal-dev-signing-key');
@@ -92,6 +92,43 @@ function scopeForRequest(req) {
   if (!demoMode && (!tenantId || !workspaceId)) throw new Error('scope-header-required');
   return { tenantId: tenantId || undefined, workspaceId: workspaceId || undefined };
 }
+function validateAgenticMetadata(request) {
+  const optionalObject = (name) => {
+    const value = request[name];
+    if (value === undefined) return undefined;
+    if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error(`invalid-${name}`);
+    if (JSON.stringify(value).length > 8_000) throw new Error(`${name}-too-large`);
+    return value;
+  };
+  const toolManifest = optionalObject('toolManifest');
+  if (toolManifest) {
+    for (const field of ['schema', 'tool', 'version', 'owner', 'signatureStatus', 'digest']) {
+      if (typeof toolManifest[field] !== 'string' || toolManifest[field].length < 1 || toolManifest[field].length > 256) throw new Error(`invalid-tool-manifest-${field}`);
+    }
+    if (!Array.isArray(toolManifest.capabilities) || toolManifest.capabilities.length > 32 || toolManifest.capabilities.some((value) => typeof value !== 'string' || value.length < 1 || value.length > 128)) throw new Error('invalid-tool-manifest-capabilities');
+  }
+  const memoryContext = optionalObject('memoryContext');
+  if (memoryContext) {
+    for (const field of ['originTrust', 'tenantId', 'workspaceId', 'policyVersion']) {
+      if (memoryContext[field] !== undefined && (typeof memoryContext[field] !== 'string' || memoryContext[field].length < 1 || memoryContext[field].length > 128)) throw new Error(`invalid-memory-${field}`);
+    }
+    for (const field of ['ageSeconds', 'maxAgeSeconds']) {
+      if (memoryContext[field] !== undefined && (!Number.isFinite(memoryContext[field]) || memoryContext[field] < 0 || memoryContext[field] > 31_536_000)) throw new Error(`invalid-memory-${field}`);
+    }
+  }
+  const provenance = optionalObject('provenance');
+  if (provenance) {
+    for (const field of ['sourceTrust', 'sourceId', 'destinationAgentId', 'intendedRecipient', 'authority']) {
+      if (provenance[field] !== undefined && (typeof provenance[field] !== 'string' || provenance[field].length < 1 || provenance[field].length > 256)) throw new Error(`invalid-provenance-${field}`);
+    }
+    if (provenance.delegated !== undefined && typeof provenance.delegated !== 'boolean') throw new Error('invalid-provenance-delegated');
+  }
+  const canaryContext = optionalObject('canaryContext');
+  if (canaryContext && canaryContext.resource !== undefined && (typeof canaryContext.resource !== 'string' || canaryContext.resource.length > 256)) throw new Error('invalid-canary-resource');
+  const adaptiveContext = optionalObject('adaptiveContext');
+  if (adaptiveContext && Object.values(adaptiveContext).some((value) => typeof value !== 'boolean')) throw new Error('invalid-adaptive-context');
+  return { toolManifest, memoryContext, provenance, canaryContext, adaptiveContext };
+}
 function validateAuthorizationRequest(request) {
   if (!request || Array.isArray(request) || typeof request !== 'object') throw new Error('request-object-required');
   if ('now' in request) throw new Error('server-time-only');
@@ -111,6 +148,7 @@ function validateAuthorizationRequest(request) {
   const demoControls = request.demoControls === undefined ? undefined : request.demoControls;
   if (demoControls !== undefined && (!demoMode || !demoControls || typeof demoControls !== 'object' || Array.isArray(demoControls))) throw new Error('demo-controls-disabled');
   if (demoControls && Object.values(demoControls).some((value) => typeof value !== 'boolean')) throw new Error('invalid-demo-controls');
+  const agenticMetadata = validateAgenticMetadata(request);
   return {
     capabilityId: request.capabilityId,
     action: request.action,
@@ -122,7 +160,8 @@ function validateAuthorizationRequest(request) {
     workspaceId: request.workspaceId,
     policyVersion: request.policyVersion,
     nonce: request.nonce,
-    demoControls
+    demoControls,
+    ...agenticMetadata
   };
 }
 function validateApprovalRequest(request) {
