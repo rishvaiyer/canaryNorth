@@ -2,9 +2,9 @@
 
 Every AI-generated file should carry its own provenance, privately.
 
-CanaryNorth is the new product name for this project, formerly ContextSeal. It is a trust and policy layer for AI-generated work. Its proxy keeps raw credentials out of model context while producing signed, hash-chained receipts that explain which actions were approved, which were blocked, and what remains unverified. The current demo is synthetic and shows decision-level receipts plus a portable artifact sidecar.
+CanaryNorth is a trust and policy layer for AI-generated work. Its proxy keeps raw credentials out of model context while producing signed, hash-chained receipts that explain which actions were approved, which were blocked, and what remains unverified. The current demo is synthetic and shows decision-level receipts plus a portable artifact sidecar.
 
-Compatibility note: repository paths, package names, API routes, schemas, database tables, headers, and `CONTEXTSEAL_*` environment variables remain unchanged so existing integrations do not break during the visual rebrand.
+Compatibility note: repository paths, package names, API routes, schemas, database tables, headers, and legacy `CONTEXTSEAL_*` environment variables remain unchanged so existing integrations do not break during the CanaryNorth rebrand.
 
 ## Why it is useful
 
