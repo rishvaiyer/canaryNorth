@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { LEGACY_SIGNATURE_ALGORITHM, SIGNATURE_ALGORITHM, verifyLegacyHmac, verifySignature } from './signing.mjs';
+import { LEGACY_SIGNATURE_ALGORITHM, SIGNATURE_ALGORITHM, createLegacySigner, verifyLegacyHmac, verifySignature } from './signing.mjs';
 
 export function artifactHash(content) {
   return crypto.createHash('sha256').update(content, 'utf8').digest('hex');
@@ -20,15 +20,24 @@ function manifestBase({ filename, content, receipt }) {
   };
 }
 
-export function artifactManifest({ filename, content, receipt, signer }) {
+/**
+ * Build a signed artifact manifest.
+ *
+ * Pass `signer` (preferred), or `secret` for the pre-Ed25519 HMAC path. While
+ * the Ed25519 toggle is off, the emitted manifest is byte-identical to what
+ * shipped before this module changed: no signatureAlgorithm, no keyId.
+ */
+export function artifactManifest({ filename, content, receipt, signer, secret }) {
+  const active = signer || createLegacySigner(secret);
   const base = manifestBase({ filename, content, receipt });
   const manifestHash = crypto.createHash('sha256').update(JSON.stringify(base)).digest('hex');
   const signed = { ...base, manifestHash };
+  if (active.legacy) return { ...signed, signature: active.sign(signed) };
   return {
     ...signed,
-    signatureAlgorithm: signer.algorithm,
-    keyId: signer.keyId,
-    signature: signer.sign(signed)
+    signatureAlgorithm: active.algorithm,
+    keyId: active.keyId,
+    signature: active.sign(signed)
   };
 }
 

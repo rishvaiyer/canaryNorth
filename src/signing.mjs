@@ -17,6 +17,36 @@ import crypto from 'node:crypto';
 // HMAC verification is retained ONLY so receipts issued before this change still
 // verify. Nothing signs with HMAC anymore.
 
+// ---------------------------------------------------------------------------
+// TOGGLE: Ed25519 signing is OFF by default.
+//
+// While it is off, CanaryNorth behaves exactly as it did before this module
+// existed: receipts and manifests are signed with HMAC-SHA256 using
+// RECEIPT_SIGNING_KEY, they carry no signatureAlgorithm or keyId field,
+// /api/signing-key is not served, and /health reports no signing block. The
+// deployed demo and open PR are unaffected until this is switched on.
+//
+// Turn it ON, either way:
+//
+//   1. One run only, no file edits:
+//        CONTEXTSEAL_ED25519=1 npm start
+//
+//   2. Always on: change the line below from `false` to `true`.
+//        const ED25519_ENABLED_BY_DEFAULT = true;
+//
+// Turn it OFF again: drop the variable, or set the line back to `false`.
+//
+// Before switching it on in production, set CONTEXTSEAL_SIGNING_KEY to a stable
+// key. Without one, an ephemeral key is generated per process and receipts stop
+// verifying after a restart. /health and /api/signing-key both report that.
+// ---------------------------------------------------------------------------
+
+const ED25519_ENABLED_BY_DEFAULT = false;
+
+export function ed25519Enabled(env = process.env) {
+  return ED25519_ENABLED_BY_DEFAULT || env.CONTEXTSEAL_ED25519 === '1';
+}
+
 export const SIGNATURE_ALGORITHM = 'ed25519';
 export const LEGACY_SIGNATURE_ALGORITHM = 'hmac-sha256';
 
@@ -54,7 +84,13 @@ function normalizePrivateKey(material) {
  *   changes on restart, so receipts signed before a restart stop verifying. The
  *   caller is expected to surface that fact rather than hide it.
  */
-export function createSigner({ privateKey, allowEphemeral = false } = {}) {
+export function createSigner({ privateKey, allowEphemeral = false, enabled = ed25519Enabled(), legacySecret } = {}) {
+  // Toggle off: hand back a legacy HMAC signer wearing the same interface, so
+  // every call site stays identical and the emitted bytes match what shipped
+  // before Ed25519 existed. `legacy: true` is how callers suppress the new
+  // signatureAlgorithm and keyId fields.
+  if (!enabled) return createLegacySigner(legacySecret);
+
   let key = normalizePrivateKey(privateKey);
   let ephemeral = false;
   if (!key) {
@@ -80,6 +116,30 @@ export function createSigner({ privateKey, allowEphemeral = false } = {}) {
     },
     verify(payload, signature) {
       return verifySignature({ payload, signature, publicKey: publicKeyPem });
+    }
+  };
+}
+
+/**
+ * The pre-Ed25519 signer, kept behind the same interface.
+ *
+ * Deliberately signs `JSON.stringify(payload)` rather than the canonical form,
+ * because it must reproduce the exact bytes the old implementation produced.
+ */
+export function createLegacySigner(secret) {
+  if (!secret) throw new Error('RECEIPT_SIGNING_KEY is required while Ed25519 signing is disabled');
+  return {
+    algorithm: LEGACY_SIGNATURE_ALGORITHM,
+    legacy: true,
+    keyId: null,
+    ephemeral: false,
+    publicKeyPem: null,
+    publicKeyBase64: null,
+    sign(payload) {
+      return crypto.createHmac('sha256', secret).update(JSON.stringify(payload)).digest('hex');
+    },
+    verify(payload, signature) {
+      return verifyLegacyHmac({ payload, signature, secret });
     }
   };
 }

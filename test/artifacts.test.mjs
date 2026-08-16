@@ -4,7 +4,7 @@ import { artifactManifest, artifactHash, verifyApprovedArtifact, verifyArtifact 
 import { createSigner } from '../src/signing.mjs';
 
 const secret = 'demo-signing-secret';
-const signer = createSigner({ allowEphemeral: true });
+const signer = createSigner({ enabled: true, allowEphemeral: true });
 const publicKey = signer.publicKeyPem;
 const receipt = { id: 'rcpt_0001', receiptHash: 'a'.repeat(64), decision: 'allow', principal: 'weather-agent' };
 const content = '# Synthetic forecast\n';

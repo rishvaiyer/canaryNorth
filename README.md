@@ -60,8 +60,8 @@ The first three real metadata-policy evaluator slices are explained in [`DEFENSE
 
 ## API
 
-- `GET /health` - liveness, active storage mode, and signing posture.
-- `GET /api/signing-key` - the Ed25519 public key used to sign receipts. Unauthenticated by design, because a receipt is only independently verifiable if the verifier can fetch the key without credentials.
+- `GET /health` - liveness and active storage mode, plus signing posture when Ed25519 is enabled.
+- `GET /api/signing-key` - the Ed25519 public key used to sign receipts. Served only when Ed25519 signing is enabled, and unauthenticated by design, because a receipt is only independently verifiable if the verifier can fetch the key without credentials.
 - `GET /api/bootstrap` - redacted capabilities, graph, and scoped receipts.
 - `POST /api/authorize` - evaluate a scoped request and append a receipt.
 - `GET /api/receipts` - read receipts within the request scope.
@@ -89,7 +89,14 @@ That is a practical path toward enterprise-grade controls for small businesses w
 
 ## Receipt signing and independent verification
 
-Receipts and artifact manifests are signed with **Ed25519**. The service holds
+> **Status: built but OFF by default.** Receipts are still signed with
+> HMAC-SHA256 exactly as before. Nothing in this section is active until the
+> toggle is switched on, and the deployed demo is unaffected. Turn it on for one
+> run with `CONTEXTSEAL_ED25519=1`, or permanently by setting
+> `ED25519_ENABLED_BY_DEFAULT = true` in `src/signing.mjs`. Turn it off by
+> undoing either. Tests cover both states.
+
+Once enabled, receipts and artifact manifests are signed with **Ed25519**. The service holds
 the private key; the public key is published at `GET /api/signing-key`. Anyone
 can therefore verify that a receipt is authentic **without holding any material
 that would let them forge one**.
