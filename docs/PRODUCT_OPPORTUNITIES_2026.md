@@ -1,4 +1,4 @@
-# ContextSeal Product Opportunities 2026
+# CanaryNorth Product Opportunities 2026
 
 Date: 2026-08-16
 
@@ -7,7 +7,7 @@ Scope: small-business AI security, where the buyer usually has no dedicated AI s
 Legend:
 
 - Sourced fact means the statement is directly supported by a linked regulator, standards body, or vendor page.
-- Inference means the statement is my judgment about where ContextSeal could win, based on those facts.
+- Inference means the statement is my judgment about where CanaryNorth could win, based on those facts.
 
 ## What the current market says
 
@@ -17,7 +17,7 @@ Legend:
 - Sourced fact: ISO/IEC 42001 is a published AI management system standard, so governance language is no longer hypothetical policy talk.
 - Sourced fact: Microsoft Purview DSPM for AI, Google Workspace DLP, Google Gemini safety tooling, and Google Agent Gateway all show that the big suites are already building native AI controls.
 - Sourced fact: Specialist vendors are crowding the same space from different angles, including Prompt Security, Noma Security, Lakera, Securiti, and PromptArmor.
-- Inference: ContextSeal should not try to be a universal AI firewall. That category is already crowded and mostly enterprise-shaped. The better opening is a narrow, workflow-bound control layer that makes one risky AI action safer, easier to approve, and easier to prove later.
+- Inference: CanaryNorth should not try to be a universal AI firewall. That category is already crowded and mostly enterprise-shaped. The better opening is a narrow, workflow-bound control layer that makes one risky AI action safer, easier to approve, and easier to prove later.
 
 ## Likely alternatives
 
@@ -36,7 +36,7 @@ Legend:
 - Customer: 5 to 100 person service businesses running AI-assisted support, refunds, ticket updates, CRM edits, or report generation.
 - Problem: AI is useful, but the riskiest actions still need a human decision, a clear audit trail, and a simple answer to "who approved what, and why?"
 - Proof needed: One real integration with a ticket or CRM system, one approval path, and one signed receipt that a non-technical manager can understand without a security walkthrough.
-- Why ContextSeal could be different: It already has opaque capabilities, scoped approvals, DLP and injection stops, signed receipts, and a plain-language explainer. That makes it a workflow control layer, not just a detector.
+- Why CanaryNorth could be different: It already has opaque capabilities, scoped approvals, DLP and injection stops, signed receipts, and a plain-language explainer. That makes it a workflow control layer, not just a detector.
 - Risks: Suite vendors may absorb this into their own admin consoles. The product can also become too slow if every action needs a ceremony.
 - Kill gate: If 3 design partners will not route one real risky action through the approval path after a 2-week pilot, stop.
 
@@ -46,7 +46,7 @@ Legend:
 - Customer: Agencies, fractional operators, MSPs, and consultants who send AI-assisted work to clients and need to show provenance without exposing source secrets.
 - Problem: The deliverable is not just the file. It is the proof of what was approved, what was blocked, what data was allowed in, and what remains unverified.
 - Proof needed: One client-facing export that includes the artifact, a signed receipt sidecar, and an approval trail that survives a real review cycle.
-- Why ContextSeal could be different: The portable artifact sidecar is a sharper story than generic DLP. It turns a document into a small, reviewable evidence bundle.
+- Why CanaryNorth could be different: The portable artifact sidecar is a sharper story than generic DLP. It turns a document into a small, reviewable evidence bundle.
 - Risks: This can feel like compliance theater if the receipt never helps a real decision. Clients may not care unless a deal, audit, or dispute is at stake.
 - Kill gate: If no paying team uses the evidence packet to close or defend one real client review, stop.
 
@@ -56,7 +56,7 @@ Legend:
 - Customer: Small teams adopting MCP servers, coding assistants, or agent tools without a dedicated security org.
 - Problem: They need allowlists, scope limits, expiry, and replayable logs around tool use, but they do not want to build a security platform.
 - Proof needed: One real adapter to a common service such as Google Drive or Slack, with a denied path, an approved path, and a receipt that maps to the action.
-- Why ContextSeal could be different: The project is already described as a secretless MCP policy proxy. That is a sharper and more believable opening than a generic AI gateway pitch.
+- Why CanaryNorth could be different: The project is already described as a secretless MCP policy proxy. That is a sharper and more believable opening than a generic AI gateway pitch.
 - Risks: MCP is still early, and customers may not know they need it. A thin shim is easy to copy if it does not solve a concrete workflow.
 - Kill gate: If 3 target users cannot explain the tool risk they want covered, or do not see enough value to try the broker, stop.
 
@@ -66,7 +66,7 @@ Legend:
 - Customer: SMBs that already standardized on Google Workspace or Microsoft 365 but still let people use public AI sites.
 - Problem: Sensitive data gets pasted into AI tools because the user is moving fast and the built-in controls are either too broad, too hidden, or too suite-specific.
 - Proof needed: A browser-visible block on one or two real AI sites, plus an admin-facing receipt or incident log that a manager can review quickly.
-- Why ContextSeal could be different: It can stay focused on the AI action itself, not the whole productivity suite, and it can explain the block in business language instead of security jargon.
+- Why CanaryNorth could be different: It can stay focused on the AI action itself, not the whole productivity suite, and it can explain the block in business language instead of security jargon.
 - Risks: Native suite controls are a strong incumbent here. If the customer is fully standardized on one stack, the suite may already be "good enough."
 - Kill gate: If a customer can get equivalent protection from one native checkbox set and does not need cross-suite evidence, do not expand this wedge.
 
@@ -76,7 +76,7 @@ Legend:
 - Customer: Small and mid-sized buyers that need to review vendor AI claims, data handling, and risk posture before signing contracts.
 - Problem: Vendor questionnaires are slow, duplicative, and hard to keep current because AI products change often.
 - Proof needed: A one-page vendor review that is materially faster than manual review and clearly cites the current vendor docs and recent changes.
-- Why ContextSeal could be different: Pair PromptArmor-style monitoring with ContextSeal-style signed approvals, so the internal decision itself becomes a durable record.
+- Why CanaryNorth could be different: Pair PromptArmor-style monitoring with CanaryNorth-style signed approvals, so the internal decision itself becomes a durable record.
 - Risks: Procurement is a crowded and slow lane. This can drift into a service business unless the workflow is sharply productized.
 - Kill gate: If 10 vendor reviews do not save real time or reduce back-and-forth, stop.
 
@@ -86,7 +86,7 @@ Legend:
 - Customer: Small healthcare billing shops, financial advisors, law firms, real estate offices, and insurance agencies that use AI to draft client-facing messages.
 - Problem: The first draft is cheap. The dangerous part is sending the wrong thing, to the wrong person, with the wrong claim or file attached.
 - Proof needed: Two real approval-gated send flows and one exportable receipt that a supervisor can inspect after the fact.
-- Why ContextSeal could be different: The approval panel and receipt chain give non-security users a visible reason to trust the workflow, not just an invisible policy rule.
+- Why CanaryNorth could be different: The approval panel and receipt chain give non-security users a visible reason to trust the workflow, not just an invisible policy rule.
 - Risks: Vertical compliance expectations can balloon fast. The product can also become too bespoke if every regulated niche asks for a different workflow.
 - Kill gate: If human approval does not measurably reduce mistakes or increase trust in the first pilot, stop.
 
@@ -98,7 +98,7 @@ Legend:
 
 ## Bottom line
 
-- Inference: The strongest ContextSeal wedge is not broad model protection. It is a narrow, business-readable action layer that combines allowlists, approvals, and signed receipts around one high-risk AI workflow.
+- Inference: The strongest CanaryNorth wedge is not broad model protection. It is a narrow, business-readable action layer that combines allowlists, approvals, and signed receipts around one high-risk AI workflow.
 - Inference: The best first customer is someone who already feels the pain of "AI helped, but now I need proof and control" and does not want to buy a full enterprise platform to solve it.
 
 ## Sources used

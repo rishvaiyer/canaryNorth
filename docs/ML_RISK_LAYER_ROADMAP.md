@@ -4,7 +4,7 @@ Status: design direction, not a shipped ML detector.
 
 ## Product thesis
 
-ContextSeal should learn whether an AI workflow is behaving unusually, while deterministic policy remains the final security gate. The ML layer recommends observe, review, or quarantine. It must not silently authorize a request that policy denied.
+CanaryNorth should learn whether an AI workflow is behaving unusually, while deterministic policy remains the final security gate. The ML layer recommends observe, review, or quarantine. It must not silently authorize a request that policy denied.
 
 ## Highest-impact first slice
 

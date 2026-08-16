@@ -1,9 +1,9 @@
-# ContextSeal threat model
+# CanaryNorth threat model
 
 ## Trust boundaries
 
 1. **Agent/model context:** untrusted and may contain hostile instructions. It receives opaque capability identifiers only.
-2. **ContextSeal proxy:** trusted policy enforcement boundary. It validates request shape, capability, action, resource, expiry and content before forwarding.
+2. **CanaryNorth proxy:** trusted policy enforcement boundary. It validates request shape, capability, action, resource, expiry and content before forwarding.
 3. **Tool/provider boundary:** not implemented in this synthetic demo. A production adapter must resolve credentials only inside this boundary.
 4. **Receipt and evidence ledger:** evidence boundary. Receipts use the configured durable store, while the human evidence view and approval state are synthetic in this demo. Encrypted export requires an operator-managed wrapping key.
 

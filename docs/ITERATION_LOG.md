@@ -1,10 +1,10 @@
-# ContextSeal iteration log
+# CanaryNorth iteration log
 
 Status: evidence-ledger iteration complete. This log records what changed, what was verified, and what still needs a production gate.
 
 ## 1. Original project state
 
-- **Goal:** Establish the starting point for the ContextSeal demo.
+- **Goal:** Establish the starting point for the CanaryNorth demo.
 - **Pseudocode:** `agent -> opaque capability -> policy proxy -> synthetic tool; receipt -> hash chain`
 - **Plain-English summary:** The project began as a local, synthetic secretless MCP policy-proxy demo. It used fixture capabilities, an in-memory receipt ledger, HMAC-signed receipts, narrow injection and DLP detectors, and no real tool or credential connection.
 - **Verification:** Repository tests cover policy decisions, receipt hashing/signing, artifact binding, and graph behavior. The checked-in docs explicitly identify synthetic-only scope and restart-reset behavior.
@@ -83,13 +83,13 @@ Status: evidence-ledger iteration complete. This log records what changed, what 
 ## 10. Project Pentesting and PenTel private rehearsal
 
 - **Goal:** Demonstrate real defensive testing against a fake company without publishing the private attack corpus.
-- **Pseudocode:** `private PenTel target -> private red-team case -> ContextSeal decision -> allowed path only -> fake target receipt -> redacted report`
+- **Pseudocode:** `private PenTel target -> private red-team case -> CanaryNorth decision -> allowed path only -> fake target receipt -> redacted report`
 - **Plain-English summary:** A separate local Git repository contains a harmless PenTel Supply target, a private runner, a research-linked catalog of 11 detection families, a redacted report helper, and interview notes. The public page uses a pen-writing entrance and Threat Lab animation to explain the result. The hidden-ink Easter egg is decorative only.
 - **Verification:** Private catalog tests pass 3/3. The isolated PenTel rehearsal passes 10/10. A clean synthetic action reaches the fake target only after an allow decision. Prompt injection, DLP, replay, unknown capability, and ungated direct actions do not reach it. Public Railway deployment `f89812c8-2a22-4cf0-86ca-377a32fc9275` is successful and the new pages/routes smoke-test successfully.
 - **Remaining boundary:** The private catalog is a defensive regression set, not a universal detector. Malware and steganography remain review-only signals in the shipped demo. No real target, credential, external tool, or live scanner is connected.
 ## 2026-08-16, research-backed control-plane gates
 
 - **Plain-English summary:** The private PenTel lab now records each synthetic rehearsal as a redacted observation in a whiteboard ledger. It can stay in memory for a quick demo, write an AES-256-GCM encrypted local file when a key is supplied, or use an explicitly configured PostgreSQL adapter. No raw prompt, payload, credential, personal data, or real target result is stored.
-- **Defense change:** ContextSeal now accepts only bounded typed metadata for tool attestation, memory activation, provenance delegation, synthetic canaries, and adaptive drift. The policy binds memory scope and delegated provenance to the capability, then preserves the existing content firewall and signed receipt path.
-- **Verification:** ContextSeal `npm test` passes 57 tests. The private PenTel suite passes 88 report tests and 40/40 rehearsal scenes. Local HTTP smoke verified tool-attestation drift and synthetic canary requests return 403 without forwarding.
+- **Defense change:** CanaryNorth now accepts only bounded typed metadata for tool attestation, memory activation, provenance delegation, synthetic canaries, and adaptive drift. The policy binds memory scope and delegated provenance to the capability, then preserves the existing content firewall and signed receipt path.
+- **Verification:** CanaryNorth `npm test` passes 57 tests. The private PenTel suite passes 88 report tests and 40/40 rehearsal scenes. Local HTTP smoke verified tool-attestation drift and synthetic canary requests return 403 without forwarding.
 - **Claim boundary:** These are research-backed synthetic controls, not proof of universal agent security. Malware remains `unknown`/`not-run`; steganography remains `heuristic-review`; the shadow score is not trained ML and cannot enforce policy.

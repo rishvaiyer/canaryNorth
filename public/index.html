@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#081a2a">
-  <title>ContextSeal - AI Action Receipts</title>
+  <title>CanaryNorth - AI Action Receipts</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <main class="shell">
     <header class="topbar">
-      <div class="brand"><span class="mark">◈</span><span>ContextSeal</span></div>
+      <div class="brand"><span class="mark">◈</span><span>CanaryNorth</span></div>
       <span class="eyebrow">AI ACTION RECEIPTS</span>
       <span id="health" class="health">checking…</span>
     </header>
@@ -18,7 +18,7 @@
       <div>
         <p class="kicker">Private provenance for AI work</p>
         <h1>Know what happened.<br><em>Trust what ships.</em></h1>
-        <p class="lede">ContextSeal creates private, tamper-evident action receipts for AI-generated work. This demo shows the policy checkpoint behind each receipt: what ran, what was approved, and why a request stopped.</p>
+        <p class="lede">CanaryNorth creates private, tamper-evident action receipts for AI-generated work. This demo shows the policy checkpoint behind each receipt: what ran, what was approved, and why a request stopped.</p>
         <div class="hero-actions" aria-label="Policy walkthroughs">
           <button class="primary" data-demo="safe">Run a safe example</button>
           <button class="ghost" data-demo="injection">Test prompt injection</button>
@@ -90,7 +90,7 @@
       <article class="card walkthrough-card"><div class="card-head"><div><p class="kicker">03 / THE DECISION</p><h2>Three checks. One receipt.</h2></div><span class="step-count" id="walkthrough-step">READY</span></div><ol class="walkthrough"><li><span>01</span><div><b>Capability</b><small>Is this capability known and still valid?</small></div></li><li><span>02</span><div><b>Scope and content</b><small>Does the request fit, and is the input safe?</small></div></li><li><span>03</span><div><b>Receipt</b><small>Record the decision before anything could run.</small></div></li></ol><div id="decision-banner" class="decision-banner" role="status"><span class="decision-icon">→</span><div><b>Waiting for an example</b><small>Run a safe or blocked example to see the result.</small></div></div></article>
     </section>
     <section id="evidence-receipts" class="grid lower"><article class="card receipt-card"><div class="card-head"><div><p class="kicker">04 / THE EVIDENCE</p><h2>Receipts you can inspect</h2></div><div class="card-actions"><button class="link-btn" id="export-artifact" disabled>Download bound artifact</button><button class="link-btn" id="audit">View MCP audit</button></div></div><div id="receipts" class="receipts"><div class="empty">Run an example to create the first receipt.</div></div></article><aside class="card model-card"><p class="kicker">05 / WHAT IT PROTECTS</p><h2>Useful context.<br>No unnecessary exposure.</h2><ul><li><b>Opaque capabilities</b><span>The model sees a reference, never a raw credential.</span></li><li><b>Content firewall</b><span>Injection and sensitive patterns stop at the boundary.</span></li><li><b>Scoped access</b><span>Every action is limited by tool, resource, and time.</span></li><li><b>Tamper evidence</b><span>Receipts make silent changes detectable.</span></li></ul></aside></section>
-    <footer><span>ContextSeal · AI Action Receipts · synthetic demo</span><span>Read-only audit · No secrets · No external tools called</span></footer>
+    <footer><span>CanaryNorth · AI Action Receipts · synthetic demo</span><span>Read-only audit · No secrets · No external tools called</span></footer>
   </main>
   <div id="toast" role="status" aria-live="polite"></div>
   <script type="module" src="/app.js"></script>

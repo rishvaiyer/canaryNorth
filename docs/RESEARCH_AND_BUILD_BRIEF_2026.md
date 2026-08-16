@@ -1,4 +1,4 @@
-# ContextSeal Research and Build Brief, 2026
+# CanaryNorth Research and Build Brief, 2026
 
 Date: 2026-08-16
 
@@ -6,7 +6,7 @@ Status: implementation brief. This document separates verified current-source fi
 
 ## Executive decision
 
-ContextSeal should become an evidence-backed AI action firewall for small teams:
+CanaryNorth should become an evidence-backed AI action firewall for small teams:
 
 `untrusted content or file -> quarantine -> safe file identity -> detectors -> deterministic policy -> human approval when needed -> tool boundary -> signed evidence`
 
@@ -23,7 +23,7 @@ The product should not promise one perfect detector. Its advantage is the joined
 
 ### Agent identity and authorization are becoming first-class
 
-NIST's 2026 work on AI agent security and identity emphasizes that agents need explicit identity, authorization, auditability, non-repudiation, and controls for prompt injection and delegated authority. ContextSeal already has the beginnings of this boundary through opaque capabilities, principal, audience, tenant, workspace, policy version, nonce, and receipts.
+NIST's 2026 work on AI agent security and identity emphasizes that agents need explicit identity, authorization, auditability, non-repudiation, and controls for prompt injection and delegated authority. CanaryNorth already has the beginnings of this boundary through opaque capabilities, principal, audience, tenant, workspace, policy version, nonce, and receipts.
 
 Sources: [NIST AI agent security RFI](https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems), [NIST identity and authorization concept paper](https://www.nist.gov/news-events/news/2026/02/new-concept-paper-identity-and-authority-software-agents), [NIST AI Agent Standards Initiative](https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative).
 
@@ -35,19 +35,19 @@ Sources: [OWASP Prompt Injection](https://owasp.org/www-community/attacks/Prompt
 
 ### Memory is part of the attack surface
 
-OWASP's 2026 memory guidance treats persistent agent memory as a place where attackers can plant instructions, preferences, or false facts that later appear trusted. ContextSeal should treat memory writes as a separate capability with provenance, review, versioning, and rollback.
+OWASP's 2026 memory guidance treats persistent agent memory as a place where attackers can plant instructions, preferences, or false facts that later appear trusted. CanaryNorth should treat memory writes as a separate capability with provenance, review, versioning, and rollback.
 
 Source: [OWASP, Memory Is a Feature. It Is Also an Attack Surface](https://genai.owasp.org/2026/05/13/memory-is-a-feature-it-is-also-an-attack-surface/).
 
 ### Security needs continuous monitoring and update
 
-NIST's 2026 work frames AI security as a monitor-and-update problem rather than a one-time certification. ContextSeal's receipt chain and planned behavior baseline fit this direction, but the baseline must remain advisory until it is measured against a labeled corpus.
+NIST's 2026 work frames AI security as a monitor-and-update problem rather than a one-time certification. CanaryNorth's receipt chain and planned behavior baseline fit this direction, but the baseline must remain advisory until it is measured against a labeled corpus.
 
 Sources: [NIST continuous monitor-and-update model](https://www.nist.gov/news-events/news/2026/06/nist-mathematical-proof-supports-transition-continuous-monitor-and-update), [NIST large-scale agent red teaming](https://www.nist.gov/blogs/caisi-research-blog/insights-ai-agent-security-large-scale-red-teaming-competition).
 
 ### Human approval, telemetry, and sandbox boundaries are practical controls
 
-OpenAI's current agent safety guidance emphasizes boundaries, approvals, telemetry, risk-based action governance, and sandbox separation. These are useful design references even when ContextSeal uses a different model or provider.
+OpenAI's current agent safety guidance emphasizes boundaries, approvals, telemetry, risk-based action governance, and sandbox separation. These are useful design references even when CanaryNorth uses a different model or provider.
 
 Sources: [Running Codex safely](https://openai.com/index/running-codex-safely/), [AI agent link safety](https://openai.com/index/ai-agent-link-safety/), [Agents SDK evolution](https://openai.com/index/the-next-evolution-of-the-agents-sdk/).
 
@@ -55,7 +55,7 @@ Sources: [Running Codex safely](https://openai.com/index/running-codex-safely/),
 
 The referenced project is [elder-plinius/ST3GG](https://github.com/elder-plinius/st3gg), pinned locally at commit `35f8b2b8529a74091c97ce622ee0cbf1ae3bd260` in the private PenTel repo.
 
-Its claimed blue-team surface includes file-type identification, Unicode and whitespace analysis, metadata forensics, PNG and image analysis, archive and document analysis, network-packet analysis, and a large example/test library. Its code exposes a subprocess CLI and a registry of analysis functions. These are useful capabilities to evaluate locally, not claims ContextSeal should repeat without reproducing tests.
+Its claimed blue-team surface includes file-type identification, Unicode and whitespace analysis, metadata forensics, PNG and image analysis, archive and document analysis, network-packet analysis, and a large example/test library. Its code exposes a subprocess CLI and a registry of analysis functions. These are useful capabilities to evaluate locally, not claims CanaryNorth should repeat without reproducing tests.
 
 ### License boundary
 
@@ -192,7 +192,7 @@ Exit gate: a human can explain every row without opening raw content.
 
 - Add a real malware scanner or sandbox behind a separate service boundary.
 - Use a harmless vendor test fixture and a vetted benign corpus.
-- Enforce quarantine, no execution in the ContextSeal process, and scanner-version tracking.
+- Enforce quarantine, no execution in the CanaryNorth process, and scanner-version tracking.
 
 Exit gate: independent review of isolation, retention, and false-positive handling.
 
@@ -217,17 +217,17 @@ Exit gate: a design partner completes a real workflow without needing the full e
 
 Do not position this as “we detect every malicious file.” Position it as:
 
-> ContextSeal gives AI actions a security boundary, a human-readable decision, and evidence you can inspect later. It can add specialized scanners without giving any scanner unchecked authority.
+> CanaryNorth gives AI actions a security boundary, a human-readable decision, and evidence you can inspect later. It can add specialized scanners without giving any scanner unchecked authority.
 
 The distinctive feature is the chain from suspicious input to constrained action to explainable receipt. The scanner is a component. The product is the control loop.
 
 ## Interview-ready story
 
-“I built a private fake company called PenTel Supply and placed ContextSeal in front of its synthetic AI actions. The red-team harness runs a research-backed set of inert cases, including direct and indirect injection, role confusion, Unicode and hidden content, tool metadata, memory poisoning, replay, and exfiltration intent. Clean actions reach the fake target only after policy approval. Blocked actions do not. The report stores a redacted reason, scanner metadata, and evidence hash. I am adding ST3GG locally for steganalysis, but I keep its AGPL dependency private and I separate scanner signals from proof of malware.”
+“I built a private fake company called PenTel Supply and placed CanaryNorth in front of its synthetic AI actions. The red-team harness runs a research-backed set of inert cases, including direct and indirect injection, role confusion, Unicode and hidden content, tool metadata, memory poisoning, replay, and exfiltration intent. Clean actions reach the fake target only after policy approval. Blocked actions do not. The report stores a redacted reason, scanner metadata, and evidence hash. I am adding ST3GG locally for steganalysis, but I keep its AGPL dependency private and I separate scanner signals from proof of malware.”
 
 ## Honest current state
 
-- ContextSeal public demo: synthetic, deployed, no live malware or steganography scanner.
+- CanaryNorth public demo: synthetic, deployed, no live malware or steganography scanner.
 - Private PenTel repo: local fake target, red-team harness, 11-family prompt-injection catalog, redacted reporting.
 - ST3GG: pinned private dependency, integration and corpus work in progress.
 - Next proof: scanner adapter tests, clean and positive corpus, normalized evidence events, then a local Threat Lab replay.

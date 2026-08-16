@@ -1,4 +1,4 @@
-# ContextSeal handoff
+# CanaryNorth handoff
 
 ## Outcome
 

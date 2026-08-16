@@ -1,4 +1,4 @@
-name: ContextSeal security checks
+name: CanaryNorth security checks
 
 on:
   push:

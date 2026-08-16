@@ -1,8 +1,10 @@
-# ContextSeal: AI Action Receipts
+# CanaryNorth: AI Action Receipts
 
 Every AI-generated file should carry its own provenance, privately.
 
-ContextSeal is a trust and policy layer for AI-generated work. Its proxy keeps raw credentials out of model context while producing signed, hash-chained receipts that explain which actions were approved, which were blocked, and what remains unverified. The current demo is synthetic and shows decision-level receipts plus a portable artifact sidecar.
+CanaryNorth is the new product name for this project, formerly ContextSeal. It is a trust and policy layer for AI-generated work. Its proxy keeps raw credentials out of model context while producing signed, hash-chained receipts that explain which actions were approved, which were blocked, and what remains unverified. The current demo is synthetic and shows decision-level receipts plus a portable artifact sidecar.
+
+Compatibility note: repository paths, package names, API routes, schemas, database tables, headers, and `CONTEXTSEAL_*` environment variables remain unchanged so existing integrations do not break during the visual rebrand.
 
 ## Why it is useful
 
@@ -36,13 +38,13 @@ open http://localhost:4178
 
 Set `RECEIPT_SIGNING_KEY` in a real deployment. The development fallback is intentionally public and must not be used for production evidence. PostgreSQL deployments require the `pg` dependency already declared in `package.json`. Set `CONTEXTSEAL_EVIDENCE_WRAPPING_KEY` to a base64 or 64-character hex encoded 32-byte key before enabling encrypted evidence export. Keep that key in a KMS or secret manager and do not expose it to the browser.
 
-Production mode (`NODE_ENV=production`) fails closed unless `RECEIPT_SIGNING_KEY` and `CONTEXTSEAL_AUTH_TOKEN` are set to values at least 32 characters long. Authenticated requests use `Authorization: Bearer <CONTEXTSEAL_AUTH_TOKEN>`. Outside demo mode, requests must also provide `X-ContextSeal-Tenant`, `X-ContextSeal-Workspace`, principal, audience, policy version, and a one-time nonce. `CONTEXTSEAL_DEMO_MODE=1` is an explicit exception for this public synthetic demo only; it must never be used for real workloads or real receipts. Local development remains an explicitly unauthenticated synthetic demo unless `CONTEXTSEAL_REQUIRE_AUTH=1` is set.
+Production mode (`NODE_ENV=production`) fails closed unless `RECEIPT_SIGNING_KEY` and `CONTEXTSEAL_AUTH_TOKEN` are set to values at least 32 characters long. Authenticated requests use `Authorization: Bearer <CONTEXTSEAL_AUTH_TOKEN>`. Outside demo mode, requests must also provide the existing technical headers `X-ContextSeal-Tenant`, `X-ContextSeal-Workspace`, principal, audience, policy version, and a one-time nonce. `CONTEXTSEAL_DEMO_MODE=1` is an explicit exception for this public synthetic demo only; it must never be used for real workloads or real receipts. Local development remains an explicitly unauthenticated synthetic demo unless `CONTEXTSEAL_REQUIRE_AUTH=1` is set.
 
 Outside demo mode, configure either `DATABASE_URL` for PostgreSQL or `RECEIPT_LEDGER_PATH` for an append-only JSONL ledger. The PostgreSQL adapter initializes `contextseal_receipts` and `contextseal_nonces`, uses parameterized queries, and serializes receipt-chain writes. Mount JSONL storage on durable, access-controlled storage; an ephemeral container filesystem is not an audit store.
 
 ### Railway with PostgreSQL
 
-The intended small-business deployment shape is one ContextSeal service plus one Railway PostgreSQL service:
+The intended small-business deployment shape is one CanaryNorth service plus one Railway PostgreSQL service:
 
 ```bash
 railway add --database postgres --json

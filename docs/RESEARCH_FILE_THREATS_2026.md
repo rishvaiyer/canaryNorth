@@ -1,12 +1,12 @@
-# ContextSeal file threats research, 2026-08-16
+# CanaryNorth file threats research, 2026-08-16
 
-Scope: steganography, hidden content, malware scanning, document and file security, and safe forensic evidence handling for ContextSeal.
+Scope: steganography, hidden content, malware scanning, document and file security, and safe forensic evidence handling for CanaryNorth.
 
 ## Bottom line
 
 - Steganography hides the existence of communication. Encryption hides content. Hashing fingerprints content. Digital signatures prove origin and integrity. These are related but not interchangeable.
 - Hidden text in images, invisible characters, document metadata, hidden layers, archive nesting, and password-protected files are all relevant threat signals, but not all of them are steganography.
-- Malware scanning is useful, but it is bounded. A clean verdict only means the scanner observed what it could inspect. If the content is encrypted, password-protected, or otherwise unsupported, ContextSeal should treat it as unscannable or quarantine it, not call it safe.
+- Malware scanning is useful, but it is bounded. A clean verdict only means the scanner observed what it could inspect. If the content is encrypted, password-protected, or otherwise unsupported, CanaryNorth should treat it as unscannable or quarantine it, not call it safe.
 - Forensics should preserve evidence without spreading payloads. Log hashes, timestamps, source, scanner version, verdicts, and custody events. Do not store raw hidden payloads or decrypted content in general logs.
 - Customer-controlled decryption is the right boundary for protected files. If the service cannot decrypt the item in a controlled way, do not pretend it is fully scanned.
 
@@ -47,7 +47,7 @@ Scope: steganography, hidden content, malware scanning, document and file securi
   - alternate data streams,
   - archive nesting,
   - password-protected or client-side encrypted files.
-- Recommended ContextSeal wording: classify these as concealed-content indicators unless there is evidence of actual payload hiding. That keeps the evidence honest and avoids overclaiming.
+- Recommended CanaryNorth wording: classify these as concealed-content indicators unless there is evidence of actual payload hiding. That keeps the evidence honest and avoids overclaiming.
 
 Confidence: high on the definition boundary, medium on the exact taxonomy because researchers and vendors sometimes use these terms loosely.
 
@@ -72,9 +72,9 @@ Confidence: high that these are useful signals, medium on any single detector be
 - Microsoft explicitly warns that blob index tags are not tamper-resistant. They are good for quick filtering, but not as the only security control.
 - Microsoft Safe Attachments and Google Gmail Security Sandbox both use virtual environments for inspection. Google also scans files inside archive attachments.
 - Google Cloud's malware-scanning architecture uses event-driven scanning, ClamAV in Cloud Run, and writes logs to Cloud Logging and metrics to Cloud Monitoring.
-- Boundary rule for ContextSeal: a sandbox verdict is evidence, not truth. If the scanner cannot fully inspect the item, the safe response is quarantine or `unscannable`, not `clean`.
+- Boundary rule for CanaryNorth: a sandbox verdict is evidence, not truth. If the scanner cannot fully inspect the item, the safe response is quarantine or `unscannable`, not `clean`.
 - Microsoft documents that some blobs cannot be scanned when unsupported type or encryption blocks inspection. Google VM Threat Detection also cannot scan disks encrypted with CSEK or CMEK, and cannot scan Confidential VM instances.
-- Practical implication: ContextSeal should separate the scan service from the analyst workstation and from the user-facing UI. The service should emit a verdict and custody record, not raw extracted content.
+- Practical implication: CanaryNorth should separate the scan service from the analyst workstation and from the user-facing UI. The service should emit a verdict and custody record, not raw extracted content.
 
 Confidence: high.
 
@@ -94,7 +94,7 @@ Confidence: high.
 - Do not store raw payloads in general logs. Do not log hidden text, extracted secrets, decrypted content, or customer passwords.
 - If a sample must be preserved, keep it in a quarantined, access-controlled, immutable store and keep the forensic note separate from the sample itself.
 - Azure immutable storage is a useful pattern here because it supports WORM-style retention and audit logs.
-- Recommended practice for ContextSeal is to log a normalized finding record and keep any sensitive object in a sealed evidence bucket, not in the searchable product database.
+- Recommended practice for CanaryNorth is to log a normalized finding record and keep any sensitive object in a sealed evidence bucket, not in the searchable product database.
 
 Confidence: high on the evidence-handling principle, medium on the exact storage pattern because deployment targets may differ.
 
@@ -103,7 +103,7 @@ Confidence: high on the evidence-handling principle, medium on the exact storage
 - Encryption protects confidentiality. Without the key, the data should not be readable.
 - Digital signatures protect authenticity and integrity, and support non-repudiation. They do not provide confidentiality.
 - Hashing produces a fixed-length representation of the input. It is useful for fixity, deduplication, and evidence matching, but it does not hide content.
-- For ContextSeal:
+- For CanaryNorth:
   - use hashing to anchor a finding to a specific file,
   - use signatures to attest who approved, exported, or quarantined something,
   - use encryption to protect the underlying payload and any stored evidence.
@@ -121,7 +121,7 @@ Confidence: high.
 
 Confidence: high on the control pattern, medium on retention duration because that depends on product policy and legal requirements.
 
-## Phased recommendation for ContextSeal
+## Phased recommendation for CanaryNorth
 
 - Phase 0, metadata-first triage.
   - Hash the file.

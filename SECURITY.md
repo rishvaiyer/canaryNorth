@@ -1,6 +1,6 @@
 # Security policy
 
-ContextSeal is currently a synthetic demo and is not approved for real credentials, personal data, or production tool execution.
+CanaryNorth is currently a synthetic demo and is not approved for real credentials, personal data, or production tool execution.
 
 ## Reporting
 

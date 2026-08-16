@@ -349,7 +349,7 @@ function edgeSvg(item) {
 }
 
 function renderGraph(graph) {
-  $('#graph').innerHTML = `<svg viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="graph-title graph-description"><title id="graph-title">ContextSeal request path</title><desc id="graph-description">A draggable map of an agent, policy proxy, synthetic tools, a server-side secret vault, and a signed receipt ledger.</desc><defs><filter id="node-shadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#041d2d" flood-opacity=".18"/></filter></defs><g class="edges">${graph.edges.map(edgeSvg).join('')}</g><g class="nodes">${graph.nodes.map(nodeSvg).join('')}</g></svg>`;
+  $('#graph').innerHTML = `<svg viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="graph-title graph-description"><title id="graph-title">CanaryNorth request path</title><desc id="graph-description">A draggable map of an agent, policy proxy, synthetic tools, a server-side secret vault, and a signed receipt ledger.</desc><defs><filter id="node-shadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#041d2d" flood-opacity=".18"/></filter></defs><g class="edges">${graph.edges.map(edgeSvg).join('')}</g><g class="nodes">${graph.nodes.map(nodeSvg).join('')}</g></svg>`;
   renderInspector();
   renderTimeline();
 }
@@ -438,7 +438,7 @@ function updateBanner(result, kind) {
 
 async function exportArtifact() {
   if (!state.latestAllowedReceipt) return;
-  const content = '# Synthetic forecast brief\n\nNew York: clear skies, 22°C.\n\nGenerated from a synthetic forecast request through ContextSeal.\n';
+  const content = '# Synthetic forecast brief\n\nNew York: clear skies, 22°C.\n\nGenerated from a synthetic forecast request through CanaryNorth.\n';
   try {
     const result = await api('/api/artifacts/export', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ receiptId: state.latestAllowedReceipt.id, filename: 'weather-brief.md', content }) });
     const save = (name, value, type) => { const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([value], { type })); link.download = name; link.click(); URL.revokeObjectURL(link.href); };

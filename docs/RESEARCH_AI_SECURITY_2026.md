@@ -1,6 +1,6 @@
 # AI Agent Security Research Memo, 2026
 
-Scope: primary-source research on 2026 AI-agent security developments relevant to ContextSeal.
+Scope: primary-source research on 2026 AI-agent security developments relevant to CanaryNorth.
 
 ## Bottom line
 
@@ -9,19 +9,19 @@ Scope: primary-source research on 2026 AI-agent security developments relevant t
 
 ## Dated developments
 
-| Date | Development | Why it matters for ContextSeal | Source |
+| Date | Development | Why it matters for CanaryNorth | Source |
 | --- | --- | --- | --- |
 | 2026-01-12 | NIST CAISI issued an RFI on securing AI agent systems. It explicitly called out indirect prompt injection, data poisoning, misaligned objectives, and the need to constrain and monitor agent access in deployment environments. | Confirms that the main agent-security problem is not just model output quality. It is model-plus-tool behavior under adversarial data and real permissions. | [NIST RFI](https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems) |
 | 2026-02-05 | NIST published a concept paper on software and AI agent identity and authorization. It asked for input on identification, authorization, auditing, non-repudiation, and prompt-injection controls. | Strong signal that agent identity and authorization are becoming first-class requirements, not add-ons. | [NIST concept paper](https://csrc.nist.gov/pubs/other/2026/02/05/accelerating-the-adoption-of-software-and-ai-agent/ipd) |
-| 2026-02-17 | NIST launched the AI Agent Standards Initiative, with explicit pillars for security, identity, industry-led standards, and open protocols. | The standards direction is moving toward interoperable identity and security primitives. ContextSeal should align to those primitives rather than inventing one-off semantics. | [NIST initiative](https://www.nist.gov/news-events/news/2026/02/announcing-ai-agent-standards-initiative-interoperable-and-secure) |
-| 2026-03-11 | OpenAI said the best defense against prompt injection is not perfect detection, but constraining the impact of manipulation. | Useful framing for ContextSeal: assume some injections will land, then make the blast radius small. | [OpenAI, resist prompt injection](https://openai.com/index/designing-agents-to-resist-prompt-injection/) |
-| 2026-03-23 | Microsoft published defense-in-depth guidance for indirect prompt injection, including prompt shields, spotlighting, plan-drift detection, critic agents, and tool-chain analysis. | This gives a practical control menu for ContextSeal’s policy proxy and approval layer. | [Microsoft Learn guidance](https://learn.microsoft.com/en-us/security/zero-trust/sfi/defend-indirect-prompt-injection) |
+| 2026-02-17 | NIST launched the AI Agent Standards Initiative, with explicit pillars for security, identity, industry-led standards, and open protocols. | The standards direction is moving toward interoperable identity and security primitives. CanaryNorth should align to those primitives rather than inventing one-off semantics. | [NIST initiative](https://www.nist.gov/news-events/news/2026/02/announcing-ai-agent-standards-initiative-interoperable-and-secure) |
+| 2026-03-11 | OpenAI said the best defense against prompt injection is not perfect detection, but constraining the impact of manipulation. | Useful framing for CanaryNorth: assume some injections will land, then make the blast radius small. | [OpenAI, resist prompt injection](https://openai.com/index/designing-agents-to-resist-prompt-injection/) |
+| 2026-03-23 | Microsoft published defense-in-depth guidance for indirect prompt injection, including prompt shields, spotlighting, plan-drift detection, critic agents, and tool-chain analysis. | This gives a practical control menu for CanaryNorth’s policy proxy and approval layer. | [Microsoft Learn guidance](https://learn.microsoft.com/en-us/security/zero-trust/sfi/defend-indirect-prompt-injection) |
 | 2026-04-30 / 2026-05-01 | The Five Eyes agencies released "Careful adoption of agentic AI services." The guidance stresses least privilege, strong identity, continuous monitoring, human oversight, and low-risk incremental rollout. | This is the clearest government-side guidance for cautious deployment of agentic systems. | [Five Eyes PDF](https://media.defense.gov/2026/Apr/30/2003922823/-1/-1/0/CAREFULADOPTIONOFAGENTICAISERVICES_FINAL.PDF) |
 | 2026-05-07 | Microsoft showed that prompt injection in a framework can become host-level RCE in Semantic Kernel. | The failure mode is no longer just data leakage or bad text. Tool plumbing can turn a prompt issue into code execution. | [Microsoft RCE research](https://www.microsoft.com/en-us/security/blog/2026/05/07/prompts-become-shells-rce-vulnerabilities-ai-agent-frameworks/) |
-| 2026-05-25 | Anthropic described containment across model, environment, and external content, and said model-layer defenses alone are never enough. | Reinforces a layered design for ContextSeal: policy proxy, sandbox, content trust, and approval gating. | [Anthropic containment](https://www.anthropic.com/engineering/how-we-contain-claude) |
-| 2026-06-30 | Microsoft emphasized the shift from reading to acting, especially around MCP tools, and noted that a prompt injection against an agent can trigger an action. | Matches ContextSeal’s core risk surface: tool-enabled workflows, not passive summarization. | [Microsoft agent security](https://www.microsoft.com/en-us/security/blog/2026/06/30/securing-ai-agents-ai-tools-move-from-reading-acting/) |
+| 2026-05-25 | Anthropic described containment across model, environment, and external content, and said model-layer defenses alone are never enough. | Reinforces a layered design for CanaryNorth: policy proxy, sandbox, content trust, and approval gating. | [Anthropic containment](https://www.anthropic.com/engineering/how-we-contain-claude) |
+| 2026-06-30 | Microsoft emphasized the shift from reading to acting, especially around MCP tools, and noted that a prompt injection against an agent can trigger an action. | Matches CanaryNorth’s core risk surface: tool-enabled workflows, not passive summarization. | [Microsoft agent security](https://www.microsoft.com/en-us/security/blog/2026/06/30/securing-ai-agents-ai-tools-move-from-reading-acting/) |
 | 2026-07-15 | OpenAI described GPT-Red, an automated red-teaming system, as a way to improve robustness against novel prompt-injection scenarios. | Reinforces the need for recurring evaluation, not one-time hardening. | [OpenAI GPT-Red](https://openai.com/index/unlocking-self-improvement-gpt-red/) |
-| 2026-08-03 to 2026-08-14 | IETF drafts advanced agent identity, delegation provenance, governance audit records, and architectural requirements for agents on the Internet. | The ecosystem is converging on verifiable delegation and audit trails. ContextSeal can map to these ideas now, even before standardization lands. | [HDP draft](https://datatracker.ietf.org/doc/draft-helixar-hdp-agentic-delegation/), [GAR draft](https://datatracker.ietf.org/doc/draft-sato-soos-gar/), [Agent internet architecture draft](https://datatracker.ietf.org/doc/draft-daniel-ai-agent-internet-architecture/) |
+| 2026-08-03 to 2026-08-14 | IETF drafts advanced agent identity, delegation provenance, governance audit records, and architectural requirements for agents on the Internet. | The ecosystem is converging on verifiable delegation and audit trails. CanaryNorth can map to these ideas now, even before standardization lands. | [HDP draft](https://datatracker.ietf.org/doc/draft-helixar-hdp-agentic-delegation/), [GAR draft](https://datatracker.ietf.org/doc/draft-sato-soos-gar/), [Agent internet architecture draft](https://datatracker.ietf.org/doc/draft-daniel-ai-agent-internet-architecture/) |
 
 ## What the 2026 landscape says about the main risks
 
@@ -45,7 +45,7 @@ Scope: primary-source research on 2026 AI-agent security developments relevant t
 - C2PA is especially useful for tamper-evident provenance of models, data, and outputs, but it does not replace a full agent audit trail.
 - Auditability needs to be reconstructable after the fact, not just visible in a live UI.
 
-## Controls ContextSeal can implement
+## Controls CanaryNorth can implement
 
 - Opaque capability references with explicit scope, expiry, and revocation.
 - Human approval on any action that crosses a risk threshold, especially external writes, data export, identity changes, or irreversible operations.

@@ -50,7 +50,7 @@ function securityHeaders() { return { 'content-security-policy': "default-src 's
 function json(res, status, body) { res.writeHead(status, { ...securityHeaders(), 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }); res.end(JSON.stringify(body)); }
 function graph() {
   return { nodes: [
-    { id: 'agent', label: 'Agent context', type: 'agent', note: 'opaque refs only' }, { id: 'proxy', label: 'ContextSeal', type: 'proxy', note: 'policy + DLP + expiry' },
+    { id: 'agent', label: 'Agent context', type: 'agent', note: 'opaque refs only' }, { id: 'proxy', label: 'CanaryNorth', type: 'proxy', note: 'policy + DLP + expiry' },
     { id: 'weather', label: 'weather.get_forecast', type: 'tool', note: 'allowlisted' }, { id: 'tickets', label: 'tickets.update', type: 'tool', note: 'scoped resource' },
     { id: 'vault', label: 'Secret vault', type: 'vault', note: 'never enters context' }, { id: 'ledger', label: 'Receipt ledger', type: 'ledger', note: 'hash chained' }
   ], edges: [
@@ -328,5 +328,5 @@ const server = http.createServer(async (req, res) => {
 });
 server.requestTimeout = 15_000;
 server.headersTimeout = 10_000;
-server.listen(port, host, () => { const address = server.address(); console.log(`ContextSeal listening on http://${host}:${typeof address === 'object' ? address.port : port}${requireAuth ? ' (auth required)' : ' (demo mode)'}`); });
+server.listen(port, host, () => { const address = server.address(); console.log(`CanaryNorth listening on http://${host}:${typeof address === 'object' ? address.port : port}${requireAuth ? ' (auth required)' : ' (demo mode)'}`); });
 process.on('SIGTERM', async () => { await receiptStore.close(); server.close(); });
