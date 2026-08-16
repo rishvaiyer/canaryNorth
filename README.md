@@ -11,7 +11,7 @@ Compatibility note: repository paths, package names, API routes, schemas, databa
 - **Opaque capabilities:** `cap_*` references are safe to put in model context; the provider key never is.
 - **Structural policy:** action and resource allowlists, expiry, and deny-by-default enforcement happen in the proxy.
 - **Content firewall:** prompt-injection, hidden direction-changing characters, tool-shaped metadata, memory-poisoning cues, broad export intent, unsafe output formats, and credential-shaped payloads are quarantined before forwarding.
-- **Agentic trust gates:** optional typed metadata checks can verify tool attestation, revalidate memory scope and freshness, preserve delegated provenance, trip synthetic canaries, and stop adaptive context drift before an action is forwarded.
+- **Agentic trust gates:** optional typed metadata checks can verify tool attestation, revalidate memory scope and freshness, preserve delegated provenance, trip synthetic canaries, stop adaptive context drift, require a complete causal path, cap unresolved trust debt, and reject expired delegated authority before an action is forwarded.
 - **Evidence:** every allow/deny decision produces a tamper-evident action receipt with a previous-receipt link.
 - **Private provenance:** receipts expose process and evidence, not secrets, private identities, or unnecessary personal data.
 - **MCP audit:** `POST /mcp/audit` supports a read-only `contextseal.audit` method.
@@ -56,6 +56,8 @@ Connect the database service's `DATABASE_URL` to the app service using Railway's
 
 The hosted synthetic demo is [context-seal-production.up.railway.app](https://context-seal-production.up.railway.app/). It contains no external tool connection, real capability store, identity provider, or user data. A real deployment must disable demo mode, add identity-bound authorization, configure durable ledger storage, and complete an independent security review before exposing receipt APIs.
 
+The first three real metadata-policy evaluator slices are explained in [`DEFENSE_EVALUATORS_FOR_HUMANS.md`](./DEFENSE_EVALUATORS_FOR_HUMANS.md): Causal Cut, Trust Debt, and Delegation Expiry. They are deterministic authorization gates, not malware scanners or trained ML.
+
 ## API
 
 - `GET /health` - liveness and active storage mode.
@@ -70,7 +72,7 @@ The hosted synthetic demo is [context-seal-production.up.railway.app](https://co
 
 ## Limits
 
-This is a focused reference implementation. Capabilities, approvals, and evidence events are fixture-backed, the public deployment remains synthetic, signatures use an HMAC secret, and the DLP/injection detectors are intentionally small deterministic signals, not a general classifier. The evidence module is an encrypted package format, not a malware scanner, steganography detector, or production retention service. The ML risk layer is a roadmap, not a trained security model. The PostgreSQL path is a durable persistence foundation, not a complete enterprise security platform. A small-business release still needs a real identity provider, durable approval and evidence persistence, tenant administration, policy management, secret-manager integration, structured logging, monitoring, backup/restore procedures, key rotation, independent security review, and a broader content-security test corpus.
+This is a focused reference implementation. Capabilities, approvals, and evidence events are fixture-backed, the public deployment remains synthetic, signatures use an HMAC secret, and the DLP/injection detectors are intentionally small deterministic signals, not a general classifier. The new causal, trust-debt, and delegation gates are deterministic metadata policies, not trained models or proof of universal protection. The evidence module is an encrypted package format, not a malware scanner, steganography detector, or production retention service. The ML risk layer is a roadmap, not a trained security model. The PostgreSQL path is a durable persistence foundation, not a complete enterprise security platform. A small-business release still needs a real identity provider, durable approval and evidence persistence, tenant administration, policy management, secret-manager integration, structured logging, monitoring, backup/restore procedures, key rotation, independent security review, and a broader content-security test corpus.
 
 ## Small-business product direction
 

@@ -127,7 +127,23 @@ function validateAgenticMetadata(request) {
   if (canaryContext && canaryContext.resource !== undefined && (typeof canaryContext.resource !== 'string' || canaryContext.resource.length > 256)) throw new Error('invalid-canary-resource');
   const adaptiveContext = optionalObject('adaptiveContext');
   if (adaptiveContext && Object.values(adaptiveContext).some((value) => typeof value !== 'boolean')) throw new Error('invalid-adaptive-context');
-  return { toolManifest, memoryContext, provenance, canaryContext, adaptiveContext };
+  const causalContext = optionalObject('causalContext');
+  if (causalContext) {
+    for (const field of ['trustedPathEdges', 'requiredTrustedEdges', 'untrustedGapCount']) if (causalContext[field] !== undefined && (!Number.isInteger(causalContext[field]) || causalContext[field] < 0 || causalContext[field] > 128)) throw new Error(`invalid-causal-${field}`);
+    if (causalContext.actionIntentMatch !== undefined && typeof causalContext.actionIntentMatch !== 'boolean') throw new Error('invalid-causal-action-intent');
+  }
+  const trustDebtContext = optionalObject('trustDebtContext');
+  if (trustDebtContext) {
+    if (trustDebtContext.unresolvedSignals !== undefined && (!Number.isInteger(trustDebtContext.unresolvedSignals) || trustDebtContext.unresolvedSignals < 0 || trustDebtContext.unresolvedSignals > 128)) throw new Error('invalid-trust-debt-signals');
+    for (const field of ['debtScore', 'debtBudget']) if (trustDebtContext[field] !== undefined && (!Number.isFinite(trustDebtContext[field]) || trustDebtContext[field] < 0 || trustDebtContext[field] > 1)) throw new Error(`invalid-trust-debt-${field}`);
+    if (trustDebtContext.sensitiveAction !== undefined && typeof trustDebtContext.sensitiveAction !== 'boolean') throw new Error('invalid-trust-debt-action');
+  }
+  const delegationContext = optionalObject('delegationContext');
+  if (delegationContext) {
+    if (delegationContext.delegationExpiresAt !== undefined && (typeof delegationContext.delegationExpiresAt !== 'string' || delegationContext.delegationExpiresAt.length < 1 || delegationContext.delegationExpiresAt.length > 128)) throw new Error('invalid-delegation-expiry');
+    for (const field of ['delegatorTrusted', 'receiverTrusted', 'delegated', 'audienceMatches']) if (delegationContext[field] !== undefined && typeof delegationContext[field] !== 'boolean') throw new Error(`invalid-delegation-${field}`);
+  }
+  return { toolManifest, memoryContext, provenance, canaryContext, adaptiveContext, causalContext, trustDebtContext, delegationContext };
 }
 function validateAuthorizationRequest(request) {
   if (!request || Array.isArray(request) || typeof request !== 'object') throw new Error('request-object-required');

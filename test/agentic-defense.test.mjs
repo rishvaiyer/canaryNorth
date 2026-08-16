@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateAdaptiveContext, evaluateCanaryRequest, evaluateMemoryContext, evaluateProvenanceBoundary, verifyToolAttestation } from '../src/agentic-defense.mjs';
+import { evaluateAdaptiveContext, evaluateCanaryRequest, evaluateCausalContinuity, evaluateDelegationFreshness, evaluateMemoryContext, evaluateProvenanceBoundary, evaluateTrustDebt, verifyToolAttestation } from '../src/agentic-defense.mjs';
 
 const manifest = { schema: 'contextseal.tool-attestation.v1', tool: 'weather.get_forecast', version: '1.0.0', owner: 'contextseal-demo', capabilities: ['read:forecast'], signatureStatus: 'verified', digest: 'sha256:synthetic-weather-v1' };
 
@@ -36,4 +36,20 @@ test('canary resources block and alert without revealing content', () => {
 test('adaptive metadata drift enters review without executing', () => {
   assert.equal(evaluateAdaptiveContext({ scopeChanged: true }).reasonCode, 'adaptive-context-drift');
   assert.equal(evaluateAdaptiveContext({}).allowed, true);
+});
+
+test('causal continuity blocks a sensitive action with missing trusted links', () => {
+  assert.equal(evaluateCausalContinuity({ trustedPathEdges: 1, requiredTrustedEdges: 3, untrustedGapCount: 2, actionIntentMatch: true }).reasonCode, 'causal-path-incomplete');
+  assert.equal(evaluateCausalContinuity({ trustedPathEdges: 3, requiredTrustedEdges: 3, untrustedGapCount: 0, actionIntentMatch: true }).allowed, true);
+});
+
+test('trust debt blocks sensitive work over the synthetic budget', () => {
+  assert.equal(evaluateTrustDebt({ unresolvedSignals: 4, debtScore: 0.82, debtBudget: 0.5, sensitiveAction: true }).reasonCode, 'trust-debt-exceeded');
+  assert.equal(evaluateTrustDebt({ unresolvedSignals: 1, debtScore: 0.1, debtBudget: 0.5, sensitiveAction: true }).allowed, true);
+});
+
+test('delegation freshness blocks an expired handoff', () => {
+  const base = { delegatorTrusted: true, receiverTrusted: true, delegated: true, audienceMatches: true, delegationExpiresAt: '2026-08-15T12:05:00.000Z' };
+  assert.equal(evaluateDelegationFreshness({ ...base, now: new Date('2026-08-15T12:06:00.000Z') }).reasonCode, 'delegation-expired');
+  assert.equal(evaluateDelegationFreshness({ ...base, now: new Date('2026-08-15T12:04:00.000Z') }).allowed, true);
 });

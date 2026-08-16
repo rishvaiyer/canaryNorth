@@ -59,6 +59,15 @@ test('optional memory, provenance, canary, and adaptive gates stay fail-closed',
   assert.equal(adaptive.code, 'adaptive-context-drift');
 });
 
+test('causal, trust-debt, and delegation gates are enforced by authorization', () => {
+  const causal = authorize({ ...base, causalContext: { trustedPathEdges: 1, requiredTrustedEdges: 3, untrustedGapCount: 2, actionIntentMatch: true }, now: new Date('2026-08-15T12:00:00Z') });
+  const debt = authorize({ ...base, trustDebtContext: { unresolvedSignals: 4, debtScore: 0.82, debtBudget: 0.5, sensitiveAction: true }, now: new Date('2026-08-15T12:00:00Z') });
+  const delegation = authorize({ ...base, delegationContext: { delegatorTrusted: true, receiverTrusted: true, delegated: true, audienceMatches: true, delegationExpiresAt: '2026-08-15T11:59:00Z' }, now: new Date('2026-08-15T12:00:00Z') });
+  assert.equal(causal.code, 'causal-path-incomplete');
+  assert.equal(debt.code, 'trust-debt-exceeded');
+  assert.equal(delegation.code, 'delegation-expired');
+});
+
 test('policy binds memory scope and delegated provenance to the capability', () => {
   const memory = authorize({ ...base, memoryContext: { originTrust: 'reviewed', tenantId: 'tenant_other', workspaceId: 'workspace_demo', policyVersion: POLICY_VERSION, ageSeconds: 10 }, now: new Date('2026-08-15T12:00:00Z') });
   const provenance = authorize({ ...base, provenance: { sourceTrust: 'reviewed', sourceId: 'source-a', destinationAgentId: 'other-agent', intendedRecipient: 'other-agent', authority: 'delegated', delegated: true }, now: new Date('2026-08-15T12:00:00Z') });

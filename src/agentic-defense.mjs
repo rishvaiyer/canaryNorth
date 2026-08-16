@@ -48,3 +48,24 @@ export function evaluateAdaptiveContext({ provenanceDrift, scopeChanged, timingS
   const drift = [provenanceDrift, scopeChanged, timingShift, wrapperShift].some((value) => value === true);
   return drift ? result(false, 'adaptive-context-drift', { reviewRequired: true }) : result(true, 'adaptive-context-stable', { reviewRequired: false });
 }
+
+export function evaluateCausalContinuity({ trustedPathEdges = 0, requiredTrustedEdges = 1, untrustedGapCount = 0, actionIntentMatch = false } = {}) {
+  if (![trustedPathEdges, requiredTrustedEdges, untrustedGapCount].every((value) => Number.isInteger(value) && value >= 0)) return result(false, 'causal-metadata-invalid', { reviewRequired: true });
+  if (actionIntentMatch !== true) return result(false, 'causal-intent-mismatch', { reviewRequired: true });
+  if (trustedPathEdges < requiredTrustedEdges || untrustedGapCount > 0) return result(false, 'causal-path-incomplete', { reviewRequired: true });
+  return result(true, 'causal-path-complete', { reviewRequired: false, trustedPathVerified: true });
+}
+
+export function evaluateTrustDebt({ unresolvedSignals = 0, debtScore, debtBudget = 0.5, sensitiveAction = false } = {}) {
+  if (!Number.isInteger(unresolvedSignals) || unresolvedSignals < 0 || !Number.isFinite(debtScore) || debtScore < 0 || debtScore > 1 || !Number.isFinite(debtBudget) || debtBudget < 0 || debtBudget > 1) return result(false, 'trust-debt-metadata-invalid', { reviewRequired: true });
+  if (sensitiveAction === true && debtScore > debtBudget) return result(false, 'trust-debt-exceeded', { reviewRequired: true, debtScore, debtBudget, unresolvedSignals });
+  return result(true, 'trust-debt-within-budget', { reviewRequired: false, debtScore, debtBudget, unresolvedSignals });
+}
+
+export function evaluateDelegationFreshness({ delegatorTrusted, receiverTrusted, delegated, audienceMatches, delegationExpiresAt, now = new Date() } = {}) {
+  if (delegatorTrusted !== true || receiverTrusted !== true || delegated !== true || audienceMatches !== true) return result(false, 'delegation-trust-or-audience-mismatch', { reviewRequired: true });
+  const expiry = new Date(delegationExpiresAt);
+  if (!delegationExpiresAt || Number.isNaN(expiry.getTime())) return result(false, 'delegation-expiry-invalid', { reviewRequired: true });
+  if (!(now instanceof Date) || Number.isNaN(now.getTime()) || now >= expiry) return result(false, 'delegation-expired', { reviewRequired: true });
+  return result(true, 'delegation-fresh', { reviewRequired: false, freshnessChecked: true });
+}

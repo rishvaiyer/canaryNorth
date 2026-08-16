@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { evaluateAdaptiveContext, evaluateCanaryRequest, evaluateMemoryContext, evaluateProvenanceBoundary, verifyToolAttestation } from './agentic-defense.mjs';
+import { evaluateAdaptiveContext, evaluateCanaryRequest, evaluateCausalContinuity, evaluateDelegationFreshness, evaluateMemoryContext, evaluateProvenanceBoundary, evaluateTrustDebt, verifyToolAttestation } from './agentic-defense.mjs';
 
 export const POLICY_VERSION = 'contextseal-policy-v2';
 export const DEMO_TENANT_ID = 'tenant_demo';
@@ -67,7 +67,7 @@ export function inspectInput(input = '') {
   };
 }
 
-export function authorize({ capabilityId, action, resource, input = '', now = new Date(), principal, audience, tenantId, workspaceId, policyVersion = POLICY_VERSION, nonce, replayDetected = false, toolManifest, memoryContext, provenance, canaryContext, adaptiveContext, demoControls = {} }) {
+export function authorize({ capabilityId, action, resource, input = '', now = new Date(), principal, audience, tenantId, workspaceId, policyVersion = POLICY_VERSION, nonce, replayDetected = false, toolManifest, memoryContext, provenance, canaryContext, adaptiveContext, causalContext, trustDebtContext, delegationContext, demoControls = {} }) {
   const capability = DEMO_CAPABILITIES.find((item) => item.id === capabilityId);
   if (!capability) return deny('unknown-capability', 'Capability reference is not recognized.', null);
   if (canaryContext !== undefined) {
@@ -99,6 +99,18 @@ export function authorize({ capabilityId, action, resource, input = '', now = ne
   if (adaptiveContext !== undefined) {
     const adaptive = evaluateAdaptiveContext(adaptiveContext);
     if (!adaptive.allowed) return deny(adaptive.reasonCode, 'Adaptive context drift requires review before action.', capability, { clean: false, signals: [adaptive.reasonCode], agenticDefense: adaptive });
+  }
+  if (causalContext !== undefined) {
+    const causal = evaluateCausalContinuity(causalContext);
+    if (!causal.allowed) return deny(causal.reasonCode, 'Trusted causal evidence was incomplete for this action.', capability, { clean: false, signals: [causal.reasonCode], agenticDefense: causal });
+  }
+  if (trustDebtContext !== undefined) {
+    const debt = evaluateTrustDebt(trustDebtContext);
+    if (!debt.allowed) return deny(debt.reasonCode, 'Unresolved synthetic risk exceeded the action budget.', capability, { clean: false, signals: [debt.reasonCode], agenticDefense: debt });
+  }
+  if (delegationContext !== undefined) {
+    const delegation = evaluateDelegationFreshness({ ...delegationContext, now });
+    if (!delegation.allowed) return deny(delegation.reasonCode, 'Delegated authority was not fresh and bound at action time.', capability, { clean: false, signals: [delegation.reasonCode], agenticDefense: delegation });
   }
   const inspection = demoControls.contentFirewall === false ? { clean: true, injection: null, dlp: null, signals: [], bypassed: true } : inspectInput(input);
   if (inspection.injection) return deny('prompt-injection', 'Untrusted instruction pattern was quarantined.', capability, inspection);
