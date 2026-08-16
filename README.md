@@ -60,7 +60,8 @@ The first three real metadata-policy evaluator slices are explained in [`DEFENSE
 
 ## API
 
-- `GET /health` - liveness and active storage mode.
+- `GET /health` - liveness, active storage mode, and signing posture.
+- `GET /api/signing-key` - the Ed25519 public key used to sign receipts. Unauthenticated by design, because a receipt is only independently verifiable if the verifier can fetch the key without credentials.
 - `GET /api/bootstrap` - redacted capabilities, graph, and scoped receipts.
 - `POST /api/authorize` - evaluate a scoped request and append a receipt.
 - `GET /api/receipts` - read receipts within the request scope.
@@ -72,7 +73,7 @@ The first three real metadata-policy evaluator slices are explained in [`DEFENSE
 
 ## Limits
 
-This is a focused reference implementation. Capabilities, approvals, and evidence events are fixture-backed, the public deployment remains synthetic, signatures use an HMAC secret, and the DLP/injection detectors are intentionally small deterministic signals, not a general classifier. The new causal, trust-debt, and delegation gates are deterministic metadata policies, not trained models or proof of universal protection. The evidence module is an encrypted package format, not a malware scanner, steganography detector, or production retention service. The ML risk layer is a roadmap, not a trained security model. The PostgreSQL path is a durable persistence foundation, not a complete enterprise security platform. A small-business release still needs a real identity provider, durable approval and evidence persistence, tenant administration, policy management, secret-manager integration, structured logging, monitoring, backup/restore procedures, key rotation, independent security review, and a broader content-security test corpus.
+This is a focused reference implementation. Capabilities, approvals, and evidence events are fixture-backed, the public deployment remains synthetic, and the DLP/injection detectors are intentionally small deterministic signals, not a general classifier. They are defense in depth, not the boundary: the capability allowlist, expiry, nonce, and scope checks are what actually enforce, and they do not depend on the wording of an input. The new causal, trust-debt, and delegation gates are deterministic metadata policies, not trained models or proof of universal protection. The evidence module is an encrypted package format, not a malware scanner, steganography detector, or production retention service. The ML risk layer is a roadmap, not a trained security model. The PostgreSQL path is a durable persistence foundation, not a complete enterprise security platform. A small-business release still needs a real identity provider, durable approval and evidence persistence, tenant administration, policy management, secret-manager integration, structured logging, monitoring, backup/restore procedures, key rotation, independent security review, and a broader content-security test corpus.
 
 ## Small-business product direction
 
@@ -85,3 +86,40 @@ The most credible product is a narrow AI action gateway for one to three workflo
 5. A simple dashboard instead of a full security operations center.
 
 That is a practical path toward enterprise-grade controls for small businesses without claiming to be a universal AI firewall.
+
+## Receipt signing and independent verification
+
+Receipts and artifact manifests are signed with **Ed25519**. The service holds
+the private key; the public key is published at `GET /api/signing-key`. Anyone
+can therefore verify that a receipt is authentic **without holding any material
+that would let them forge one**.
+
+This replaces the previous HMAC-SHA256 scheme. An HMAC is symmetric, so
+verifying a receipt required the same secret used to produce it: any party able
+to check a receipt was also able to forge one, and an outside reviewer could not
+check anything at all. That is the wrong property for a tamper-evident audit
+record.
+
+Verify a receipt yourself, with no credentials and no dependencies:
+
+```bash
+curl -s "$ORIGIN/api/receipts" | jq '.receipts[0].receipt' > receipt.json
+node scripts/verify-receipt.mjs receipt.json --url "$ORIGIN"
+```
+
+Exit code 0 means verified. Change any signed field and it returns 1.
+
+Configuration:
+
+- `CONTEXTSEAL_SIGNING_KEY` accepts a PEM private key or a 32-byte seed in hex or
+  base64. Set it in production so receipts stay verifiable across restarts.
+- If it is unset outside production, an **ephemeral** key is generated in memory.
+  `/health` and `/api/signing-key` both report `ephemeralKey: true`, because an
+  ephemeral key means receipts signed before a restart will no longer verify.
+- Signed payloads are canonicalized with sorted keys, so a harmless property
+  reordering upstream cannot invalidate a receipt.
+- Receipts carry `signatureAlgorithm` and a short `keyId` fingerprint, so a
+  verifier can tell "signed by a different key" apart from "payload altered".
+- Manifests written before this change carry `signatureAlgorithm: hmac-sha256`
+  and still verify when the old `RECEIPT_SIGNING_KEY` is supplied. Nothing signs
+  with HMAC anymore.

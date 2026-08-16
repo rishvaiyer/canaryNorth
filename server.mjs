@@ -3,11 +3,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { DEMO_CAPABILITIES, POLICY_VERSION, authorize, hashReceipt, signReceipt } from './src/policy.mjs';
+import { DEMO_CAPABILITIES, POLICY_VERSION, authorize, hashReceipt } from './src/policy.mjs';
 import { artifactManifest, verifyApprovedArtifact, verifyArtifact } from './src/artifacts.mjs';
 import { createReceiptStore } from './src/storage.mjs';
 import { createApprovalStore } from './src/approvals.mjs';
 import { createEvidenceEvent, createEvidencePackage } from './src/evidence.mjs';
+import { createSigner } from './src/signing.mjs';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.join(root, 'public');
@@ -18,6 +19,14 @@ const demoMode = process.env.CONTEXTSEAL_DEMO_MODE === '1' || !isProduction;
 const requireAuth = !demoMode && (isProduction || process.env.CONTEXTSEAL_REQUIRE_AUTH === '1');
 const signingSecret = process.env.RECEIPT_SIGNING_KEY || (isProduction ? null : 'context-seal-dev-signing-key');
 const authToken = process.env.CONTEXTSEAL_AUTH_TOKEN || null;
+// Ed25519 signer. Receipts are signed with the private key; the public key is
+// served at /api/signing-key so anyone can verify a receipt without it.
+// An ephemeral key is allowed only outside production, and /health reports it,
+// because an ephemeral key means receipts stop verifying after a restart.
+const signer = createSigner({
+  privateKey: process.env.CONTEXTSEAL_SIGNING_KEY,
+  allowEphemeral: !isProduction || demoMode
+});
 function parseEvidenceWrappingKey(value) {
   if (!value) return null;
   const key = /^[0-9a-f]{64}$/i.test(value) ? Buffer.from(value, 'hex') : Buffer.from(value, 'base64');
@@ -246,7 +255,8 @@ function makeReceipt(result, request, { sequence, previousReceipt, approvalId, a
     base.approvalDecision = approvalDecision;
   }
   const receiptHash = hashReceipt(base);
-  return { ...base, receiptHash, signature: signReceipt({ ...base, receiptHash }, signingSecret) };
+  const signed = { ...base, receiptHash };
+  return { ...signed, signatureAlgorithm: signer.algorithm, keyId: signer.keyId, signature: signer.sign(signed) };
 }
 function staticFile(res, pathname) {
   const safe = pathname === '/' ? '/index.html' : pathname;
@@ -258,7 +268,23 @@ function staticFile(res, pathname) {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   try {
-    if (req.method === 'GET' && url.pathname === '/health') return json(res, 200, { ok: true, service: 'context-seal', mode: demoMode ? 'synthetic-demo' : (isProduction ? 'production' : 'local-demo'), storage: receiptStore.mode, evidence: { ledger: 'synthetic-demo', encryptedExport: Boolean(evidenceWrappingKey) } });
+    if (req.method === 'GET' && url.pathname === '/health') return json(res, 200, { ok: true, service: 'context-seal', mode: demoMode ? 'synthetic-demo' : (isProduction ? 'production' : 'local-demo'), storage: receiptStore.mode, evidence: { ledger: 'synthetic-demo', encryptedExport: Boolean(evidenceWrappingKey) }, signing: { algorithm: signer.algorithm, keyId: signer.keyId, ephemeralKey: signer.ephemeral } });
+    // The signing key is public by design and deliberately sits above the auth
+    // gate: a receipt is only independently verifiable if the verifier can fetch
+    // the key without credentials.
+    if (req.method === 'GET' && url.pathname === '/api/signing-key') {
+      return json(res, 200, {
+        algorithm: signer.algorithm,
+        keyId: signer.keyId,
+        publicKey: signer.publicKeyPem,
+        publicKeyBase64: signer.publicKeyBase64,
+        ephemeralKey: signer.ephemeral,
+        note: signer.ephemeral
+          ? 'Ephemeral demo key. It is regenerated on restart, so receipts signed before a restart will not verify.'
+          : 'Stable key. Receipts signed by this key verify offline with the public key alone.',
+        verify: 'node scripts/verify-receipt.mjs <receipt.json> --url <origin>'
+      });
+    }
     if (url.pathname.startsWith('/api/') || url.pathname === '/mcp/audit') {
       if (!authorized(req)) return json(res, 401, { error: 'authentication-required' });
       if (rateLimited(req)) return json(res, 429, { error: 'rate-limit-exceeded' });
@@ -276,7 +302,7 @@ const server = http.createServer(async (req, res) => {
       if (result.allowed && request.nonce && !(await receiptStore.claimNonce({ principal: result.capability.principal, nonce: request.nonce, expiresAt: result.capability.expiresAt }))) result = authorize({ ...request, replayDetected: true });
       const entry = await receiptStore.appendEntry(({ sequence, previousReceipt }) => ({ receipt: makeReceipt(result, request, { sequence, previousReceipt }), execution: result.allowed ? 'would-forward-to-tool' : 'quarantined' }));
       const receipt = entry.receipt;
-      return json(res, result.allowed ? 200 : 403, { allowed: result.allowed, reason: result.reason, code: result.code, inspection: result.inspection, receipt: { ...receipt, signature: `${receipt.signature.slice(0, 14)}…` } });
+      return json(res, result.allowed ? 200 : 403, { allowed: result.allowed, reason: result.reason, code: result.code, inspection: result.inspection, receipt });
     }
     const approvalMatch = url.pathname.match(/^\/api\/approvals\/([^/]+)\/(approve|deny)$/);
     if (req.method === 'POST' && url.pathname === '/api/approvals/request') {
@@ -286,7 +312,7 @@ const server = http.createServer(async (req, res) => {
       const result = authorize(request);
       if (!result.allowed) {
         const entry = await receiptStore.appendEntry(({ sequence, previousReceipt }) => ({ receipt: makeReceipt(result, request, { sequence, previousReceipt }), execution: 'quarantined' }));
-        return json(res, 403, { allowed: false, reason: result.reason, code: result.code, inspection: result.inspection, receipt: { ...entry.receipt, signature: `${entry.receipt.signature.slice(0, 14)}…` } });
+        return json(res, 403, { allowed: false, reason: result.reason, code: result.code, inspection: result.inspection, receipt: entry.receipt });
       }
       const approval = approvalStore.create({ request, policyResult: result });
       return json(res, 202, {
@@ -315,24 +341,24 @@ const server = http.createServer(async (req, res) => {
         const result = { allowed: false, code: 'approval-expired', reason: 'Human approval expired before resolution.', capability: { principal: expired.request.principal, audience: expired.request.audience, tenantId: expired.request.tenantId, workspaceId: expired.request.workspaceId } };
         const entry = await receiptStore.appendEntry(({ sequence, previousReceipt }) => ({ receipt: makeReceipt(result, expired.request, { sequence, previousReceipt, approvalId, approvalDecision: 'expired' }), execution: 'quarantined' }));
         approvalStore.completeDenial(approvalId, { receiptId: entry.receipt.id });
-        return json(res, 410, { allowed: false, status: 'expired', approvalId, reason: result.reason, code: result.code, execution: 'quarantined', receipt: { ...entry.receipt, signature: `${entry.receipt.signature.slice(0, 14)}…` } });
+        return json(res, 410, { allowed: false, status: 'expired', approvalId, reason: result.reason, code: result.code, execution: 'quarantined', receipt: entry.receipt });
       }
       if (decision === 'deny') {
         const denied = begun.record;
         const result = { allowed: false, code: 'human-denied', reason: 'Human approval was denied.', capability: { principal: denied.request.principal, audience: denied.request.audience, tenantId: denied.request.tenantId, workspaceId: denied.request.workspaceId }, inspection: denied.policy.inspection };
         const entry = await receiptStore.appendEntry(({ sequence, previousReceipt }) => ({ receipt: makeReceipt(result, denied.request, { sequence, previousReceipt, approvalId, approvalDecision: 'deny' }), execution: 'quarantined' }));
         approvalStore.completeDenial(approvalId, { receiptId: entry.receipt.id });
-        return json(res, 200, { allowed: false, status: 'denied', approvalId, reason: result.reason, code: result.code, execution: 'quarantined', receipt: { ...entry.receipt, signature: `${entry.receipt.signature.slice(0, 14)}…` } });
+        return json(res, 200, { allowed: false, status: 'denied', approvalId, reason: result.reason, code: result.code, execution: 'quarantined', receipt: entry.receipt });
       }
       const approved = begun.record;
       let result = authorize(approved.request);
       if (result.allowed && !(await receiptStore.claimNonce({ principal: result.capability.principal, nonce: approved.request.nonce, expiresAt: result.capability.expiresAt }))) result = authorize({ ...approved.request, replayDetected: true });
       const entry = await receiptStore.appendEntry(({ sequence, previousReceipt }) => ({ receipt: makeReceipt(result, approved.request, { sequence, previousReceipt, approvalId, approvalDecision: 'approve' }), execution: result.allowed ? 'would-forward-to-tool' : 'quarantined' }));
       approvalStore.completeApproval(approvalId, { outcome: result.allowed ? 'allow' : 'deny', reasonCode: result.allowed ? 'policy-passed' : result.code, receiptId: entry.receipt.id });
-      return json(res, result.allowed ? 200 : 403, { allowed: result.allowed, status: 'approved', approvalId, reason: result.allowed ? 'Human approval accepted and policy checks passed.' : result.reason, code: result.allowed ? 'approved' : result.code, execution: result.allowed ? 'would-forward-to-tool' : 'quarantined', inspection: result.inspection, receipt: { ...entry.receipt, signature: `${entry.receipt.signature.slice(0, 14)}…` } });
+      return json(res, result.allowed ? 200 : 403, { allowed: result.allowed, status: 'approved', approvalId, reason: result.allowed ? 'Human approval accepted and policy checks passed.' : result.reason, code: result.allowed ? 'approved' : result.code, execution: result.allowed ? 'would-forward-to-tool' : 'quarantined', inspection: result.inspection, receipt: entry.receipt });
     }
-    if (req.method === 'POST' && url.pathname === '/api/artifacts/export') { const request = validateArtifactRequest(await body(req)); const headerScope = scopeForRequest(req); if (!demoMode && (request.tenantId !== headerScope.tenantId || request.workspaceId !== headerScope.workspaceId)) throw new Error('scope-binding-required'); const entry = await receiptStore.findByReceiptId(request.receiptId, { tenantId: request.tenantId, workspaceId: request.workspaceId }); if (!entry) return json(res, 404, { error: 'receipt-not-found' }); if (entry.receipt.decision !== 'allow') return json(res, 409, { error: 'artifact-requires-allowed-receipt' }); const manifest = artifactManifest({ filename: request.filename, content: request.content, receipt: entry.receipt, secret: signingSecret }); return json(res, 200, { artifact: { filename: request.filename, content: request.content }, manifest }); }
-    if (req.method === 'POST' && url.pathname === '/api/artifacts/verify') { const request = validateVerifyRequest(await body(req)); const result = request.approved ? verifyApprovedArtifact({ approved: request.approved, observed: { filename: request.filename, content: request.content, manifest: request.manifest }, secret: signingSecret }) : verifyArtifact({ ...request, secret: signingSecret }); return json(res, 200, result); }
+    if (req.method === 'POST' && url.pathname === '/api/artifacts/export') { const request = validateArtifactRequest(await body(req)); const headerScope = scopeForRequest(req); if (!demoMode && (request.tenantId !== headerScope.tenantId || request.workspaceId !== headerScope.workspaceId)) throw new Error('scope-binding-required'); const entry = await receiptStore.findByReceiptId(request.receiptId, { tenantId: request.tenantId, workspaceId: request.workspaceId }); if (!entry) return json(res, 404, { error: 'receipt-not-found' }); if (entry.receipt.decision !== 'allow') return json(res, 409, { error: 'artifact-requires-allowed-receipt' }); const manifest = artifactManifest({ filename: request.filename, content: request.content, receipt: entry.receipt, signer }); return json(res, 200, { artifact: { filename: request.filename, content: request.content }, manifest }); }
+    if (req.method === 'POST' && url.pathname === '/api/artifacts/verify') { const request = validateVerifyRequest(await body(req)); const result = request.approved ? verifyApprovedArtifact({ approved: request.approved, observed: { filename: request.filename, content: request.content, manifest: request.manifest }, publicKey: signer.publicKeyPem, secret: signingSecret }) : verifyArtifact({ ...request, publicKey: signer.publicKeyPem, secret: signingSecret }); return json(res, 200, result); }
     if (req.method === 'POST' && url.pathname === '/api/evidence/package') {
       if (!evidenceWrappingKey) return json(res, 503, { error: 'evidence-export-unconfigured', reason: 'Configure CONTEXTSEAL_EVIDENCE_WRAPPING_KEY before enabling encrypted evidence export.' });
       const request = validateEvidencePackageRequest(await body(req));
