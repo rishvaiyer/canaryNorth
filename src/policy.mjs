@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { evaluateAdaptiveContext, evaluateCanaryRequest, evaluateCausalContinuity, evaluateDelegationFreshness, evaluateMemoryContext, evaluateProvenanceBoundary, evaluateTrustDebt, verifyToolAttestation } from './agentic-defense.mjs';
+import { evaluateAdaptiveContext, evaluateCausalBasis, evaluateCanaryRequest, evaluateCausalContinuity, evaluateDelegationFreshness, evaluateIntentNormalization, evaluateMemoryContext, evaluateProvenanceBoundary, evaluateRecoveryClaim, evaluateResourceClass, evaluateRevocationLineage, evaluateTrustDebt, verifyToolAttestation } from './agentic-defense.mjs';
 
 export const POLICY_VERSION = 'contextseal-policy-v2';
 export const DEMO_TENANT_ID = 'tenant_demo';
@@ -67,7 +67,7 @@ export function inspectInput(input = '') {
   };
 }
 
-export function authorize({ capabilityId, action, resource, input = '', now = new Date(), principal, audience, tenantId, workspaceId, policyVersion = POLICY_VERSION, nonce, replayDetected = false, toolManifest, memoryContext, provenance, canaryContext, adaptiveContext, causalContext, trustDebtContext, delegationContext, demoControls = {} }) {
+export function authorize({ capabilityId, action, resource, input = '', now = new Date(), principal, audience, tenantId, workspaceId, policyVersion = POLICY_VERSION, nonce, replayDetected = false, toolManifest, memoryContext, provenance, canaryContext, adaptiveContext, causalContext, trustDebtContext, delegationContext, causalBasisContext, revocationLineageContext, intentNormContext, resourceClassContext, recoveryClaimContext, demoControls = {} }) {
   const capability = DEMO_CAPABILITIES.find((item) => item.id === capabilityId);
   if (!capability) return deny('unknown-capability', 'Capability reference is not recognized.', null);
   if (canaryContext !== undefined) {
@@ -111,6 +111,26 @@ export function authorize({ capabilityId, action, resource, input = '', now = ne
   if (delegationContext !== undefined) {
     const delegation = evaluateDelegationFreshness({ ...delegationContext, now });
     if (!delegation.allowed) return deny(delegation.reasonCode, 'Delegated authority was not fresh and bound at action time.', capability, { clean: false, signals: [delegation.reasonCode], agenticDefense: delegation });
+  }
+  if (causalBasisContext !== undefined) {
+    const basis = evaluateCausalBasis(causalBasisContext);
+    if (!basis.allowed) return deny(basis.reasonCode, 'No trusted causal basis exists for this action.', capability, { clean: false, signals: [basis.reasonCode], agenticDefense: basis });
+  }
+  if (revocationLineageContext !== undefined) {
+    const revocation = evaluateRevocationLineage({ ...revocationLineageContext, now });
+    if (!revocation.allowed) return deny(revocation.reasonCode, 'Revocation status of the originating authority was not verified.', capability, { clean: false, signals: [revocation.reasonCode], agenticDefense: revocation });
+  }
+  if (intentNormContext !== undefined) {
+    const intentNorm = evaluateIntentNormalization(intentNormContext);
+    if (!intentNorm.allowed) return deny(intentNorm.reasonCode, 'Observed intent diverges from the approved normalized intent.', capability, { clean: false, signals: [intentNorm.reasonCode], agenticDefense: intentNorm });
+  }
+  if (resourceClassContext !== undefined) {
+    const resourceClass = evaluateResourceClass(resourceClassContext);
+    if (!resourceClass.allowed) return deny(resourceClass.reasonCode, 'Requested resource falls outside the approved resource class.', capability, { clean: false, signals: [resourceClass.reasonCode], agenticDefense: resourceClass });
+  }
+  if (recoveryClaimContext !== undefined) {
+    const recovery = evaluateRecoveryClaim(recoveryClaimContext);
+    if (!recovery.allowed) return deny(recovery.reasonCode, 'Recovery claim could not be independently verified.', capability, { clean: false, signals: [recovery.reasonCode], agenticDefense: recovery });
   }
   const inspection = demoControls.contentFirewall === false ? { clean: true, injection: null, dlp: null, signals: [], bypassed: true } : inspectInput(input);
   if (inspection.injection) return deny('prompt-injection', 'Untrusted instruction pattern was quarantined.', capability, inspection);

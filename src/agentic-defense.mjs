@@ -69,3 +69,43 @@ export function evaluateDelegationFreshness({ delegatorTrusted, receiverTrusted,
   if (!(now instanceof Date) || Number.isNaN(now.getTime()) || now >= expiry) return result(false, 'delegation-expired', { reviewRequired: true });
   return result(true, 'delegation-fresh', { reviewRequired: false, freshnessChecked: true });
 }
+
+export function evaluateCausalBasis({ trustedBasisPresent = false, sourceTrustLevel = 'unknown', actionIntentMatch = false } = {}) {
+  if (typeof trustedBasisPresent !== 'boolean' || typeof actionIntentMatch !== 'boolean') return result(false, 'causal-basis-metadata-invalid', { reviewRequired: true });
+  if (!trustedBasisPresent) return result(false, 'untrusted-only-causal-basis', { reviewRequired: true, sourceTrustLevel });
+  if (!actionIntentMatch) return result(false, 'causal-basis-intent-mismatch', { reviewRequired: true });
+  return result(true, 'trusted-causal-basis', { reviewRequired: false });
+}
+
+export function evaluateRevocationLineage({ authorityId, revocationChecked = false, revocationVerifiedAt, maxRevocationAgeSeconds = 300, now = new Date() } = {}) {
+  if (!authorityId || typeof authorityId !== 'string') return result(false, 'revocation-lineage-authority-missing', { reviewRequired: true });
+  if (!revocationChecked) return result(false, 'revocation-lineage-unverified', { reviewRequired: true });
+  if (!revocationVerifiedAt) return result(false, 'revocation-lineage-timestamp-missing', { reviewRequired: true });
+  const verifiedAt = new Date(revocationVerifiedAt);
+  if (Number.isNaN(verifiedAt.getTime())) return result(false, 'revocation-lineage-timestamp-invalid', { reviewRequired: true });
+  const ageSeconds = (now.getTime() - verifiedAt.getTime()) / 1000;
+  if (ageSeconds < 0 || ageSeconds > maxRevocationAgeSeconds) return result(false, 'revocation-lineage-stale', { reviewRequired: true });
+  return result(true, 'revocation-lineage-current', { reviewRequired: false });
+}
+
+export function evaluateIntentNormalization({ approvedIntentHash, observedIntentHash, semanticDistance, distanceThreshold = 0.1, actionIntentMatch = false } = {}) {
+  if (typeof approvedIntentHash !== 'string' || !approvedIntentHash || typeof observedIntentHash !== 'string' || !observedIntentHash) return result(false, 'intent-normalization-hash-missing', { reviewRequired: true });
+  if (!Number.isFinite(semanticDistance) || semanticDistance < 0 || semanticDistance > 1) return result(false, 'intent-normalization-metadata-invalid', { reviewRequired: true });
+  if (semanticDistance > distanceThreshold) return result(false, 'intent-normalization-drift', { reviewRequired: true, semanticDistance, distanceThreshold });
+  if (!actionIntentMatch) return result(false, 'intent-normalization-action-mismatch', { reviewRequired: true });
+  return result(true, 'intent-normalization-passed', { reviewRequired: false });
+}
+
+export function evaluateResourceClass({ resourceClass, approvedClass, classMismatch = false } = {}) {
+  if (typeof resourceClass !== 'string' || !resourceClass || typeof approvedClass !== 'string' || !approvedClass) return result(false, 'resource-class-missing', { reviewRequired: true });
+  if (classMismatch === true || resourceClass !== approvedClass) return result(false, 'resource-class-violation', { reviewRequired: true });
+  return result(true, 'resource-class-matched', { reviewRequired: false });
+}
+
+export function evaluateRecoveryClaim({ claimedState, observedStateHash, approvedStateHash, independentCheckPresent = false } = {}) {
+  if (!claimedState || typeof claimedState !== 'string') return result(false, 'recovery-claim-missing', { reviewRequired: true });
+  if (!observedStateHash || typeof observedStateHash !== 'string' || !approvedStateHash || typeof approvedStateHash !== 'string') return result(false, 'recovery-claim-hash-missing', { reviewRequired: true });
+  if (observedStateHash !== approvedStateHash) return result(false, 'recovery-claim-drift', { reviewRequired: true });
+  if (!independentCheckPresent) return result(false, 'recovery-claim-unverified', { reviewRequired: true });
+  return result(true, 'recovery-claim-verified', { reviewRequired: false });
+}

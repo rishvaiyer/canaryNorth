@@ -68,6 +68,20 @@ test('causal, trust-debt, and delegation gates are enforced by authorization', (
   assert.equal(delegation.code, 'delegation-expired');
 });
 
+test('causal-basis, revocation-lineage, intent-normalization, resource-class, and recovery-claim gates are enforced by authorization', () => {
+  const now = new Date('2026-08-15T12:00:00Z');
+  const basis = authorize({ ...base, causalBasisContext: { trustedBasisPresent: false, sourceTrustLevel: 'untrusted', actionIntentMatch: true }, now });
+  const revocation = authorize({ ...base, revocationLineageContext: { authorityId: 'relay-authority-synth', revocationChecked: false }, now });
+  const intentNorm = authorize({ ...base, intentNormContext: { approvedIntentHash: 'synth-a1b2', observedIntentHash: 'synth-x9y8', semanticDistance: 0.73, distanceThreshold: 0.1, actionIntentMatch: true }, now });
+  const resourceClass = authorize({ ...base, resourceClassContext: { resourceClass: 'canary-adjacent', approvedClass: 'weather', classMismatch: true }, now });
+  const recovery = authorize({ ...base, recoveryClaimContext: { claimedState: 'healthy', observedStateHash: 'obs-hash-42', approvedStateHash: 'approved-hash-17', independentCheckPresent: false }, now });
+  assert.equal(basis.code, 'untrusted-only-causal-basis');
+  assert.equal(revocation.code, 'revocation-lineage-unverified');
+  assert.equal(intentNorm.code, 'intent-normalization-drift');
+  assert.equal(resourceClass.code, 'resource-class-violation');
+  assert.equal(recovery.code, 'recovery-claim-drift');
+});
+
 test('policy binds memory scope and delegated provenance to the capability', () => {
   const memory = authorize({ ...base, memoryContext: { originTrust: 'reviewed', tenantId: 'tenant_other', workspaceId: 'workspace_demo', policyVersion: POLICY_VERSION, ageSeconds: 10 }, now: new Date('2026-08-15T12:00:00Z') });
   const provenance = authorize({ ...base, provenance: { sourceTrust: 'reviewed', sourceId: 'source-a', destinationAgentId: 'other-agent', intendedRecipient: 'other-agent', authority: 'delegated', delegated: true }, now: new Date('2026-08-15T12:00:00Z') });

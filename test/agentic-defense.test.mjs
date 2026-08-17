@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateAdaptiveContext, evaluateCanaryRequest, evaluateCausalContinuity, evaluateDelegationFreshness, evaluateMemoryContext, evaluateProvenanceBoundary, evaluateTrustDebt, verifyToolAttestation } from '../src/agentic-defense.mjs';
+import { evaluateAdaptiveContext, evaluateCausalBasis, evaluateCanaryRequest, evaluateCausalContinuity, evaluateDelegationFreshness, evaluateIntentNormalization, evaluateMemoryContext, evaluateProvenanceBoundary, evaluateRecoveryClaim, evaluateResourceClass, evaluateRevocationLineage, evaluateTrustDebt, verifyToolAttestation } from '../src/agentic-defense.mjs';
 
 const manifest = { schema: 'contextseal.tool-attestation.v1', tool: 'weather.get_forecast', version: '1.0.0', owner: 'contextseal-demo', capabilities: ['read:forecast'], signatureStatus: 'verified', digest: 'sha256:synthetic-weather-v1' };
 
@@ -52,4 +52,39 @@ test('delegation freshness blocks an expired handoff', () => {
   const base = { delegatorTrusted: true, receiverTrusted: true, delegated: true, audienceMatches: true, delegationExpiresAt: '2026-08-15T12:05:00.000Z' };
   assert.equal(evaluateDelegationFreshness({ ...base, now: new Date('2026-08-15T12:06:00.000Z') }).reasonCode, 'delegation-expired');
   assert.equal(evaluateDelegationFreshness({ ...base, now: new Date('2026-08-15T12:04:00.000Z') }).allowed, true);
+});
+
+test('causal basis blocks when no trusted basis exists for the action', () => {
+  assert.equal(evaluateCausalBasis({ trustedBasisPresent: false, sourceTrustLevel: 'untrusted', actionIntentMatch: true }).reasonCode, 'untrusted-only-causal-basis');
+  assert.equal(evaluateCausalBasis({ trustedBasisPresent: true, actionIntentMatch: false }).reasonCode, 'causal-basis-intent-mismatch');
+  assert.equal(evaluateCausalBasis({ trustedBasisPresent: true, actionIntentMatch: true }).allowed, true);
+});
+
+test('revocation lineage blocks when authority was not checked for revocation', () => {
+  assert.equal(evaluateRevocationLineage({ authorityId: 'relay-authority-synth', revocationChecked: false }).reasonCode, 'revocation-lineage-unverified');
+  assert.equal(evaluateRevocationLineage({ authorityId: 'relay-authority-synth', revocationChecked: true, revocationVerifiedAt: 'not-a-date' }).reasonCode, 'revocation-lineage-timestamp-invalid');
+  const recent = new Date(Date.now() - 10_000).toISOString();
+  assert.equal(evaluateRevocationLineage({ authorityId: 'relay-authority-synth', revocationChecked: true, revocationVerifiedAt: recent }).allowed, true);
+});
+
+test('intent normalization blocks when observed intent diverges from the approved intent', () => {
+  const base = { approvedIntentHash: 'synth-a1b2', observedIntentHash: 'synth-x9y8', semanticDistance: 0.73, distanceThreshold: 0.1, actionIntentMatch: true };
+  assert.equal(evaluateIntentNormalization(base).reasonCode, 'intent-normalization-drift');
+  assert.equal(evaluateIntentNormalization({ ...base, semanticDistance: 0.05 }).allowed, true);
+  assert.equal(evaluateIntentNormalization({ ...base, semanticDistance: 0.05, actionIntentMatch: false }).reasonCode, 'intent-normalization-action-mismatch');
+});
+
+test('resource class blocks when the requested class does not match the approved class', () => {
+  assert.equal(evaluateResourceClass({ resourceClass: 'canary-adjacent', approvedClass: 'weather', classMismatch: true }).reasonCode, 'resource-class-violation');
+  assert.equal(evaluateResourceClass({ resourceClass: 'weather', approvedClass: 'weather', classMismatch: false }).allowed, true);
+  assert.equal(evaluateResourceClass({ resourceClass: 'billing', approvedClass: 'weather', classMismatch: false }).reasonCode, 'resource-class-violation');
+});
+
+test('recovery claim blocks when state drift or missing independent verification is detected', () => {
+  const driftCase = { claimedState: 'healthy', observedStateHash: 'obs-hash-42', approvedStateHash: 'approved-hash-17', independentCheckPresent: false };
+  assert.equal(evaluateRecoveryClaim(driftCase).reasonCode, 'recovery-claim-drift');
+  const matchNoVerify = { claimedState: 'healthy', observedStateHash: 'same-hash', approvedStateHash: 'same-hash', independentCheckPresent: false };
+  assert.equal(evaluateRecoveryClaim(matchNoVerify).reasonCode, 'recovery-claim-unverified');
+  const verified = { claimedState: 'healthy', observedStateHash: 'same-hash', approvedStateHash: 'same-hash', independentCheckPresent: true };
+  assert.equal(evaluateRecoveryClaim(verified).allowed, true);
 });

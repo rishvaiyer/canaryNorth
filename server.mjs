@@ -157,7 +157,36 @@ function validateAgenticMetadata(request) {
     if (delegationContext.delegationExpiresAt !== undefined && (typeof delegationContext.delegationExpiresAt !== 'string' || delegationContext.delegationExpiresAt.length < 1 || delegationContext.delegationExpiresAt.length > 128)) throw new Error('invalid-delegation-expiry');
     for (const field of ['delegatorTrusted', 'receiverTrusted', 'delegated', 'audienceMatches']) if (delegationContext[field] !== undefined && typeof delegationContext[field] !== 'boolean') throw new Error(`invalid-delegation-${field}`);
   }
-  return { toolManifest, memoryContext, provenance, canaryContext, adaptiveContext, causalContext, trustDebtContext, delegationContext };
+  const causalBasisContext = optionalObject('causalBasisContext');
+  if (causalBasisContext) {
+    for (const field of ['trustedBasisPresent', 'actionIntentMatch']) if (causalBasisContext[field] !== undefined && typeof causalBasisContext[field] !== 'boolean') throw new Error(`invalid-causal-basis-${field}`);
+    if (causalBasisContext.sourceTrustLevel !== undefined && (typeof causalBasisContext.sourceTrustLevel !== 'string' || causalBasisContext.sourceTrustLevel.length > 64)) throw new Error('invalid-causal-basis-trust-level');
+  }
+  const revocationLineageContext = optionalObject('revocationLineageContext');
+  if (revocationLineageContext) {
+    if (revocationLineageContext.authorityId !== undefined && (typeof revocationLineageContext.authorityId !== 'string' || revocationLineageContext.authorityId.length < 1 || revocationLineageContext.authorityId.length > 128)) throw new Error('invalid-revocation-authority-id');
+    if (revocationLineageContext.revocationChecked !== undefined && typeof revocationLineageContext.revocationChecked !== 'boolean') throw new Error('invalid-revocation-checked');
+    if (revocationLineageContext.revocationVerifiedAt !== undefined && (typeof revocationLineageContext.revocationVerifiedAt !== 'string' || revocationLineageContext.revocationVerifiedAt.length > 128)) throw new Error('invalid-revocation-verified-at');
+    if (revocationLineageContext.maxRevocationAgeSeconds !== undefined && (!Number.isFinite(revocationLineageContext.maxRevocationAgeSeconds) || revocationLineageContext.maxRevocationAgeSeconds < 0)) throw new Error('invalid-revocation-max-age');
+  }
+  const intentNormContext = optionalObject('intentNormContext');
+  if (intentNormContext) {
+    for (const field of ['approvedIntentHash', 'observedIntentHash']) if (intentNormContext[field] !== undefined && (typeof intentNormContext[field] !== 'string' || intentNormContext[field].length > 128)) throw new Error(`invalid-intent-norm-${field}`);
+    for (const field of ['semanticDistance', 'distanceThreshold']) if (intentNormContext[field] !== undefined && (!Number.isFinite(intentNormContext[field]) || intentNormContext[field] < 0 || intentNormContext[field] > 1)) throw new Error(`invalid-intent-norm-${field}`);
+    if (intentNormContext.actionIntentMatch !== undefined && typeof intentNormContext.actionIntentMatch !== 'boolean') throw new Error('invalid-intent-norm-action-intent');
+  }
+  const resourceClassContext = optionalObject('resourceClassContext');
+  if (resourceClassContext) {
+    for (const field of ['resourceClass', 'approvedClass']) if (resourceClassContext[field] !== undefined && (typeof resourceClassContext[field] !== 'string' || resourceClassContext[field].length > 128)) throw new Error(`invalid-resource-class-${field}`);
+    if (resourceClassContext.classMismatch !== undefined && typeof resourceClassContext.classMismatch !== 'boolean') throw new Error('invalid-resource-class-mismatch');
+  }
+  const recoveryClaimContext = optionalObject('recoveryClaimContext');
+  if (recoveryClaimContext) {
+    if (recoveryClaimContext.claimedState !== undefined && (typeof recoveryClaimContext.claimedState !== 'string' || recoveryClaimContext.claimedState.length > 64)) throw new Error('invalid-recovery-claimed-state');
+    for (const field of ['observedStateHash', 'approvedStateHash']) if (recoveryClaimContext[field] !== undefined && (typeof recoveryClaimContext[field] !== 'string' || recoveryClaimContext[field].length > 128)) throw new Error(`invalid-recovery-${field}`);
+    if (recoveryClaimContext.independentCheckPresent !== undefined && typeof recoveryClaimContext.independentCheckPresent !== 'boolean') throw new Error('invalid-recovery-independent-check');
+  }
+  return { toolManifest, memoryContext, provenance, canaryContext, adaptiveContext, causalContext, trustDebtContext, delegationContext, causalBasisContext, revocationLineageContext, intentNormContext, resourceClassContext, recoveryClaimContext };
 }
 function validateAuthorizationRequest(request) {
   if (!request || Array.isArray(request) || typeof request !== 'object') throw new Error('request-object-required');
