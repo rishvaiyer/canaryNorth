@@ -40,7 +40,8 @@ export function evaluateProvenanceBoundary({ sourceTrust, sourceId, destinationA
 }
 
 export function evaluateCanaryRequest({ resource, canaryResource = 'canary://synthetic-protected-resource' } = {}) {
-  if (resource !== canaryResource) return result(true, 'not-a-canary-resource', { alert: false });
+  const isCanaryResource = resource === canaryResource || (typeof resource === 'string' && resource.startsWith(`${canaryResource}/`));
+  if (!isCanaryResource) return result(true, 'not-a-canary-resource', { alert: false });
   return result(false, 'synthetic-canary-triggered', { alert: true, action: 'block-and-record' });
 }
 

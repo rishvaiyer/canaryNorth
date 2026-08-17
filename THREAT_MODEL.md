@@ -1,5 +1,7 @@
 # CanaryNorth threat model
 
+> Public preview note: The current private fixture map contains 115 active fixture-to-CanaryNorth evaluator checks, each with a passing direct or authorization-path test. The four `dormant-rehearsal-variants` remain disabled by default and outside that count. This is metadata-policy evidence, not a claim of scanner coverage, live target detection, production safety, or universal protection.
+
 ## Trust boundaries
 
 1. **Agent/model context:** untrusted and may contain hostile instructions. It receives opaque capability identifiers only.

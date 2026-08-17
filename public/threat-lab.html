@@ -2,34 +2,34 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#081a2a">
-  <title>CanaryNorth - Threat Lab</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3f1eb">
+  <meta name="description" content="A controlled, synthetic CanaryNorth threat rehearsal.">
+  <title>CanaryNorth | Controlled rehearsal</title>
+  <script>
+    (() => { const saved = localStorage.getItem('canarynorth-theme'); document.documentElement.dataset.theme = saved === 'light' || saved === 'dark' ? saved : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); })();
+  </script>
   <link rel="stylesheet" href="/styles.css">
   <link rel="stylesheet" href="/threat-lab.css">
 </head>
 <body>
-  <main class="shell threat-shell">
-    <header class="topbar"><a class="brand threat-brand" href="/"><span class="mark">◈</span><span>CanaryNorth</span></a><span class="eyebrow">CONTROLLED THREAT LAB</span><a class="health" href="/pen-entry.html">Project Pentesting ↗</a></header>
-    <section class="threat-hero">
-      <div>
-        <p class="kicker">A safe attack rehearsal</p>
-        <h1>Files arrive.<br><em>The guard wakes up.</em></h1>
-        <p class="lede">Watch a controlled, synthetic attack move through the boundary. CanaryNorth identifies the signals, stops the dangerous path, and writes a calm human report.</p>
-        <div class="hero-actions"><button class="primary" id="run-lab">Start simulated attack</button><button class="ghost" id="reset-lab">Reset lab</button></div>
-      </div>
-      <div class="safety-card"><span class="badge">SAFE DEMO BOUNDARY</span><h2>No real malware runs here.</h2><p>Every sample is inert metadata or plain text generated in your browser. No executable payloads, real secrets, external tools, or live scanners are used.</p><div class="safety-list"><span>✓ simulated inputs</span><span>✓ no network attack</span><span>✓ redacted evidence</span></div></div>
-    </section>
-
-    <section class="lab-status card" aria-live="polite"><div class="lab-status-main"><span id="guard-dot" class="guard-dot"></span><div><span class="inspect-label">AI SECURITY GUARD</span><h2 id="lab-status-title">Standing by</h2><p id="lab-status-copy">Start the rehearsal to watch five synthetic attack signals move through the guard.</p></div></div><div class="lab-counter"><strong id="blocked-count">0</strong><span>blocked or quarantined</span></div></section>
-
-    <section class="attack-map card" aria-labelledby="map-title"><div class="card-head"><div><p class="kicker">01 / THE ATTACK CHAIN</p><h2 id="map-title">From suspicious file to safe receipt</h2></div><span class="badge" id="chain-badge">READY</span></div><div class="chain"><div class="chain-node" data-chain="drop"><span>01</span><b>File lands</b><small>synthetic fixture</small></div><i>→</i><div class="chain-node" data-chain="inspect"><span>02</span><b>Guard inspects</b><small>signals + policy</small></div><i>→</i><div class="chain-node" data-chain="stop"><span>03</span><b>Path stops</b><small>quarantine</small></div><i>→</i><div class="chain-node" data-chain="ledger"><span>04</span><b>Report saved</b><small>redacted receipt</small></div></div></section>
-
-    <section class="lab-grid" aria-label="Synthetic attack fixtures"><div class="card fixture-card"><div class="card-head"><div><p class="kicker">02 / THE INTRUDERS</p><h2>Five inert attack fixtures</h2></div><span class="count" id="fixture-count">0/5</span></div><div id="fixtures" class="fixtures"></div></div><aside class="card report-card"><div class="card-head"><div><p class="kicker">03 / THE HUMAN REPORT</p><h2>What was found</h2></div><span class="badge">REDACTED</span></div><div id="report-empty" class="report-empty">The guard report will appear here as the rehearsal runs.</div><div id="report" class="report" hidden></div><div class="report-note"><strong>Why redact?</strong><p>The human needs the reason, category, severity, and evidence reference. Repeating a secret or hostile instruction could spread the problem.</p></div></aside></section>
-
-    <section class="card timeline-card"><div class="card-head"><div><p class="kicker">04 / LIVE REHEARSAL</p><h2>Guard timeline</h2></div><span class="scenario-note">visual simulation only</span></div><ol id="lab-timeline" class="lab-timeline"><li class="timeline-empty">No simulated attack has started.</li></ol></section>
-    <footer><span>CanaryNorth · Threat Lab · synthetic rehearsal</span><span>No malware generated · no external tools called</span></footer>
+  <main class="site-shell threat-shell">
+    <header class="site-header"><a class="brand" href="/" aria-label="CanaryNorth home"><span class="brand-mark" aria-hidden="true">/</span><span>CanaryNorth</span></a><nav class="site-nav" aria-label="Site navigation"><a href="/">Back to demo</a><button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch theme" aria-pressed="false"><span class="theme-icon" aria-hidden="true">◐</span><span class="theme-label">Dark mode</span></button></nav></header>
+    <section class="threat-hero"><div><p class="eyebrow">Controlled rehearsal</p><h1>Watch a suspicious path stop before it travels.</h1><p class="intro-lede">This page runs a harmless sequence of synthetic fixtures through the same human-facing ideas: inspect, decide, redact, record.</p><div class="threat-actions"><button class="primary-button" id="run-lab" type="button">Start the rehearsal</button><button class="quiet-button" id="reset-lab" type="button">Reset</button></div></div><aside class="safety-card"><span class="eyebrow">Boundary note</span><h2>Nothing here is live.</h2><p>The fixtures are metadata and plain text. No executable payloads, real secrets, external tools, or live scanners are used.</p><div class="safety-list"><span>synthetic inputs</span><span>redacted report</span><span>no network attack</span></div></aside></section>
+    <section class="lab-status" aria-live="polite"><div class="lab-status-main"><span id="guard-dot" class="guard-dot"></span><div><span class="eyebrow">Guard state</span><h2 id="lab-status-title">Standing by</h2><p id="lab-status-copy">Start the rehearsal to move five synthetic signals through the boundary.</p></div></div><div class="lab-counter"><strong id="blocked-count">0</strong><span>stopped or held</span></div></section>
+    <section class="attack-map" aria-labelledby="map-title"><div class="section-heading"><div><p class="eyebrow">The path</p><h2 id="map-title">From input to redacted record</h2></div><span class="lab-badge" id="chain-badge">ready</span></div><div class="chain"><div class="chain-node" data-chain="drop"><span>01</span><b>Input arrives</b><small>synthetic fixture</small></div><i aria-hidden="true">→</i><div class="chain-node" data-chain="inspect"><span>02</span><b>Boundary checks</b><small>signals + policy</small></div><i aria-hidden="true">→</i><div class="chain-node" data-chain="stop"><span>03</span><b>Path stops</b><small>blocked or held</small></div><i aria-hidden="true">→</i><div class="chain-node" data-chain="ledger"><span>04</span><b>Record saved</b><small>human summary</small></div></div></section>
+    <section class="lab-grid" aria-label="Synthetic fixtures and report"><div class="fixture-panel"><div class="section-heading"><div><p class="eyebrow">Synthetic fixtures</p><h2>Five signals, no payloads</h2></div><span class="lab-badge" id="fixture-count">0/5</span></div><div id="fixtures" class="fixtures"></div></div><aside class="report-panel"><div class="section-heading"><div><p class="eyebrow">Human report</p><h2>What the guard recorded</h2></div><span class="lab-badge">redacted</span></div><div id="report-empty" class="report-empty">The report will appear as the rehearsal runs.</div><div id="report" class="report" hidden></div><div class="report-note"><strong>Why redact?</strong><p>The reviewer needs the category, reason, decision, and reference, not a repeated hostile instruction or secret-shaped value.</p></div></aside></section>
+    <section class="timeline-panel"><div class="section-heading"><div><p class="eyebrow">Event trail</p><h2>What happened, in order</h2></div><span class="section-note">visual simulation only</span></div><ol id="lab-timeline" class="lab-timeline"><li class="timeline-empty">No simulated rehearsal has started.</li></ol></section>
+    <section class="related-note" aria-label="Return to CanaryNorth"><span class="eyebrow">Next</span><p>Return to the main demo to inspect the request-to-decision flow and receipt.</p><a href="/">Back to the public demo <span aria-hidden="true">↗</span></a></section>
+    <footer><span>CanaryNorth · controlled synthetic rehearsal</span><span>No malware generated · no external tools</span></footer>
   </main>
+  <script>
+    const root = document.documentElement;
+    const toggle = document.querySelector('#theme-toggle');
+    const updateTheme = () => { const dark = root.dataset.theme === 'dark'; toggle.setAttribute('aria-pressed', String(dark)); toggle.querySelector('.theme-label').textContent = dark ? 'Light mode' : 'Dark mode'; toggle.querySelector('.theme-icon').textContent = dark ? '☼' : '◐'; };
+    updateTheme();
+    toggle.addEventListener('click', () => { const next = root.dataset.theme === 'dark' ? 'light' : 'dark'; root.dataset.theme = next; localStorage.setItem('canarynorth-theme', next); updateTheme(); });
+  </script>
   <script type="module" src="/threat-lab.js"></script>
 </body>
 </html>

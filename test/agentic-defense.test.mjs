@@ -29,6 +29,7 @@ test('provenance does not amplify through a summary or wrong recipient', () => {
 test('canary resources block and alert without revealing content', () => {
   const result = evaluateCanaryRequest({ resource: 'canary://synthetic-protected-resource' });
   assert.equal(result.reasonCode, 'synthetic-canary-triggered');
+  assert.equal(evaluateCanaryRequest({ resource: 'canary://synthetic-protected-resource/maze-1' }).reasonCode, 'synthetic-canary-triggered');
   assert.equal(result.alert, true);
   assert.equal(result.rawContent, 'withheld');
 });

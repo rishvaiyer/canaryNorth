@@ -2,95 +2,126 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#081a2a">
-  <title>CanaryNorth - AI Action Receipts</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3f1eb">
+  <meta name="description" content="A synthetic CanaryNorth walkthrough for seeing how an AI action is checked, decided, and recorded.">
+  <title>CanaryNorth | A decision before an AI action</title>
+  <script>
+    (() => {
+      const saved = localStorage.getItem('canarynorth-theme');
+      const theme = saved === 'light' || saved === 'dark' ? saved : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.dataset.theme = theme;
+    })();
+  </script>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <main class="shell">
-    <header class="topbar">
-      <div class="brand"><span class="mark">◈</span><span>CanaryNorth</span></div>
-      <span class="eyebrow">AI ACTION RECEIPTS</span>
-      <span id="health" class="health">checking…</span>
+  <main class="site-shell">
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="CanaryNorth home"><span class="brand-mark" aria-hidden="true">/</span><span>CanaryNorth</span></a>
+      <nav class="site-nav" aria-label="Site navigation">
+        <a href="/learn.html">How it works</a>
+        <a href="#system-view">System view</a>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch theme" aria-pressed="false"><span class="theme-icon" aria-hidden="true">◐</span><span class="theme-label">Dark mode</span></button>
+        <span id="health" class="health" role="status">checking boundary</span>
+      </nav>
     </header>
-    <section class="hero">
-      <div>
-        <p class="kicker">Private provenance for AI work</p>
-        <h1>Know what happened.<br><em>Trust what ships.</em></h1>
-        <p class="lede">CanaryNorth creates private, tamper-evident action receipts for AI-generated work. This demo shows the policy checkpoint behind each receipt: what ran, what was approved, and why a request stopped.</p>
-        <div class="hero-actions" aria-label="Policy walkthroughs">
-          <button class="primary" data-demo="safe">Run a safe example</button>
-          <button class="ghost" data-demo="injection">Test prompt injection</button>
-          <button class="ghost" data-demo="dlp">Test sensitive input</button>
-          <a class="ghost" href="/pen-entry.html">Project Pentesting <span aria-hidden="true">↗</span></a>
-        </div>
-        <label class="demo-toggle"><input id="strict-policy" type="checkbox" checked><span class="toggle-track"></span><span><b>Strict policy checks</b><small>Demo-only: toggle expiry and content screening.</small></span></label>
+
+    <section class="intro" aria-labelledby="page-title">
+      <div class="intro-copy">
+        <p class="eyebrow">Synthetic public demo</p>
+        <h1 id="page-title">Before a model acts, see the decision.</h1>
+        <p class="intro-lede">CanaryNorth checks a proposed AI action before it reaches a tool, then leaves a receipt that a person can read. Try one case below.</p>
+        <div class="intro-notes"><span><i class="signal-dot" aria-hidden="true"></i> synthetic data only</span><span>no external tools called</span><span>no secrets in context</span></div>
       </div>
-      <div class="principle">
-        <div class="principle-row"><span>01</span><div><strong>THE MODEL SEES</strong><b>cap_weather_read_7f3d</b><small>opaque reference · read:forecast</small></div></div>
-        <div class="principle-rule"></div>
-        <div class="principle-row"><span>02</span><div><strong>THE VAULT HOLDS</strong><b class="blurred">provider key · never serialized</b><small>server-side lookup only</small></div></div>
-        <p class="principle-note">The agent can ask. It never receives the key. The receipt records the decision without exposing it.</p>
-      </div>
+      <aside class="boundary-card" aria-label="Trust boundary summary">
+        <div class="boundary-card-top"><span class="eyebrow">The boundary</span><span class="case-id">case CN-0042</span></div>
+        <div class="boundary-line"><span class="line-node">model</span><span class="line-rule" aria-hidden="true"></span><span class="line-node line-node-active">policy</span><span class="line-rule" aria-hidden="true"></span><span class="line-node">tool</span></div>
+        <p>The model can ask for a capability. The credential stays on the other side of the boundary.</p>
+      </aside>
     </section>
-    <section class="card approval-card" aria-labelledby="approval-title" aria-describedby="approval-boundary">
-      <div class="card-head approval-head">
-        <div>
-          <p class="kicker">01 / HUMAN APPROVAL</p>
-          <h2 id="approval-title">Review a synthetic ticket update</h2>
-          <p class="subhead">Request a decision for one scoped support-ticket change, then record whether the human reviewer approves or denies it.</p>
-        </div>
-        <span class="badge">NO REAL TOOL RUNS</span>
+
+    <section class="case" id="case" aria-labelledby="case-title">
+      <div class="section-heading">
+        <div><p class="eyebrow">Guided case review</p><h2 id="case-title">Watch one request move from proposal to receipt</h2></div>
+        <span class="case-status"><i class="signal-dot" aria-hidden="true"></i> local rehearsal</span>
       </div>
-      <div id="approval-boundary" class="approval-boundary"><strong>Synthetic only.</strong> This workflow changes an approval record for demo ticket <code>demo-482</code>. It never calls a ticket system, changes a real ticket, or runs an external tool.</div>
-      <div id="approval-status" class="approval-status" role="status" aria-live="polite" aria-atomic="true">
-        <div class="approval-status-main"><span class="approval-status-dot" aria-hidden="true"></span><div><strong>No approval requested</strong><p>Request a synthetic update to begin.</p></div></div>
-      </div>
-      <div class="approval-actions">
-        <button class="primary" id="request-approval" type="button" aria-label="Request approval for the synthetic ticket update">Request approval</button>
-        <div class="approval-decision-actions" aria-label="Synthetic approval decision">
-          <button class="small-btn approve-btn" id="approve-approval" type="button" aria-label="Approve the synthetic ticket update" hidden>Approve</button>
-          <button class="small-btn deny-btn" id="deny-approval" type="button" aria-label="Deny the synthetic ticket update" hidden>Deny</button>
-        </div>
-      </div>
-      <p id="approval-error" class="approval-error" role="alert" hidden></p>
-      <div id="approval-history" class="approval-history" aria-live="polite"></div>
+
+      <ol class="incident-timeline" aria-label="Incident timeline">
+        <li class="timeline-step is-current" id="timeline-step-proposal">
+          <span class="timeline-index" aria-hidden="true">01</span>
+          <article class="timeline-card">
+            <div class="panel-kicker"><span>Proposal enters</span><span class="mono">weather.get_forecast</span></div>
+            <div class="case-switcher" role="group" aria-label="Choose a synthetic request">
+              <button class="case-tab is-active" type="button" data-demo="safe" data-scenario="safe" aria-pressed="true"><span>01</span><strong>Safe request</strong><small>known capability, clean input</small></button>
+              <button class="case-tab" type="button" data-demo="injection" data-scenario="injection" aria-pressed="false"><span>02</span><strong>Prompt injection</strong><small>instruction conflict</small></button>
+              <button class="case-tab" type="button" data-demo="dlp" data-scenario="dlp" aria-pressed="false"><span>03</span><strong>Sensitive input</strong><small>secret-shaped value</small></button>
+            </div>
+            <div class="request-body"><div class="request-mark" aria-hidden="true">→</div><div><h3>Fetch today’s forecast for New York</h3><p id="request-copy">The agent presents an opaque capability reference and asks for a synthetic forecast.</p></div></div>
+            <div class="request-fields"><div><span>Capability</span><code>cap_weather_read_7f3d</code></div><div><span>Resource</span><code>weather://nyc</code></div><div><span>Input</span><code id="request-input">Synthetic request: forecast for NYC</code></div></div>
+            <label class="policy-toggle"><input id="strict-policy" type="checkbox" checked><span class="toggle-track" aria-hidden="true"></span><span><b>Strict checks</b><small>Demo control for expiry and content screening</small></span></label>
+            <div class="case-action-row"><button class="primary-button" id="run-case" type="button" data-demo="safe">Run this case</button><span class="action-note">No real tool will run.</span></div>
+          </article>
+        </li>
+
+        <li class="timeline-step" id="timeline-step-checks">
+          <span class="timeline-index" aria-hidden="true">02</span>
+          <article class="timeline-card">
+            <div class="panel-kicker"><span id="checks-title">Checks at the boundary</span><span id="walkthrough-step" class="mono">READY</span></div>
+            <ol class="check-list">
+              <li><span class="check-index">01</span><div><strong>Known capability</strong><small>Is this reference valid and current?</small></div><span class="check-state">waiting</span></li>
+              <li><span class="check-index">02</span><div><strong>Scope and content</strong><small>Does the request fit, and is the input safe?</small></div><span class="check-state">waiting</span></li>
+              <li><span class="check-index">03</span><div><strong>Human decision</strong><small>Does a person need to approve the action?</small></div><span class="check-state">waiting</span></li>
+            </ol>
+            <div id="decision-banner" class="decision-banner" role="status" aria-live="polite"><span class="decision-icon">·</span><div><b>Waiting for a case</b><small>Choose a request above to see what happens at the boundary.</small></div></div>
+          </article>
+        </li>
+
+        <li class="timeline-step" id="timeline-step-path">
+          <span class="timeline-index" aria-hidden="true">03</span>
+          <article class="timeline-card">
+            <div class="panel-kicker"><span id="path-title">Decision path</span><span class="mono">visual guide</span></div>
+            <p id="scenario-summary">A scoped synthetic request reaches the boundary and waits for a policy decision.</p>
+            <div class="path-controls"><div class="path-tabs" role="group" aria-label="Choose a guided path"><button class="path-tab" data-scenario="safe" aria-pressed="true">Safe</button><button class="path-tab" data-scenario="injection" aria-pressed="false">Injection</button><button class="path-tab" data-scenario="dlp" aria-pressed="false">Sensitive</button></div><div class="path-buttons"><button class="quiet-button" id="step-prev" type="button" disabled>Back</button><button class="quiet-button" id="play-scenario" type="button" aria-pressed="false">Play path</button><button class="quiet-button" id="step-next" type="button">Next</button></div></div>
+            <ol id="event-trail" class="event-trail" aria-label="Scenario event trail"></ol>
+          </article>
+        </li>
+
+        <li class="timeline-step" id="timeline-step-review">
+          <span class="timeline-index" aria-hidden="true">04</span>
+          <article class="timeline-card approval-inline" aria-labelledby="approval-title">
+            <div class="panel-kicker"><span id="approval-title">Human review</span><span class="badge">synthetic only</span></div>
+            <p class="approval-intro">For a higher-risk change, the boundary pauses and asks a person. This example updates no real ticket.</p>
+            <div id="approval-status" class="approval-status" role="status" aria-live="polite" aria-atomic="true"><div class="approval-status-main"><span class="approval-status-dot" aria-hidden="true"></span><div><strong>No review requested</strong><p>Request a synthetic ticket update to try the human checkpoint.</p></div></div></div>
+            <div class="approval-actions"><button class="secondary-button" id="request-approval" type="button">Request review</button><div class="approval-decision-actions"><button class="approve-btn" id="approve-approval" type="button" hidden>Approve</button><button class="deny-btn" id="deny-approval" type="button" hidden>Deny</button></div></div>
+            <p id="approval-error" class="approval-error" role="alert" hidden></p>
+            <div id="approval-history" class="approval-history" aria-live="polite"></div>
+          </article>
+        </li>
+
+        <li class="timeline-step" id="timeline-step-receipt">
+          <span class="timeline-index" aria-hidden="true">05</span>
+          <article class="timeline-card receipt-panel">
+            <div class="receipt-panel-head"><span class="panel-kicker">Final proof</span><div class="card-actions"><button class="link-button" id="export-artifact" type="button" disabled>Download bound artifact</button><button class="link-button" id="audit" type="button">Read-only audit</button></div></div>
+            <h3 id="receipt-title" class="timeline-receipt-title">A readable receipt, not a data dump</h3>
+            <p class="section-note">decision + reason + reference</p>
+            <div id="receipts" class="receipts"><div class="empty">Run a case to mint the first synthetic receipt.</div></div>
+          </article>
+        </li>
+      </ol>
     </section>
-    <section id="evidence-ledger" class="card evidence-card" aria-labelledby="evidence-title">
-      <div class="card-head evidence-head">
-        <div><p class="kicker">02 / HUMAN-FACING EVIDENCE</p><h2 id="evidence-title">What the human sees</h2><p class="subhead">A readable ledger for reviewing safe event categories, decisions, and references without opening sensitive payloads.</p></div>
-        <span class="badge">SYNTHETIC EXAMPLES</span>
-      </div>
-      <div class="evidence-owner-summary" role="status"><span class="evidence-summary-icon" aria-hidden="true">✓</span><div><strong>Six example events, one calm review surface</strong><p>Start with category, severity, status, and reason. Open a safe detail view only when you need more context.</p></div></div>
-      <div class="evidence-warning" role="note"><strong>Raw payloads are not shown.</strong> These rows contain synthetic metadata and safe summaries. A hash helps identify evidence, but it is not the original content.</div>
-      <div id="evidence-events" class="evidence-events" role="list" aria-label="Synthetic evidence ledger events"></div>
-      <div class="evidence-export"><div><strong>Local export and decryption</strong><p>The export control below downloads a synthetic artifact and its receipt sidecar to your device. This browser page does not securely store a private key, and no decryption happens here. A real encrypted export would need an explicit key-management flow outside this demo.</p></div><a class="link-btn" href="#evidence-receipts">See receipt references</a></div>
-    </section>
-    <section class="grid" aria-label="AI provenance receipt preview">
-      <article class="card"><div class="card-head"><div><p class="kicker">AI ACTION RECEIPT</p><h2>One artifact. A readable chain of trust.</h2><p class="subhead">A private receipt explains the work without exposing the person, prompt, or secret behind it.</p></div><span class="badge">SYNTHETIC</span></div><div class="cap-list"><div class="cap active"><div class="cap-title"><span>weather-brief.md</span><span class="badge">PROVENANCE READY</span></div><div class="cap-meta">generated by <b>forecast-agent</b><br>tool path <b>weather.get_forecast</b> → signed receipt<br>artifact hash <b>sha256: demo-bound</b></div><small>Sources: public synthetic forecast · approval: policy passed · verification: tool path verified</small></div></div></article>
-      <aside class="card model-card"><p class="kicker">WHY THIS MATTERS</p><h2>AI work, with the fog lifted.</h2><ul><li><b>Process, not identity</b><span>Provenance without doxxing or secret leakage.</span></li><li><b>Evidence, not vibes</b><span>Every decision leaves a signed, chained receipt.</span></li><li><b>Honest uncertainty</b><span>Unverified claims stay visible instead of becoming fake confidence.</span></li></ul></aside>
-    </section>
-    <section class="card graph-card" aria-labelledby="map-title">
-      <div class="card-head graph-head">
-        <div><p class="kicker">01 / HOW A REQUEST IS CHECKED</p><h2 id="map-title">See the trust boundary</h2><p class="subhead">Select a component to understand its role, then run an example below.</p></div>
-        <div class="map-actions"><span class="status-dot">● POLICY ONLINE</span><button class="small-btn" id="recenter-node">Recenter selected</button><button class="small-btn" id="reset-layout">Reset layout</button></div>
-      </div>
-      <div class="map-workspace"><div id="graph" class="graph" aria-label="Interactive permission graph"></div><aside id="inspector" class="inspector" aria-live="polite"></aside></div>
-      <div class="scenario-console" aria-label="Guided graph playback">
-        <div class="scenario-console-head"><div><span class="inspect-label">GUIDED PATH</span><p id="scenario-summary" class="scenario-summary">A scoped synthetic request reaches the boundary and would-forward to the allowlisted tool.</p></div><span class="scenario-note">visual guide only · no external tool invoked</span></div>
-        <div class="scenario-controls"><div class="scenario-tabs" role="group" aria-label="Choose a guided scenario"><button class="scenario-tab" data-scenario="safe" aria-pressed="true">Safe request</button><button class="scenario-tab" data-scenario="injection" aria-pressed="false">Prompt injection</button><button class="scenario-tab" data-scenario="dlp" aria-pressed="false">Sensitive input</button></div><div class="playback-controls"><button class="small-btn" id="step-prev" disabled>Previous</button><button class="small-btn play-btn" id="play-scenario" aria-pressed="false">Play path</button><button class="small-btn" id="step-next">Next</button></div></div>
-        <ol id="event-trail" class="event-trail" aria-label="Scenario event trail"></ol>
-      </div>
-      <div class="map-help"><span><kbd>drag</kbd> move a node</span><span><kbd>hover</kbd> trace relationships</span><span><kbd>tab</kbd> focus · <kbd>arrows</kbd> nudge · <kbd>home</kbd> recenter</span></div>
-      <div class="legend"><span><i class="agent"></i>agent context</span><span><i class="proxy"></i>policy boundary</span><span><i class="tool"></i>tool</span><span><i class="vault"></i>secret vault</span><span><i class="ledger"></i>receipt ledger</span></div>
-    </section>
-    <section class="grid metrics-grid">
-      <article class="card caps-card"><div class="card-head"><div><p class="kicker">02 / WHAT THE AGENT CAN USE</p><h2>Permissions, made visible</h2></div><span class="count" id="cap-count">0</span></div><div id="capabilities" class="cap-list"></div></article>
-      <article class="card walkthrough-card"><div class="card-head"><div><p class="kicker">03 / THE DECISION</p><h2>Three checks. One receipt.</h2></div><span class="step-count" id="walkthrough-step">READY</span></div><ol class="walkthrough"><li><span>01</span><div><b>Capability</b><small>Is this capability known and still valid?</small></div></li><li><span>02</span><div><b>Scope and content</b><small>Does the request fit, and is the input safe?</small></div></li><li><span>03</span><div><b>Receipt</b><small>Record the decision before anything could run.</small></div></li></ol><div id="decision-banner" class="decision-banner" role="status"><span class="decision-icon">→</span><div><b>Waiting for an example</b><small>Run a safe or blocked example to see the result.</small></div></div></article>
-    </section>
-    <section id="evidence-receipts" class="grid lower"><article class="card receipt-card"><div class="card-head"><div><p class="kicker">04 / THE EVIDENCE</p><h2>Receipts you can inspect</h2></div><div class="card-actions"><button class="link-btn" id="export-artifact" disabled>Download bound artifact</button><button class="link-btn" id="audit">View MCP audit</button></div></div><div id="receipts" class="receipts"><div class="empty">Run an example to create the first receipt.</div></div></article><aside class="card model-card"><p class="kicker">05 / WHAT IT PROTECTS</p><h2>Useful context.<br>No unnecessary exposure.</h2><ul><li><b>Opaque capabilities</b><span>The model sees a reference, never a raw credential.</span></li><li><b>Content firewall</b><span>Injection and sensitive patterns stop at the boundary.</span></li><li><b>Scoped access</b><span>Every action is limited by tool, resource, and time.</span></li><li><b>Tamper evidence</b><span>Receipts make silent changes detectable.</span></li></ul></aside></section>
-    <footer><span>CanaryNorth · AI Action Receipts · synthetic demo</span><span>Read-only audit · No secrets · No external tools called</span></footer>
+
+    <details class="details-panel" id="system-view">
+      <summary><span><span class="eyebrow">Optional system view</span><strong>See the boundary map</strong><small>Inspect the components behind the guided case.</small></span><span class="summary-arrow" aria-hidden="true">↘</span></summary>
+      <div class="system-view-body"><div class="map-toolbar"><span class="mono">drag a node or use the arrow keys</span><div><button class="quiet-button" id="recenter-node" type="button">Recenter</button><button class="quiet-button" id="reset-layout" type="button">Reset map</button></div></div><div class="map-workspace"><div id="graph" class="graph" aria-label="Interactive CanaryNorth request path"></div><aside id="inspector" class="inspector" aria-live="polite"></aside></div><div class="legend"><span><i class="legend-agent"></i>model</span><span><i class="legend-proxy"></i>policy boundary</span><span><i class="legend-tool"></i>synthetic tool</span><span><i class="legend-vault"></i>secret vault</span><span><i class="legend-ledger"></i>receipt ledger</span></div></div>
+    </details>
+
+    <details class="details-panel evidence-panel" id="evidence-ledger">
+      <summary><span><span class="eyebrow">Evidence ledger</span><strong>Inspect synthetic examples</strong><small>Open only when you want the exact category, status, and hash reference.</small></span><span class="summary-arrow" aria-hidden="true">↘</span></summary>
+      <div class="evidence-wrap"><div class="evidence-warning"><strong>Raw payloads are not shown.</strong> These rows contain synthetic metadata and safe summaries. Malware scanning and steganography detection are not running in this demo.</div><div id="evidence-events" class="evidence-events" role="list" aria-label="Synthetic evidence ledger events"></div></div>
+    </details>
+
+    <footer><span>CanaryNorth · synthetic public demo</span><span>No secrets · no external tools · no live scanners</span></footer>
   </main>
   <div id="toast" role="status" aria-live="polite"></div>
   <script type="module" src="/app.js"></script>
