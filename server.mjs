@@ -323,7 +323,137 @@ function validateAgenticMetadata(request) {
     if (exportDriftContext.sourceRedacted !== undefined && typeof exportDriftContext.sourceRedacted !== 'boolean') throw new Error('invalid-export-drift-source-redacted');
     if (exportDriftContext.exportRedacted !== undefined && typeof exportDriftContext.exportRedacted !== 'boolean') throw new Error('invalid-export-drift-export-redacted');
   }
-  return { toolManifest, memoryContext, provenance, canaryContext, adaptiveContext, causalContext, trustDebtContext, delegationContext, causalBasisContext, revocationLineageContext, intentNormContext, resourceClassContext, recoveryClaimContext, skillDescriptorContext, memoryGraftContext, agentBoundaryContext, canaryEventContext, secondLockContext, frontierGapContext, controlFlowContext, approvalFreshnessContext, outcomeIntegrityContext, quarantineReentryContext, scopeAccumulationContext, workflowGraphContext, consensusProvenanceContext, approvalAgeContext, policyGravityContext, intentTrajectoryContext, clockSplitContext, tenantMirrorContext, evidenceMasqueradeContext, secretFocusContext, backgroundListenerContext, keystreamRetentionContext, hiddenCaptureStateContext, redactionGapContext, audienceMismatchContext, reconstructionRiskContext, exportDriftContext };
+  const toolPivotContext = optionalObject('toolPivotContext');
+  if (toolPivotContext) {
+    for (const field of ['firstToolTrusted', 'secondToolRequested', 'secondToolScopeApproved']) if (toolPivotContext[field] !== undefined && typeof toolPivotContext[field] !== 'boolean') throw new Error(`invalid-tool-pivot-${field}`);
+  }
+  const memoryPermissionShadowContext = optionalObject('memoryPermissionShadowContext');
+  if (memoryPermissionShadowContext) {
+    for (const field of ['ownerVerified', 'modeSafe', 'tenantBound', 'freshnessVerified']) if (memoryPermissionShadowContext[field] !== undefined && typeof memoryPermissionShadowContext[field] !== 'boolean') throw new Error(`invalid-memory-permission-shadow-${field}`);
+  }
+  const schemaAuthorityContext = optionalObject('schemaAuthorityContext');
+  if (schemaAuthorityContext) {
+    if (schemaAuthorityContext.parameterControlsDestination !== undefined && typeof schemaAuthorityContext.parameterControlsDestination !== 'boolean') throw new Error('invalid-schema-authority-parameter-controls-destination');
+    if (schemaAuthorityContext.destinationPolicyValidated !== undefined && typeof schemaAuthorityContext.destinationPolicyValidated !== 'boolean') throw new Error('invalid-schema-authority-destination-policy-validated');
+  }
+  const mcpScopeCrosswireContext = optionalObject('mcpScopeCrosswireContext');
+  if (mcpScopeCrosswireContext) {
+    if (mcpScopeCrosswireContext.requestedScope !== undefined && (typeof mcpScopeCrosswireContext.requestedScope !== 'string' || mcpScopeCrosswireContext.requestedScope.length > 64)) throw new Error('invalid-mcp-scope-crosswire-requested-scope');
+    if (mcpScopeCrosswireContext.handlerMutates !== undefined && typeof mcpScopeCrosswireContext.handlerMutates !== 'boolean') throw new Error('invalid-mcp-scope-crosswire-handler-mutates');
+  }
+  const lifecycleHookContext = optionalObject('lifecycleHookContext');
+  if (lifecycleHookContext) {
+    for (const field of ['lifecycleChanged', 'futureRunAffected', 'ownerApproval']) if (lifecycleHookContext[field] !== undefined && typeof lifecycleHookContext[field] !== 'boolean') throw new Error(`invalid-lifecycle-hook-${field}`);
+  }
+  const agenticSsrfContext = optionalObject('agenticSsrfContext');
+  if (agenticSsrfContext) {
+    if (agenticSsrfContext.destinationUserControlled !== undefined && typeof agenticSsrfContext.destinationUserControlled !== 'boolean') throw new Error('invalid-agentic-ssrf-destination-user-controlled');
+    if (agenticSsrfContext.destinationClass !== undefined && (typeof agenticSsrfContext.destinationClass !== 'string' || agenticSsrfContext.destinationClass.length > 64)) throw new Error('invalid-agentic-ssrf-destination-class');
+  }
+  const contextFanoutContext = optionalObject('contextFanoutContext');
+  if (contextFanoutContext) {
+    for (const field of ['branchCount', 'branchBudget', 'retryCount', 'retryBudget', 'delegatedAgentCount', 'agentBudget']) if (contextFanoutContext[field] !== undefined && (typeof contextFanoutContext[field] !== 'number' || contextFanoutContext[field] < 0)) throw new Error(`invalid-context-fanout-${field}`);
+    if (contextFanoutContext.tokenBudgetExceeded !== undefined && typeof contextFanoutContext.tokenBudgetExceeded !== 'boolean') throw new Error('invalid-context-fanout-token-budget-exceeded');
+  }
+  const retrievalRankingContext = optionalObject('retrievalRankingContext');
+  if (retrievalRankingContext) {
+    if (retrievalRankingContext.rankingDominance !== undefined && typeof retrievalRankingContext.rankingDominance !== 'boolean') throw new Error('invalid-retrieval-ranking-ranking-dominance');
+    if (retrievalRankingContext.topResultTrust !== undefined && (typeof retrievalRankingContext.topResultTrust !== 'string' || retrievalRankingContext.topResultTrust.length > 64)) throw new Error('invalid-retrieval-ranking-top-result-trust');
+  }
+  const observationActionGapContext = optionalObject('observationActionGapContext');
+  if (observationActionGapContext) {
+    for (const field of ['evidenceDigestMatches', 'independentEvidence']) if (observationActionGapContext[field] !== undefined && typeof observationActionGapContext[field] !== 'boolean') throw new Error(`invalid-observation-action-gap-${field}`);
+  }
+  const promptwareRelayContext = optionalObject('promptwareRelayContext');
+  if (promptwareRelayContext) {
+    for (const field of ['externalContent', 'originPreserved', 'sensitiveAction']) if (promptwareRelayContext[field] !== undefined && typeof promptwareRelayContext[field] !== 'boolean') throw new Error(`invalid-promptware-relay-${field}`);
+  }
+  const trajectoryForkContext = optionalObject('trajectoryForkContext');
+  if (trajectoryForkContext) {
+    for (const field of ['approvedBranchCount', 'observedBranchCount']) if (trajectoryForkContext[field] !== undefined && (typeof trajectoryForkContext[field] !== 'number' || trajectoryForkContext[field] < 0)) throw new Error(`invalid-trajectory-fork-${field}`);
+    if (trajectoryForkContext.unexpectedBranch !== undefined && typeof trajectoryForkContext.unexpectedBranch !== 'boolean') throw new Error('invalid-trajectory-fork-unexpected-branch');
+  }
+  const passportSmuggleContext = optionalObject('passportSmuggleContext');
+  if (passportSmuggleContext) {
+    for (const field of ['ownerVerified', 'audienceChanged', 'capabilitySetChanged', 'approvalInherited']) if (passportSmuggleContext[field] !== undefined && typeof passportSmuggleContext[field] !== 'boolean') throw new Error(`invalid-passport-smuggle-${field}`);
+  }
+  const browserOriginClaimContext = optionalObject('browserOriginClaimContext');
+  if (browserOriginClaimContext) {
+    for (const field of ['originClaimVerified', 'boundaryTrusted']) if (browserOriginClaimContext[field] !== undefined && typeof browserOriginClaimContext[field] !== 'boolean') throw new Error(`invalid-browser-origin-claim-${field}`);
+  }
+  const tokenFurnaceContext = optionalObject('tokenFurnaceContext');
+  if (tokenFurnaceContext) {
+    for (const field of ['tokenLikeMetadataPresent', 'secretMaterialPresent']) if (tokenFurnaceContext[field] !== undefined && typeof tokenFurnaceContext[field] !== 'boolean') throw new Error(`invalid-token-furnace-${field}`);
+  }
+  const routeAmbiguityContext = optionalObject('routeAmbiguityContext');
+  if (routeAmbiguityContext) {
+    if (routeAmbiguityContext.routeAmbiguous !== undefined && typeof routeAmbiguityContext.routeAmbiguous !== 'boolean') throw new Error('invalid-route-ambiguity-route-ambiguous');
+  }
+  const quietPermissionContext = optionalObject('quietPermissionContext');
+  if (quietPermissionContext) {
+    if (quietPermissionContext.componentScopeCount !== undefined && (typeof quietPermissionContext.componentScopeCount !== 'number' || quietPermissionContext.componentScopeCount < 0)) throw new Error('invalid-quiet-permission-component-scope-count');
+    if (quietPermissionContext.composedImpact !== undefined && (typeof quietPermissionContext.composedImpact !== 'string' || quietPermissionContext.composedImpact.length > 64)) throw new Error('invalid-quiet-permission-composed-impact');
+    if (quietPermissionContext.freshApproval !== undefined && typeof quietPermissionContext.freshApproval !== 'boolean') throw new Error('invalid-quiet-permission-fresh-approval');
+  }
+  const schedulerDriftContext = optionalObject('schedulerDriftContext');
+  if (schedulerDriftContext) {
+    if (schedulerDriftContext.freshnessAgreement !== undefined && typeof schedulerDriftContext.freshnessAgreement !== 'boolean') throw new Error('invalid-scheduler-drift-freshness-agreement');
+    if (schedulerDriftContext.timeSources !== undefined && (typeof schedulerDriftContext.timeSources !== 'number' || schedulerDriftContext.timeSources < 0)) throw new Error('invalid-scheduler-drift-time-sources');
+  }
+  const evidenceShadowContext = optionalObject('evidenceShadowContext');
+  if (evidenceShadowContext) {
+    for (const field of ['evidenceItems', 'verifiedItems']) if (evidenceShadowContext[field] !== undefined && (typeof evidenceShadowContext[field] !== 'number' || evidenceShadowContext[field] < 0)) throw new Error(`invalid-evidence-shadow-${field}`);
+    if (evidenceShadowContext.provenanceVisible !== undefined && typeof evidenceShadowContext.provenanceVisible !== 'boolean') throw new Error('invalid-evidence-shadow-provenance-visible');
+  }
+  const modelIdentityMirageContext = optionalObject('modelIdentityMirageContext');
+  if (modelIdentityMirageContext) {
+    if (modelIdentityMirageContext.identityMatch !== undefined && typeof modelIdentityMirageContext.identityMatch !== 'boolean') throw new Error('invalid-model-identity-mirage-identity-match');
+    for (const field of ['approvedIdentityClass', 'observedIdentityClass']) if (modelIdentityMirageContext[field] !== undefined && (typeof modelIdentityMirageContext[field] !== 'string' || modelIdentityMirageContext[field].length > 128)) throw new Error(`invalid-model-identity-mirage-${field}`);
+  }
+  const platformPassportContext = optionalObject('platformPassportContext');
+  if (platformPassportContext) {
+    if (platformPassportContext.platformCount !== undefined && (typeof platformPassportContext.platformCount !== 'number' || platformPassportContext.platformCount < 0)) throw new Error('invalid-platform-passport-platform-count');
+    for (const field of ['permissionAgreement', 'provenanceAgreement']) if (platformPassportContext[field] !== undefined && typeof platformPassportContext[field] !== 'boolean') throw new Error(`invalid-platform-passport-${field}`);
+  }
+  const executionBoundaryContext = optionalObject('executionBoundaryContext');
+  if (executionBoundaryContext) {
+    for (const field of ['executionRequested', 'executableContentPresent', 'executionAllowed']) if (executionBoundaryContext[field] !== undefined && typeof executionBoundaryContext[field] !== 'boolean') throw new Error(`invalid-execution-boundary-${field}`);
+  }
+  const corpusTaintContext = optionalObject('corpusTaintContext');
+  if (corpusTaintContext) {
+    for (const field of ['sourceSplitMismatch', 'corpusVersionChanged']) if (corpusTaintContext[field] !== undefined && typeof corpusTaintContext[field] !== 'boolean') throw new Error(`invalid-corpus-taint-${field}`);
+  }
+  const toolInventoryContext = optionalObject('toolInventoryContext');
+  if (toolInventoryContext) {
+    for (const field of ['inventoryMatch', 'registryRecordPresent']) if (toolInventoryContext[field] !== undefined && typeof toolInventoryContext[field] !== 'boolean') throw new Error(`invalid-tool-inventory-${field}`);
+  }
+  const modelExposureContext = optionalObject('modelExposureContext');
+  if (modelExposureContext) {
+    for (const field of ['extractionRequested', 'weightsIncluded']) if (modelExposureContext[field] !== undefined && typeof modelExposureContext[field] !== 'boolean') throw new Error(`invalid-model-exposure-${field}`);
+  }
+  const approvalCarouselContext = optionalObject('approvalCarouselContext');
+  if (approvalCarouselContext) {
+    if (approvalCarouselContext.approvalCount !== undefined && (typeof approvalCarouselContext.approvalCount !== 'number' || approvalCarouselContext.approvalCount < 0)) throw new Error('invalid-approval-carousel-approval-count');
+    if (approvalCarouselContext.sensitiveAction !== undefined && typeof approvalCarouselContext.sensitiveAction !== 'boolean') throw new Error('invalid-approval-carousel-sensitive-action');
+  }
+  const blastRadiusContext = optionalObject('blastRadiusContext');
+  if (blastRadiusContext) {
+    for (const field of ['projectedActions', 'actionBudget']) if (blastRadiusContext[field] !== undefined && (typeof blastRadiusContext[field] !== 'number' || blastRadiusContext[field] < 0)) throw new Error(`invalid-blast-radius-${field}`);
+  }
+  const recoveryTrapdoorContext = optionalObject('recoveryTrapdoorContext');
+  if (recoveryTrapdoorContext) {
+    for (const field of ['recoveryStrength', 'sessionStrength']) if (recoveryTrapdoorContext[field] !== undefined && typeof recoveryTrapdoorContext[field] !== 'number') throw new Error(`invalid-recovery-trapdoor-${field}`);
+  }
+  const longGameContext = optionalObject('longGameContext');
+  if (longGameContext) {
+    if (longGameContext.stageCount !== undefined && (typeof longGameContext.stageCount !== 'number' || longGameContext.stageCount < 0)) throw new Error('invalid-long-game-stage-count');
+    if (longGameContext.sensitiveAction !== undefined && typeof longGameContext.sensitiveAction !== 'boolean') throw new Error('invalid-long-game-sensitive-action');
+  }
+  const dependencyDoppelgangerContext = optionalObject('dependencyDoppelgangerContext');
+  if (dependencyDoppelgangerContext) {
+    for (const field of ['ownerChanged', 'digestChanged', 'executionPermissionChanged']) if (dependencyDoppelgangerContext[field] !== undefined && typeof dependencyDoppelgangerContext[field] !== 'boolean') throw new Error(`invalid-dependency-doppelganger-${field}`);
+  }
+  return { toolManifest, memoryContext, provenance, canaryContext, adaptiveContext, causalContext, trustDebtContext, delegationContext, causalBasisContext, revocationLineageContext, intentNormContext, resourceClassContext, recoveryClaimContext, skillDescriptorContext, memoryGraftContext, agentBoundaryContext, canaryEventContext, secondLockContext, frontierGapContext, controlFlowContext, approvalFreshnessContext, outcomeIntegrityContext, quarantineReentryContext, scopeAccumulationContext, workflowGraphContext, consensusProvenanceContext, approvalAgeContext, policyGravityContext, intentTrajectoryContext, clockSplitContext, tenantMirrorContext, evidenceMasqueradeContext, secretFocusContext, backgroundListenerContext, keystreamRetentionContext, hiddenCaptureStateContext, redactionGapContext, audienceMismatchContext, reconstructionRiskContext, exportDriftContext, toolPivotContext, memoryPermissionShadowContext, schemaAuthorityContext, mcpScopeCrosswireContext, lifecycleHookContext, agenticSsrfContext, contextFanoutContext, retrievalRankingContext, observationActionGapContext, promptwareRelayContext, trajectoryForkContext, passportSmuggleContext, browserOriginClaimContext, tokenFurnaceContext, routeAmbiguityContext, quietPermissionContext, schedulerDriftContext, evidenceShadowContext, modelIdentityMirageContext, platformPassportContext, executionBoundaryContext, corpusTaintContext, toolInventoryContext, modelExposureContext, approvalCarouselContext, blastRadiusContext, recoveryTrapdoorContext, longGameContext, dependencyDoppelgangerContext };
 }
 function validateAuthorizationRequest(request) {
   if (!request || Array.isArray(request) || typeof request !== 'object') throw new Error('request-object-required');

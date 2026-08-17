@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateAdaptiveContext, evaluateAgentBoundary, evaluateApprovalAge, evaluateApprovalFreshness, evaluateAudienceMismatch, evaluateCausalBasis, evaluateCanaryEvent, evaluateCanaryRequest, evaluateCausalContinuity, evaluateClockSplit, evaluateConsensusProvenance, evaluateControlFlow, evaluateDelegationFreshness, evaluateEvidenceMasquerade, evaluateExportDrift, evaluateFrontierGap, evaluateHiddenCaptureState, evaluateIntentNormalization, evaluateIntentTrajectory, evaluateKeystreamRetention, evaluateMemoryContext, evaluateMemoryGraft, evaluateOutcomeIntegrity, evaluatePolicyGravity, evaluateProvenanceBoundary, evaluateQuarantineReentry, evaluateRecoveryClaim, evaluateBackgroundListener, evaluateRedactionGap, evaluateReconstructionRisk, evaluateResourceClass, evaluateRevocationLineage, evaluateScopeAccumulation, evaluateSecondLock, evaluateSecretFocus, evaluateSkillDescriptor, evaluateTenantMirror, evaluateTrustDebt, evaluateWorkflowGraph, verifyToolAttestation } from '../src/agentic-defense.mjs';
+import { evaluateAdaptiveContext, evaluateAgentBoundary, evaluateAgenticSsrf, evaluateApprovalAge, evaluateApprovalCarousel, evaluateApprovalFreshness, evaluateAudienceMismatch, evaluateBlastRadius, evaluateBrowserOriginClaim, evaluateCausalBasis, evaluateCanaryEvent, evaluateCanaryRequest, evaluateCausalContinuity, evaluateClockSplit, evaluateConsensusProvenance, evaluateContextFanout, evaluateControlFlow, evaluateCorpusTaint, evaluateDelegationFreshness, evaluateDependencyDoppelganger, evaluateEvidenceMasquerade, evaluateEvidenceShadow, evaluateExecutionBoundary, evaluateExportDrift, evaluateFrontierGap, evaluateHiddenCaptureState, evaluateIntentNormalization, evaluateIntentTrajectory, evaluateKeystreamRetention, evaluateLifecycleHook, evaluateLongGame, evaluateMcpScopeCrosswire, evaluateMemoryContext, evaluateMemoryGraft, evaluateMemoryPermissionShadow, evaluateModelExposure, evaluateModelIdentityMirage, evaluateOutcomeIntegrity, evaluatePassportSmuggle, evaluatePlatformPassport, evaluatePolicyGravity, evaluatePromptwareRelay, evaluateProvenanceBoundary, evaluateQuarantineReentry, evaluateQuietPermission, evaluateRecoveryClaim, evaluateRecoveryTrapdoor, evaluateBackgroundListener, evaluateRedactionGap, evaluateReconstructionRisk, evaluateResourceClass, evaluateRetrievalRanking, evaluateRevocationLineage, evaluateRouteAmbiguity, evaluateObservationActionGap, evaluateSchedulerDrift, evaluateSchemaAuthority, evaluateScopeAccumulation, evaluateSecondLock, evaluateSecretFocus, evaluateSkillDescriptor, evaluateTenantMirror, evaluateTokenFurnace, evaluateToolInventory, evaluateToolPivot, evaluateTrajectoryFork, evaluateTrustDebt, evaluateWorkflowGraph, verifyToolAttestation } from '../src/agentic-defense.mjs';
 
 const manifest = { schema: 'contextseal.tool-attestation.v1', tool: 'weather.get_forecast', version: '1.0.0', owner: 'contextseal-demo', capabilities: ['read:forecast'], signatureStatus: 'verified', digest: 'sha256:synthetic-weather-v1' };
 
@@ -269,4 +269,186 @@ test('export drift blocks when source is redacted but export is not', () => {
   assert.equal(evaluateExportDrift({ sourceRedacted: true, exportRedacted: false }).reasonCode, 'export-redaction-drift');
   assert.equal(evaluateExportDrift({ sourceRedacted: true, exportRedacted: true }).allowed, true);
   assert.equal(evaluateExportDrift({ sourceRedacted: false, exportRedacted: false }).allowed, true);
+});
+
+// Batch L: research-attack-2026
+test('tool pivot blocks a second un-scoped tool requested after a trusted first tool', () => {
+  assert.equal(evaluateToolPivot({ firstToolTrusted: true, secondToolRequested: true, secondToolScopeApproved: false }).reasonCode, 'tool-scope-escalation-blocked');
+  assert.equal(evaluateToolPivot({ firstToolTrusted: true, secondToolRequested: true, secondToolScopeApproved: true }).allowed, true);
+  assert.equal(evaluateToolPivot({ firstToolTrusted: false, secondToolRequested: true, secondToolScopeApproved: false }).allowed, true);
+});
+
+test('memory permission shadow blocks when any permission dimension is unverified', () => {
+  assert.equal(evaluateMemoryPermissionShadow({ ownerVerified: false, modeSafe: true, tenantBound: true, freshnessVerified: true }).reasonCode, 'memory-permission-shadow');
+  assert.equal(evaluateMemoryPermissionShadow({ ownerVerified: true, modeSafe: true, tenantBound: true, freshnessVerified: true }).allowed, true);
+  assert.equal(evaluateMemoryPermissionShadow({ ownerVerified: true, modeSafe: false, tenantBound: true, freshnessVerified: true }).reasonCode, 'memory-permission-shadow');
+});
+
+test('schema authority blocks parameter-controlled destination without policy validation', () => {
+  assert.equal(evaluateSchemaAuthority({ parameterControlsDestination: true, destinationPolicyValidated: false }).reasonCode, 'schema-parameter-authority-split');
+  assert.equal(evaluateSchemaAuthority({ parameterControlsDestination: true, destinationPolicyValidated: true }).allowed, true);
+  assert.equal(evaluateSchemaAuthority({ parameterControlsDestination: false, destinationPolicyValidated: false }).allowed, true);
+});
+
+test('mcp scope crosswire blocks read scope reaching a mutating handler', () => {
+  assert.equal(evaluateMcpScopeCrosswire({ requestedScope: 'read', handlerMutates: true }).reasonCode, 'mcp-scope-handler-mismatch');
+  assert.equal(evaluateMcpScopeCrosswire({ requestedScope: 'read', handlerMutates: false }).allowed, true);
+  assert.equal(evaluateMcpScopeCrosswire({ requestedScope: 'write', handlerMutates: true }).allowed, true);
+});
+
+test('lifecycle hook blocks unapproved lifecycle change affecting future runs', () => {
+  assert.equal(evaluateLifecycleHook({ lifecycleChanged: true, futureRunAffected: true, ownerApproval: false }).reasonCode, 'lifecycle-hook-unapproved');
+  assert.equal(evaluateLifecycleHook({ lifecycleChanged: true, futureRunAffected: true, ownerApproval: true }).allowed, true);
+  assert.equal(evaluateLifecycleHook({ lifecycleChanged: true, futureRunAffected: false, ownerApproval: false }).allowed, true);
+});
+
+test('agentic ssrf blocks user-controlled or unknown destination class', () => {
+  assert.equal(evaluateAgenticSsrf({ destinationUserControlled: true, destinationClass: 'internal' }).reasonCode, 'destination-class-unauthorized');
+  assert.equal(evaluateAgenticSsrf({ destinationUserControlled: false, destinationClass: 'unknown' }).reasonCode, 'destination-class-unauthorized');
+  assert.equal(evaluateAgenticSsrf({ destinationUserControlled: false, destinationClass: 'approved' }).allowed, true);
+});
+
+test('context fanout blocks when branch, retry, agent, or token budget is exceeded', () => {
+  assert.equal(evaluateContextFanout({ branchCount: 8, branchBudget: 3, retryCount: 0, retryBudget: 5, delegatedAgentCount: 0, agentBudget: 5 }).reasonCode, 'context-fanout-budget-exceeded');
+  assert.equal(evaluateContextFanout({ tokenBudgetExceeded: true }).reasonCode, 'context-fanout-budget-exceeded');
+  assert.equal(evaluateContextFanout({ branchCount: 2, branchBudget: 3, retryCount: 1, retryBudget: 2, delegatedAgentCount: 0, agentBudget: 1 }).allowed, true);
+});
+
+test('retrieval ranking blocks dominant unverified top result', () => {
+  assert.equal(evaluateRetrievalRanking({ rankingDominance: true, topResultTrust: 'unverified' }).reasonCode, 'retrieval-rank-authority-gap');
+  assert.equal(evaluateRetrievalRanking({ rankingDominance: true, topResultTrust: 'verified' }).allowed, true);
+  assert.equal(evaluateRetrievalRanking({ rankingDominance: false, topResultTrust: 'unverified' }).allowed, true);
+});
+
+test('observation action gap blocks when evidence digest or independent evidence is missing', () => {
+  assert.equal(evaluateObservationActionGap({ evidenceDigestMatches: false, independentEvidence: true }).reasonCode, 'observation-action-gap');
+  assert.equal(evaluateObservationActionGap({ evidenceDigestMatches: true, independentEvidence: false }).reasonCode, 'observation-action-gap');
+  assert.equal(evaluateObservationActionGap({ evidenceDigestMatches: true, independentEvidence: true }).allowed, true);
+});
+
+test('promptware relay blocks external content crossing boundary without origin preservation and sensitive action', () => {
+  assert.equal(evaluatePromptwareRelay({ externalContent: true, originPreserved: false, sensitiveAction: true }).reasonCode, 'promptware-origin-not-preserved');
+  assert.equal(evaluatePromptwareRelay({ externalContent: true, originPreserved: true, sensitiveAction: true }).allowed, true);
+  assert.equal(evaluatePromptwareRelay({ externalContent: true, originPreserved: false, sensitiveAction: false }).allowed, true);
+});
+
+// Batch M: future-agentic A
+test('trajectory fork blocks when observed branches exceed approved or unexpected branch is flagged', () => {
+  assert.equal(evaluateTrajectoryFork({ unexpectedBranch: true }).reasonCode, 'trajectory-unexpected-branch');
+  assert.equal(evaluateTrajectoryFork({ approvedBranchCount: 1, observedBranchCount: 2, unexpectedBranch: false }).reasonCode, 'trajectory-unexpected-branch');
+  assert.equal(evaluateTrajectoryFork({ approvedBranchCount: 2, observedBranchCount: 2, unexpectedBranch: false }).allowed, true);
+});
+
+test('passport smuggle blocks when ownership, audience, capability, or approval changes across boundary', () => {
+  assert.equal(evaluatePassportSmuggle({ ownerVerified: false, audienceChanged: false, capabilitySetChanged: false, approvalInherited: true }).reasonCode, 'capability-passport-drift');
+  assert.equal(evaluatePassportSmuggle({ ownerVerified: true, audienceChanged: true, capabilitySetChanged: false, approvalInherited: true }).reasonCode, 'capability-passport-drift');
+  assert.equal(evaluatePassportSmuggle({ ownerVerified: true, audienceChanged: false, capabilitySetChanged: false, approvalInherited: true }).allowed, true);
+});
+
+test('browser origin claim blocks when origin claim is unverified or boundary is untrusted', () => {
+  assert.equal(evaluateBrowserOriginClaim({ originClaimVerified: false, boundaryTrusted: true }).reasonCode, 'origin-claim-insufficient');
+  assert.equal(evaluateBrowserOriginClaim({ originClaimVerified: true, boundaryTrusted: false }).reasonCode, 'origin-claim-insufficient');
+  assert.equal(evaluateBrowserOriginClaim({ originClaimVerified: true, boundaryTrusted: true }).allowed, true);
+});
+
+test('token furnace blocks credential-shaped metadata presence', () => {
+  assert.equal(evaluateTokenFurnace({ tokenLikeMetadataPresent: true, secretMaterialPresent: false }).reasonCode, 'token-like-metadata-flagged');
+  assert.equal(evaluateTokenFurnace({ tokenLikeMetadataPresent: false, secretMaterialPresent: false }).allowed, true);
+});
+
+test('route ambiguity blocks when route is ambiguous or no route is selected', () => {
+  assert.equal(evaluateRouteAmbiguity({ routeAmbiguous: true, selectedRoute: null }).reasonCode, 'route-selection-ambiguous');
+  assert.equal(evaluateRouteAmbiguity({ routeAmbiguous: false, selectedRoute: null }).reasonCode, 'route-selection-ambiguous');
+  assert.equal(evaluateRouteAmbiguity({ routeAmbiguous: false, selectedRoute: 'route-a' }).allowed, true);
+});
+
+// Batch M: future-agentic B
+test('quiet permission blocks high-impact composed scope without fresh approval', () => {
+  assert.equal(evaluateQuietPermission({ componentScopeCount: 3, composedImpact: 'high', freshApproval: false }).reasonCode, 'composed-scope-impact-elevated');
+  assert.equal(evaluateQuietPermission({ componentScopeCount: 3, composedImpact: 'high', freshApproval: true }).allowed, true);
+  assert.equal(evaluateQuietPermission({ componentScopeCount: 2, composedImpact: 'high', freshApproval: false }).allowed, true);
+});
+
+test('scheduler drift blocks when multiple time sources disagree on freshness', () => {
+  assert.equal(evaluateSchedulerDrift({ timeSources: 2, freshnessAgreement: false }).reasonCode, 'freshness-scheduler-disagreement');
+  assert.equal(evaluateSchedulerDrift({ timeSources: 2, freshnessAgreement: true }).allowed, true);
+  assert.equal(evaluateSchedulerDrift({ timeSources: 1, freshnessAgreement: false }).allowed, true);
+});
+
+test('evidence shadow blocks when evidence items exceed verified items and provenance is not visible', () => {
+  assert.equal(evaluateEvidenceShadow({ evidenceItems: 2, verifiedItems: 0, provenanceVisible: false }).reasonCode, 'evidence-provenance-shadow');
+  assert.equal(evaluateEvidenceShadow({ evidenceItems: 2, verifiedItems: 2, provenanceVisible: false }).allowed, true);
+  assert.equal(evaluateEvidenceShadow({ evidenceItems: 2, verifiedItems: 0, provenanceVisible: true }).allowed, true);
+});
+
+test('model identity mirage blocks when identity match fails or identity classes differ', () => {
+  assert.equal(evaluateModelIdentityMirage({ identityMatch: false }).reasonCode, 'model-identity-class-mismatch');
+  assert.equal(evaluateModelIdentityMirage({ identityMatch: true, approvedIdentityClass: 'reviewer', observedIdentityClass: 'unverified' }).reasonCode, 'model-identity-class-mismatch');
+  assert.equal(evaluateModelIdentityMirage({ identityMatch: true, approvedIdentityClass: 'reviewer', observedIdentityClass: 'reviewer' }).allowed, true);
+});
+
+// Batch N: owasp-gap
+test('platform passport blocks when multiple platforms disagree on permissions or provenance', () => {
+  assert.equal(evaluatePlatformPassport({ platformCount: 4, permissionAgreement: false, provenanceAgreement: false }).reasonCode, 'platform-permission-disagreement');
+  assert.equal(evaluatePlatformPassport({ platformCount: 4, permissionAgreement: true, provenanceAgreement: false }).reasonCode, 'platform-permission-disagreement');
+  assert.equal(evaluatePlatformPassport({ platformCount: 1, permissionAgreement: false, provenanceAgreement: false }).allowed, true);
+  assert.equal(evaluatePlatformPassport({ platformCount: 4, permissionAgreement: true, provenanceAgreement: true }).allowed, true);
+});
+
+test('execution boundary blocks when execution is requested but boundary or content disallows it', () => {
+  assert.equal(evaluateExecutionBoundary({ executionRequested: true, executableContentPresent: false, executionAllowed: true }).reasonCode, 'execution-boundary-enforced');
+  assert.equal(evaluateExecutionBoundary({ executionRequested: true, executableContentPresent: true, executionAllowed: false }).reasonCode, 'execution-boundary-enforced');
+  assert.equal(evaluateExecutionBoundary({ executionRequested: false, executableContentPresent: false, executionAllowed: false }).allowed, true);
+  assert.equal(evaluateExecutionBoundary({ executionRequested: true, executableContentPresent: true, executionAllowed: true }).allowed, true);
+});
+
+test('corpus taint blocks when training source split or corpus version changes', () => {
+  assert.equal(evaluateCorpusTaint({ sourceSplitMismatch: true, corpusVersionChanged: false }).reasonCode, 'corpus-provenance-tainted');
+  assert.equal(evaluateCorpusTaint({ sourceSplitMismatch: false, corpusVersionChanged: true }).reasonCode, 'corpus-provenance-tainted');
+  assert.equal(evaluateCorpusTaint({ sourceSplitMismatch: false, corpusVersionChanged: false }).allowed, true);
+});
+
+test('tool inventory blocks when tool is not in registry or inventory does not match', () => {
+  assert.equal(evaluateToolInventory({ inventoryMatch: false, registryRecordPresent: false }).reasonCode, 'tool-not-in-registry');
+  assert.equal(evaluateToolInventory({ inventoryMatch: true, registryRecordPresent: false }).reasonCode, 'tool-not-in-registry');
+  assert.equal(evaluateToolInventory({ inventoryMatch: true, registryRecordPresent: true }).allowed, true);
+});
+
+test('model exposure blocks when extraction is requested or weights are included', () => {
+  assert.equal(evaluateModelExposure({ extractionRequested: true, weightsIncluded: false }).reasonCode, 'model-extraction-unauthorized');
+  assert.equal(evaluateModelExposure({ extractionRequested: false, weightsIncluded: true }).reasonCode, 'model-extraction-unauthorized');
+  assert.equal(evaluateModelExposure({ extractionRequested: false, weightsIncluded: false }).allowed, true);
+});
+
+// Batch O: top-ten
+test('approval carousel blocks high approval count with sensitive action', () => {
+  assert.equal(evaluateApprovalCarousel({ approvalCount: 5, sensitiveAction: true }).reasonCode, 'approval-carousel-step-up');
+  assert.equal(evaluateApprovalCarousel({ approvalCount: 4, sensitiveAction: true }).allowed, true);
+  assert.equal(evaluateApprovalCarousel({ approvalCount: 5, sensitiveAction: false }).allowed, true);
+  assert.equal(evaluateApprovalCarousel({ approvalCount: -1 }).reasonCode, 'approval-carousel-metadata-invalid');
+});
+
+test('blast radius blocks projected actions exceeding action budget', () => {
+  assert.equal(evaluateBlastRadius({ projectedActions: 4, actionBudget: 3 }).reasonCode, 'blast-radius-budget-exceeded');
+  assert.equal(evaluateBlastRadius({ projectedActions: 3, actionBudget: 3 }).allowed, true);
+  assert.equal(evaluateBlastRadius({ projectedActions: -1 }).reasonCode, 'blast-radius-metadata-invalid');
+});
+
+test('recovery trapdoor blocks when recovery strength is weaker than session strength', () => {
+  assert.equal(evaluateRecoveryTrapdoor({ recoveryStrength: 1, sessionStrength: 3 }).reasonCode, 'recovery-strength-insufficient');
+  assert.equal(evaluateRecoveryTrapdoor({ recoveryStrength: 3, sessionStrength: 3 }).allowed, true);
+  assert.equal(evaluateRecoveryTrapdoor({ recoveryStrength: 'strong', sessionStrength: 3 }).reasonCode, 'recovery-trapdoor-metadata-invalid');
+});
+
+test('long game blocks multi-step chain reaching a sensitive action at stage limit', () => {
+  assert.equal(evaluateLongGame({ stageCount: 7, sensitiveAction: true }).reasonCode, 'long-game-stage-limit');
+  assert.equal(evaluateLongGame({ stageCount: 6, sensitiveAction: true }).allowed, true);
+  assert.equal(evaluateLongGame({ stageCount: 7, sensitiveAction: false }).allowed, true);
+  assert.equal(evaluateLongGame({ stageCount: -1 }).reasonCode, 'long-game-metadata-invalid');
+});
+
+test('dependency doppelganger blocks when owner, digest, or execution permission changes', () => {
+  assert.equal(evaluateDependencyDoppelganger({ ownerChanged: true, digestChanged: false, executionPermissionChanged: false }).reasonCode, 'dependency-identity-drift');
+  assert.equal(evaluateDependencyDoppelganger({ ownerChanged: false, digestChanged: true, executionPermissionChanged: false }).reasonCode, 'dependency-identity-drift');
+  assert.equal(evaluateDependencyDoppelganger({ ownerChanged: false, digestChanged: false, executionPermissionChanged: false }).allowed, true);
 });

@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { evaluateAdaptiveContext, evaluateAgentBoundary, evaluateApprovalAge, evaluateApprovalFreshness, evaluateAudienceMismatch, evaluateCausalBasis, evaluateCanaryEvent, evaluateCanaryRequest, evaluateCausalContinuity, evaluateClockSplit, evaluateConsensusProvenance, evaluateControlFlow, evaluateDelegationFreshness, evaluateEvidenceMasquerade, evaluateExportDrift, evaluateFrontierGap, evaluateHiddenCaptureState, evaluateIntentNormalization, evaluateIntentTrajectory, evaluateKeystreamRetention, evaluateMemoryContext, evaluateMemoryGraft, evaluateOutcomeIntegrity, evaluatePolicyGravity, evaluateProvenanceBoundary, evaluateQuarantineReentry, evaluateRecoveryClaim, evaluateBackgroundListener, evaluateRedactionGap, evaluateReconstructionRisk, evaluateResourceClass, evaluateRevocationLineage, evaluateScopeAccumulation, evaluateSecondLock, evaluateSecretFocus, evaluateSkillDescriptor, evaluateTenantMirror, evaluateTrustDebt, evaluateWorkflowGraph, verifyToolAttestation } from './agentic-defense.mjs';
+import { evaluateAdaptiveContext, evaluateAgentBoundary, evaluateAgenticSsrf, evaluateApprovalAge, evaluateApprovalCarousel, evaluateApprovalFreshness, evaluateAudienceMismatch, evaluateBlastRadius, evaluateBrowserOriginClaim, evaluateCausalBasis, evaluateCanaryEvent, evaluateCanaryRequest, evaluateCausalContinuity, evaluateClockSplit, evaluateConsensusProvenance, evaluateContextFanout, evaluateControlFlow, evaluateCorpusTaint, evaluateDelegationFreshness, evaluateDependencyDoppelganger, evaluateEvidenceMasquerade, evaluateEvidenceShadow, evaluateExecutionBoundary, evaluateExportDrift, evaluateFrontierGap, evaluateHiddenCaptureState, evaluateIntentNormalization, evaluateIntentTrajectory, evaluateKeystreamRetention, evaluateLifecycleHook, evaluateLongGame, evaluateMcpScopeCrosswire, evaluateMemoryContext, evaluateMemoryGraft, evaluateMemoryPermissionShadow, evaluateModelExposure, evaluateModelIdentityMirage, evaluateOutcomeIntegrity, evaluatePassportSmuggle, evaluatePlatformPassport, evaluatePolicyGravity, evaluatePromptwareRelay, evaluateProvenanceBoundary, evaluateQuarantineReentry, evaluateQuietPermission, evaluateRecoveryClaim, evaluateRecoveryTrapdoor, evaluateBackgroundListener, evaluateRedactionGap, evaluateReconstructionRisk, evaluateResourceClass, evaluateRetrievalRanking, evaluateRevocationLineage, evaluateRouteAmbiguity, evaluateObservationActionGap, evaluateSchedulerDrift, evaluateSchemaAuthority, evaluateScopeAccumulation, evaluateSecondLock, evaluateSecretFocus, evaluateSkillDescriptor, evaluateTenantMirror, evaluateTokenFurnace, evaluateToolInventory, evaluateToolPivot, evaluateTrajectoryFork, evaluateTrustDebt, evaluateWorkflowGraph, verifyToolAttestation } from './agentic-defense.mjs';
 
 export const POLICY_VERSION = 'contextseal-policy-v2';
 export const DEMO_TENANT_ID = 'tenant_demo';
@@ -67,7 +67,7 @@ export function inspectInput(input = '') {
   };
 }
 
-export function authorize({ capabilityId, action, resource, input = '', now = new Date(), principal, audience, tenantId, workspaceId, policyVersion = POLICY_VERSION, nonce, replayDetected = false, toolManifest, memoryContext, provenance, canaryContext, adaptiveContext, causalContext, trustDebtContext, delegationContext, causalBasisContext, revocationLineageContext, intentNormContext, resourceClassContext, recoveryClaimContext, skillDescriptorContext, memoryGraftContext, agentBoundaryContext, canaryEventContext, secondLockContext, frontierGapContext, controlFlowContext, approvalFreshnessContext, outcomeIntegrityContext, quarantineReentryContext, scopeAccumulationContext, workflowGraphContext, consensusProvenanceContext, approvalAgeContext, policyGravityContext, intentTrajectoryContext, clockSplitContext, tenantMirrorContext, evidenceMasqueradeContext, secretFocusContext, backgroundListenerContext, keystreamRetentionContext, hiddenCaptureStateContext, redactionGapContext, audienceMismatchContext, reconstructionRiskContext, exportDriftContext, demoControls = {} }) {
+export function authorize({ capabilityId, action, resource, input = '', now = new Date(), principal, audience, tenantId, workspaceId, policyVersion = POLICY_VERSION, nonce, replayDetected = false, toolManifest, memoryContext, provenance, canaryContext, adaptiveContext, causalContext, trustDebtContext, delegationContext, causalBasisContext, revocationLineageContext, intentNormContext, resourceClassContext, recoveryClaimContext, skillDescriptorContext, memoryGraftContext, agentBoundaryContext, canaryEventContext, secondLockContext, frontierGapContext, controlFlowContext, approvalFreshnessContext, outcomeIntegrityContext, quarantineReentryContext, scopeAccumulationContext, workflowGraphContext, consensusProvenanceContext, approvalAgeContext, policyGravityContext, intentTrajectoryContext, clockSplitContext, tenantMirrorContext, evidenceMasqueradeContext, secretFocusContext, backgroundListenerContext, keystreamRetentionContext, hiddenCaptureStateContext, redactionGapContext, audienceMismatchContext, reconstructionRiskContext, exportDriftContext, toolPivotContext, memoryPermissionShadowContext, schemaAuthorityContext, mcpScopeCrosswireContext, lifecycleHookContext, agenticSsrfContext, contextFanoutContext, retrievalRankingContext, observationActionGapContext, promptwareRelayContext, trajectoryForkContext, passportSmuggleContext, browserOriginClaimContext, tokenFurnaceContext, routeAmbiguityContext, quietPermissionContext, schedulerDriftContext, evidenceShadowContext, modelIdentityMirageContext, platformPassportContext, executionBoundaryContext, corpusTaintContext, toolInventoryContext, modelExposureContext, approvalCarouselContext, blastRadiusContext, recoveryTrapdoorContext, longGameContext, dependencyDoppelgangerContext, demoControls = {} }) {
   const capability = DEMO_CAPABILITIES.find((item) => item.id === capabilityId);
   if (!capability) return deny('unknown-capability', 'Capability reference is not recognized.', null);
   if (canaryContext !== undefined) {
@@ -239,6 +239,122 @@ export function authorize({ capabilityId, action, resource, input = '', now = ne
   if (exportDriftContext !== undefined) {
     const ed = evaluateExportDrift(exportDriftContext);
     if (!ed.allowed) return deny(ed.reasonCode, 'Export does not preserve source redaction constraints.', capability, { clean: false, signals: [ed.reasonCode], agenticDefense: ed });
+  }
+  if (toolPivotContext !== undefined) {
+    const tp = evaluateToolPivot(toolPivotContext);
+    if (!tp.allowed) return deny(tp.reasonCode, 'A trusted tool result cannot authorize a second un-scoped tool.', capability, { clean: false, signals: [tp.reasonCode], agenticDefense: tp });
+  }
+  if (memoryPermissionShadowContext !== undefined) {
+    const mp = evaluateMemoryPermissionShadow(memoryPermissionShadowContext);
+    if (!mp.allowed) return deny(mp.reasonCode, 'Memory permission verification incomplete.', capability, { clean: false, signals: [mp.reasonCode], agenticDefense: mp });
+  }
+  if (schemaAuthorityContext !== undefined) {
+    const sa = evaluateSchemaAuthority(schemaAuthorityContext);
+    if (!sa.allowed) return deny(sa.reasonCode, 'Tool parameter controls destination without policy validation.', capability, { clean: false, signals: [sa.reasonCode], agenticDefense: sa });
+  }
+  if (mcpScopeCrosswireContext !== undefined) {
+    const mcp = evaluateMcpScopeCrosswire(mcpScopeCrosswireContext);
+    if (!mcp.allowed) return deny(mcp.reasonCode, 'Read-only MCP scope reached a mutating handler.', capability, { clean: false, signals: [mcp.reasonCode], agenticDefense: mcp });
+  }
+  if (lifecycleHookContext !== undefined) {
+    const lh = evaluateLifecycleHook(lifecycleHookContext);
+    if (!lh.allowed) return deny(lh.reasonCode, 'Unapproved lifecycle change affects future agent behavior.', capability, { clean: false, signals: [lh.reasonCode], agenticDefense: lh });
+  }
+  if (agenticSsrfContext !== undefined) {
+    const ssrf = evaluateAgenticSsrf(agenticSsrfContext);
+    if (!ssrf.allowed) return deny(ssrf.reasonCode, 'Destination class is not authorized for agent-side requests.', capability, { clean: false, signals: [ssrf.reasonCode], agenticDefense: ssrf });
+  }
+  if (contextFanoutContext !== undefined) {
+    const cf = evaluateContextFanout(contextFanoutContext);
+    if (!cf.allowed) return deny(cf.reasonCode, 'Context fan-out exceeds branch, retry, or agent budget.', capability, { clean: false, signals: [cf.reasonCode], agenticDefense: cf });
+  }
+  if (retrievalRankingContext !== undefined) {
+    const rr = evaluateRetrievalRanking(retrievalRankingContext);
+    if (!rr.allowed) return deny(rr.reasonCode, 'Top-ranked retrieval result has not been trust-verified.', capability, { clean: false, signals: [rr.reasonCode], agenticDefense: rr });
+  }
+  if (observationActionGapContext !== undefined) {
+    const oag = evaluateObservationActionGap(observationActionGapContext);
+    if (!oag.allowed) return deny(oag.reasonCode, 'Final action does not match the observed and reviewed evidence.', capability, { clean: false, signals: [oag.reasonCode], agenticDefense: oag });
+  }
+  if (promptwareRelayContext !== undefined) {
+    const pr = evaluatePromptwareRelay(promptwareRelayContext);
+    if (!pr.allowed) return deny(pr.reasonCode, 'External content crossed an application boundary without origin preservation.', capability, { clean: false, signals: [pr.reasonCode], agenticDefense: pr });
+  }
+  if (trajectoryForkContext !== undefined) {
+    const tf = evaluateTrajectoryFork(trajectoryForkContext);
+    if (!tf.allowed) return deny(tf.reasonCode, 'Observed action trajectory diverges from the approved path.', capability, { clean: false, signals: [tf.reasonCode], agenticDefense: tf });
+  }
+  if (passportSmuggleContext !== undefined) {
+    const ps = evaluatePassportSmuggle(passportSmuggleContext);
+    if (!ps.allowed) return deny(ps.reasonCode, 'Capability passport changed across an approval boundary.', capability, { clean: false, signals: [ps.reasonCode], agenticDefense: ps });
+  }
+  if (browserOriginClaimContext !== undefined) {
+    const boc = evaluateBrowserOriginClaim(browserOriginClaimContext);
+    if (!boc.allowed) return deny(boc.reasonCode, 'Origin claim is not sufficient authorization evidence.', capability, { clean: false, signals: [boc.reasonCode], agenticDefense: boc });
+  }
+  if (tokenFurnaceContext !== undefined) {
+    const tok = evaluateTokenFurnace(tokenFurnaceContext);
+    if (!tok.allowed) return deny(tok.reasonCode, 'Credential-shaped metadata requires redaction.', capability, { clean: false, signals: [tok.reasonCode], agenticDefense: tok });
+  }
+  if (routeAmbiguityContext !== undefined) {
+    const ra = evaluateRouteAmbiguity(routeAmbiguityContext);
+    if (!ra.allowed) return deny(ra.reasonCode, 'Route is ambiguous and cannot authorize forwarding.', capability, { clean: false, signals: [ra.reasonCode], agenticDefense: ra });
+  }
+  if (quietPermissionContext !== undefined) {
+    const qp = evaluateQuietPermission(quietPermissionContext);
+    if (!qp.allowed) return deny(qp.reasonCode, 'Composed permission scopes exceed impact threshold.', capability, { clean: false, signals: [qp.reasonCode], agenticDefense: qp });
+  }
+  if (schedulerDriftContext !== undefined) {
+    const sd = evaluateSchedulerDrift(schedulerDriftContext);
+    if (!sd.allowed) return deny(sd.reasonCode, 'Multiple freshness sources disagree about approval status.', capability, { clean: false, signals: [sd.reasonCode], agenticDefense: sd });
+  }
+  if (evidenceShadowContext !== undefined) {
+    const es = evaluateEvidenceShadow(evidenceShadowContext);
+    if (!es.allowed) return deny(es.reasonCode, 'Decision cites evidence with unverified provenance.', capability, { clean: false, signals: [es.reasonCode], agenticDefense: es });
+  }
+  if (modelIdentityMirageContext !== undefined) {
+    const mim = evaluateModelIdentityMirage(modelIdentityMirageContext);
+    if (!mim.allowed) return deny(mim.reasonCode, 'Runtime model identity does not match approved identity class.', capability, { clean: false, signals: [mim.reasonCode], agenticDefense: mim });
+  }
+  if (platformPassportContext !== undefined) {
+    const pp = evaluatePlatformPassport(platformPassportContext);
+    if (!pp.allowed) return deny(pp.reasonCode, 'Skill permission metadata disagrees across platforms.', capability, { clean: false, signals: [pp.reasonCode], agenticDefense: pp });
+  }
+  if (executionBoundaryContext !== undefined) {
+    const eb = evaluateExecutionBoundary(executionBoundaryContext);
+    if (!eb.allowed) return deny(eb.reasonCode, 'Execution was requested but boundary does not permit it.', capability, { clean: false, signals: [eb.reasonCode], agenticDefense: eb });
+  }
+  if (corpusTaintContext !== undefined) {
+    const ct = evaluateCorpusTaint(corpusTaintContext);
+    if (!ct.allowed) return deny(ct.reasonCode, 'Training corpus provenance changed outside the approved lineage.', capability, { clean: false, signals: [ct.reasonCode], agenticDefense: ct });
+  }
+  if (toolInventoryContext !== undefined) {
+    const ti = evaluateToolInventory(toolInventoryContext);
+    if (!ti.allowed) return deny(ti.reasonCode, 'Requested tool has no approved inventory record.', capability, { clean: false, signals: [ti.reasonCode], agenticDefense: ti });
+  }
+  if (modelExposureContext !== undefined) {
+    const me = evaluateModelExposure(modelExposureContext);
+    if (!me.allowed) return deny(me.reasonCode, 'Model data extraction was requested without an approved audience.', capability, { clean: false, signals: [me.reasonCode], agenticDefense: me });
+  }
+  if (approvalCarouselContext !== undefined) {
+    const ac = evaluateApprovalCarousel(approvalCarouselContext);
+    if (!ac.allowed) return deny(ac.reasonCode, 'Repeated approvals with a sensitive action require step-up.', capability, { clean: false, signals: [ac.reasonCode], agenticDefense: ac });
+  }
+  if (blastRadiusContext !== undefined) {
+    const br = evaluateBlastRadius(blastRadiusContext);
+    if (!br.allowed) return deny(br.reasonCode, 'Projected action count exceeds the workflow budget.', capability, { clean: false, signals: [br.reasonCode], agenticDefense: br });
+  }
+  if (recoveryTrapdoorContext !== undefined) {
+    const rt = evaluateRecoveryTrapdoor(recoveryTrapdoorContext);
+    if (!rt.allowed) return deny(rt.reasonCode, 'Recovery path is weaker than the session it would inherit.', capability, { clean: false, signals: [rt.reasonCode], agenticDefense: rt });
+  }
+  if (longGameContext !== undefined) {
+    const lg = evaluateLongGame(longGameContext);
+    if (!lg.allowed) return deny(lg.reasonCode, 'Multi-step chain has drifted into a sensitive action.', capability, { clean: false, signals: [lg.reasonCode], agenticDefense: lg });
+  }
+  if (dependencyDoppelgangerContext !== undefined) {
+    const dd = evaluateDependencyDoppelganger(dependencyDoppelgangerContext);
+    if (!dd.allowed) return deny(dd.reasonCode, 'Dependency identity changed after approval.', capability, { clean: false, signals: [dd.reasonCode], agenticDefense: dd });
   }
   const inspection = demoControls.contentFirewall === false ? { clean: true, injection: null, dlp: null, signals: [], bypassed: true } : inspectInput(input);
   if (inspection.injection) return deny('prompt-injection', 'Untrusted instruction pattern was quarantined.', capability, inspection);

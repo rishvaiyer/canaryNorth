@@ -206,6 +206,166 @@ export function evaluatePolicyGravity({ highestImpactDecision, monotonicEvidence
   return result(true, 'policy-gravity-within-threshold', { reviewRequired: false });
 }
 
+// Batch L: research-attack-2026
+export function evaluateToolPivot({ firstToolTrusted = false, secondToolRequested = false, secondToolScopeApproved } = {}) {
+  if (firstToolTrusted === true && secondToolRequested === true && secondToolScopeApproved !== true) return result(false, 'tool-scope-escalation-blocked', { reviewRequired: true });
+  return result(true, 'tool-scope-safe', { reviewRequired: false });
+}
+
+export function evaluateMemoryPermissionShadow({ ownerVerified, modeSafe, tenantBound, freshnessVerified } = {}) {
+  if (ownerVerified !== true || modeSafe !== true || tenantBound !== true || freshnessVerified !== true) return result(false, 'memory-permission-shadow', { reviewRequired: true, ownerVerified, modeSafe, tenantBound, freshnessVerified });
+  return result(true, 'memory-permissions-verified', { reviewRequired: false });
+}
+
+export function evaluateSchemaAuthority({ parameterControlsDestination = false, destinationPolicyValidated } = {}) {
+  if (parameterControlsDestination === true && destinationPolicyValidated !== true) return result(false, 'schema-parameter-authority-split', { reviewRequired: true });
+  return result(true, 'schema-authority-validated', { reviewRequired: false });
+}
+
+export function evaluateMcpScopeCrosswire({ requestedScope, handlerMutates = false } = {}) {
+  if (requestedScope === 'read' && handlerMutates === true) return result(false, 'mcp-scope-handler-mismatch', { reviewRequired: true });
+  return result(true, 'mcp-scope-consistent', { reviewRequired: false });
+}
+
+export function evaluateLifecycleHook({ lifecycleChanged = false, futureRunAffected = false, ownerApproval } = {}) {
+  if (lifecycleChanged === true && futureRunAffected === true && ownerApproval !== true) return result(false, 'lifecycle-hook-unapproved', { reviewRequired: true });
+  return result(true, 'lifecycle-hook-approved', { reviewRequired: false });
+}
+
+export function evaluateAgenticSsrf({ destinationUserControlled = false, destinationClass } = {}) {
+  if (destinationUserControlled === true || destinationClass === 'unknown') return result(false, 'destination-class-unauthorized', { reviewRequired: true });
+  return result(true, 'destination-class-approved', { reviewRequired: false });
+}
+
+export function evaluateContextFanout({ branchCount = 0, branchBudget, retryCount = 0, retryBudget, delegatedAgentCount = 0, agentBudget, tokenBudgetExceeded = false } = {}) {
+  if (tokenBudgetExceeded === true) return result(false, 'context-fanout-budget-exceeded', { reviewRequired: true, reason: 'token-budget' });
+  if (typeof branchBudget === 'number' && branchCount > branchBudget) return result(false, 'context-fanout-budget-exceeded', { reviewRequired: true, branchCount, branchBudget });
+  if (typeof retryBudget === 'number' && retryCount > retryBudget) return result(false, 'context-fanout-budget-exceeded', { reviewRequired: true, retryCount, retryBudget });
+  if (typeof agentBudget === 'number' && delegatedAgentCount > agentBudget) return result(false, 'context-fanout-budget-exceeded', { reviewRequired: true, delegatedAgentCount, agentBudget });
+  return result(true, 'context-fanout-within-budget', { reviewRequired: false });
+}
+
+export function evaluateRetrievalRanking({ rankingDominance = false, topResultTrust } = {}) {
+  if (rankingDominance === true && topResultTrust !== 'verified') return result(false, 'retrieval-rank-authority-gap', { reviewRequired: true, topResultTrust });
+  return result(true, 'retrieval-rank-within-trust', { reviewRequired: false });
+}
+
+export function evaluateObservationActionGap({ evidenceDigestMatches, independentEvidence } = {}) {
+  if (evidenceDigestMatches !== true || independentEvidence !== true) return result(false, 'observation-action-gap', { reviewRequired: true, evidenceDigestMatches, independentEvidence });
+  return result(true, 'observation-action-consistent', { reviewRequired: false });
+}
+
+export function evaluatePromptwareRelay({ externalContent = false, originPreserved, sensitiveAction = false } = {}) {
+  if (externalContent === true && originPreserved !== true && sensitiveAction === true) return result(false, 'promptware-origin-not-preserved', { reviewRequired: true });
+  return result(true, 'promptware-origin-preserved', { reviewRequired: false });
+}
+
+// Batch M: future-agentic A
+export function evaluateTrajectoryFork({ approvedBranchCount, observedBranchCount, unexpectedBranch = false } = {}) {
+  if (unexpectedBranch === true) return result(false, 'trajectory-unexpected-branch', { reviewRequired: true });
+  if (typeof approvedBranchCount === 'number' && typeof observedBranchCount === 'number' && observedBranchCount > approvedBranchCount) return result(false, 'trajectory-unexpected-branch', { reviewRequired: true, observedBranchCount, approvedBranchCount });
+  return result(true, 'trajectory-follows-plan', { reviewRequired: false });
+}
+
+export function evaluatePassportSmuggle({ ownerVerified = true, audienceChanged = false, capabilitySetChanged = false, approvalInherited = true } = {}) {
+  if (!ownerVerified || audienceChanged || capabilitySetChanged || !approvalInherited) return result(false, 'capability-passport-drift', { reviewRequired: true, ownerVerified, audienceChanged, capabilitySetChanged, approvalInherited });
+  return result(true, 'capability-passport-clean', { reviewRequired: false });
+}
+
+export function evaluateBrowserOriginClaim({ originClaimVerified = false, boundaryTrusted = false } = {}) {
+  if (!originClaimVerified || !boundaryTrusted) return result(false, 'origin-claim-insufficient', { reviewRequired: true });
+  return result(true, 'origin-claim-verified', { reviewRequired: false });
+}
+
+export function evaluateTokenFurnace({ tokenLikeMetadataPresent = false, secretMaterialPresent = false } = {}) {
+  if (tokenLikeMetadataPresent === true && secretMaterialPresent !== false) return result(false, 'token-like-metadata-flagged', { reviewRequired: true });
+  if (tokenLikeMetadataPresent === true) return result(false, 'token-like-metadata-flagged', { reviewRequired: true });
+  return result(true, 'no-token-shaped-metadata', { reviewRequired: false });
+}
+
+export function evaluateRouteAmbiguity({ routeAmbiguous = false, selectedRoute } = {}) {
+  if (routeAmbiguous === true || selectedRoute === null || selectedRoute === undefined) return result(false, 'route-selection-ambiguous', { reviewRequired: true });
+  return result(true, 'route-selection-resolved', { reviewRequired: false });
+}
+
+// Batch M: future-agentic B
+export function evaluateQuietPermission({ componentScopeCount = 0, composedImpact, freshApproval = true } = {}) {
+  if (componentScopeCount >= 3 && composedImpact === 'high' && !freshApproval) return result(false, 'composed-scope-impact-elevated', { reviewRequired: true, componentScopeCount, composedImpact });
+  return result(true, 'composed-scope-within-threshold', { reviewRequired: false });
+}
+
+export function evaluateSchedulerDrift({ freshnessAgreement = true, timeSources = 1 } = {}) {
+  if (timeSources >= 2 && freshnessAgreement !== true) return result(false, 'freshness-scheduler-disagreement', { reviewRequired: true, timeSources });
+  return result(true, 'freshness-sources-agree', { reviewRequired: false });
+}
+
+export function evaluateEvidenceShadow({ evidenceItems = 0, verifiedItems = 0, provenanceVisible = true } = {}) {
+  if (evidenceItems > 0 && verifiedItems < evidenceItems && !provenanceVisible) return result(false, 'evidence-provenance-shadow', { reviewRequired: true, evidenceItems, verifiedItems });
+  return result(true, 'evidence-provenance-visible', { reviewRequired: false });
+}
+
+export function evaluateModelIdentityMirage({ identityMatch = true, approvedIdentityClass, observedIdentityClass } = {}) {
+  if (!identityMatch) return result(false, 'model-identity-class-mismatch', { reviewRequired: true, approvedIdentityClass, observedIdentityClass });
+  if (typeof approvedIdentityClass === 'string' && typeof observedIdentityClass === 'string' && approvedIdentityClass !== observedIdentityClass) return result(false, 'model-identity-class-mismatch', { reviewRequired: true });
+  return result(true, 'model-identity-confirmed', { reviewRequired: false });
+}
+
+// Batch N: owasp-gap
+export function evaluatePlatformPassport({ platformCount = 1, permissionAgreement = true, provenanceAgreement = true } = {}) {
+  if (platformCount > 1 && (!permissionAgreement || !provenanceAgreement)) return result(false, 'platform-permission-disagreement', { reviewRequired: true, platformCount });
+  return result(true, 'platform-passport-consistent', { reviewRequired: false });
+}
+
+export function evaluateExecutionBoundary({ executionRequested = false, executableContentPresent = false, executionAllowed = true } = {}) {
+  if (executionRequested === true && (executableContentPresent === false || executionAllowed === false)) return result(false, 'execution-boundary-enforced', { reviewRequired: true });
+  return result(true, 'execution-boundary-clear', { reviewRequired: false });
+}
+
+export function evaluateCorpusTaint({ sourceSplitMismatch = false, corpusVersionChanged = false } = {}) {
+  if (sourceSplitMismatch === true || corpusVersionChanged === true) return result(false, 'corpus-provenance-tainted', { reviewRequired: true, sourceSplitMismatch, corpusVersionChanged });
+  return result(true, 'corpus-provenance-clean', { reviewRequired: false });
+}
+
+export function evaluateToolInventory({ inventoryMatch = true, registryRecordPresent = true } = {}) {
+  if (!inventoryMatch || !registryRecordPresent) return result(false, 'tool-not-in-registry', { reviewRequired: true });
+  return result(true, 'tool-inventory-verified', { reviewRequired: false });
+}
+
+export function evaluateModelExposure({ extractionRequested = false, weightsIncluded = false } = {}) {
+  if (extractionRequested === true || weightsIncluded === true) return result(false, 'model-extraction-unauthorized', { reviewRequired: true });
+  return result(true, 'model-exposure-within-boundary', { reviewRequired: false });
+}
+
+// Batch O: top-ten
+export function evaluateApprovalCarousel({ approvalCount = 0, sensitiveAction = false } = {}) {
+  if (!Number.isInteger(approvalCount) || approvalCount < 0) return result(false, 'approval-carousel-metadata-invalid', { reviewRequired: true });
+  if (approvalCount >= 5 && sensitiveAction === true) return result(false, 'approval-carousel-step-up', { reviewRequired: true, approvalCount });
+  return result(true, 'approval-count-within-threshold', { reviewRequired: false });
+}
+
+export function evaluateBlastRadius({ projectedActions = 0, actionBudget = 3 } = {}) {
+  if (!Number.isInteger(projectedActions) || projectedActions < 0) return result(false, 'blast-radius-metadata-invalid', { reviewRequired: true });
+  if (projectedActions > actionBudget) return result(false, 'blast-radius-budget-exceeded', { reviewRequired: true, projectedActions, actionBudget });
+  return result(true, 'blast-radius-within-budget', { reviewRequired: false });
+}
+
+export function evaluateRecoveryTrapdoor({ recoveryStrength, sessionStrength } = {}) {
+  if (typeof recoveryStrength !== 'number' || typeof sessionStrength !== 'number') return result(false, 'recovery-trapdoor-metadata-invalid', { reviewRequired: true });
+  if (recoveryStrength < sessionStrength) return result(false, 'recovery-strength-insufficient', { reviewRequired: true, recoveryStrength, sessionStrength });
+  return result(true, 'recovery-strength-adequate', { reviewRequired: false });
+}
+
+export function evaluateLongGame({ stageCount = 0, sensitiveAction = false } = {}) {
+  if (!Number.isInteger(stageCount) || stageCount < 0) return result(false, 'long-game-metadata-invalid', { reviewRequired: true });
+  if (stageCount >= 7 && sensitiveAction === true) return result(false, 'long-game-stage-limit', { reviewRequired: true, stageCount });
+  return result(true, 'long-game-within-limit', { reviewRequired: false });
+}
+
+export function evaluateDependencyDoppelganger({ ownerChanged = false, digestChanged = false, executionPermissionChanged = false } = {}) {
+  if (ownerChanged || digestChanged || executionPermissionChanged) return result(false, 'dependency-identity-drift', { reviewRequired: true, ownerChanged, digestChanged, executionPermissionChanged });
+  return result(true, 'dependency-identity-stable', { reviewRequired: false });
+}
+
 // Batch I: compound-boundary
 export function evaluateIntentTrajectory({ fragmentCount = 0, finalSensitivity, intentDrift = false } = {}) {
   if (!Number.isInteger(fragmentCount) || fragmentCount < 0) return result(false, 'intent-trajectory-metadata-invalid', { reviewRequired: true });

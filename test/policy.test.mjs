@@ -134,3 +134,36 @@ test('authorize gates batch I-K compound-boundary, input-capture, forensic-leak 
   assert.equal(authorize({ ...base, reconstructionRiskContext: { linkableFieldCount: 3, identityRisk: 'elevated' }, now }).code, 'linkage-reconstruction-risk');
   assert.equal(authorize({ ...base, exportDriftContext: { sourceRedacted: true, exportRedacted: false }, now }).code, 'export-redaction-drift');
 });
+
+test('authorize gates batch L-O: research, future A/B, owasp, top-ten contexts', () => {
+  const now = new Date('2026-06-01T12:00:00.000Z');
+  assert.equal(authorize({ ...base, toolPivotContext: { firstToolTrusted: true, secondToolRequested: true, secondToolScopeApproved: false }, now }).code, 'tool-scope-escalation-blocked');
+  assert.equal(authorize({ ...base, memoryPermissionShadowContext: { ownerVerified: false, modeSafe: true, tenantBound: true, freshnessVerified: true }, now }).code, 'memory-permission-shadow');
+  assert.equal(authorize({ ...base, schemaAuthorityContext: { parameterControlsDestination: true, destinationPolicyValidated: false }, now }).code, 'schema-parameter-authority-split');
+  assert.equal(authorize({ ...base, mcpScopeCrosswireContext: { requestedScope: 'read', handlerMutates: true }, now }).code, 'mcp-scope-handler-mismatch');
+  assert.equal(authorize({ ...base, lifecycleHookContext: { lifecycleChanged: true, futureRunAffected: true, ownerApproval: false }, now }).code, 'lifecycle-hook-unapproved');
+  assert.equal(authorize({ ...base, agenticSsrfContext: { destinationUserControlled: true }, now }).code, 'destination-class-unauthorized');
+  assert.equal(authorize({ ...base, contextFanoutContext: { branchCount: 8, branchBudget: 3, retryCount: 0, retryBudget: 5, delegatedAgentCount: 0, agentBudget: 5 }, now }).code, 'context-fanout-budget-exceeded');
+  assert.equal(authorize({ ...base, retrievalRankingContext: { rankingDominance: true, topResultTrust: 'unverified' }, now }).code, 'retrieval-rank-authority-gap');
+  assert.equal(authorize({ ...base, observationActionGapContext: { evidenceDigestMatches: false, independentEvidence: true }, now }).code, 'observation-action-gap');
+  assert.equal(authorize({ ...base, promptwareRelayContext: { externalContent: true, originPreserved: false, sensitiveAction: true }, now }).code, 'promptware-origin-not-preserved');
+  assert.equal(authorize({ ...base, trajectoryForkContext: { unexpectedBranch: true }, now }).code, 'trajectory-unexpected-branch');
+  assert.equal(authorize({ ...base, passportSmuggleContext: { ownerVerified: false, audienceChanged: false, capabilitySetChanged: false, approvalInherited: true }, now }).code, 'capability-passport-drift');
+  assert.equal(authorize({ ...base, browserOriginClaimContext: { originClaimVerified: false, boundaryTrusted: true }, now }).code, 'origin-claim-insufficient');
+  assert.equal(authorize({ ...base, tokenFurnaceContext: { tokenLikeMetadataPresent: true }, now }).code, 'token-like-metadata-flagged');
+  assert.equal(authorize({ ...base, routeAmbiguityContext: { routeAmbiguous: true }, now }).code, 'route-selection-ambiguous');
+  assert.equal(authorize({ ...base, quietPermissionContext: { componentScopeCount: 3, composedImpact: 'high', freshApproval: false }, now }).code, 'composed-scope-impact-elevated');
+  assert.equal(authorize({ ...base, schedulerDriftContext: { timeSources: 2, freshnessAgreement: false }, now }).code, 'freshness-scheduler-disagreement');
+  assert.equal(authorize({ ...base, evidenceShadowContext: { evidenceItems: 2, verifiedItems: 0, provenanceVisible: false }, now }).code, 'evidence-provenance-shadow');
+  assert.equal(authorize({ ...base, modelIdentityMirageContext: { identityMatch: false }, now }).code, 'model-identity-class-mismatch');
+  assert.equal(authorize({ ...base, platformPassportContext: { platformCount: 4, permissionAgreement: false, provenanceAgreement: false }, now }).code, 'platform-permission-disagreement');
+  assert.equal(authorize({ ...base, executionBoundaryContext: { executionRequested: true, executableContentPresent: false, executionAllowed: true }, now }).code, 'execution-boundary-enforced');
+  assert.equal(authorize({ ...base, corpusTaintContext: { sourceSplitMismatch: true, corpusVersionChanged: false }, now }).code, 'corpus-provenance-tainted');
+  assert.equal(authorize({ ...base, toolInventoryContext: { inventoryMatch: false, registryRecordPresent: false }, now }).code, 'tool-not-in-registry');
+  assert.equal(authorize({ ...base, modelExposureContext: { extractionRequested: true, weightsIncluded: false }, now }).code, 'model-extraction-unauthorized');
+  assert.equal(authorize({ ...base, approvalCarouselContext: { approvalCount: 5, sensitiveAction: true }, now }).code, 'approval-carousel-step-up');
+  assert.equal(authorize({ ...base, blastRadiusContext: { projectedActions: 4, actionBudget: 3 }, now }).code, 'blast-radius-budget-exceeded');
+  assert.equal(authorize({ ...base, recoveryTrapdoorContext: { recoveryStrength: 1, sessionStrength: 3 }, now }).code, 'recovery-strength-insufficient');
+  assert.equal(authorize({ ...base, longGameContext: { stageCount: 7, sensitiveAction: true }, now }).code, 'long-game-stage-limit');
+  assert.equal(authorize({ ...base, dependencyDoppelgangerContext: { ownerChanged: true, digestChanged: false, executionPermissionChanged: false }, now }).code, 'dependency-identity-drift');
+});
