@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateAdaptiveContext, evaluateAgentBoundary, evaluateApprovalAge, evaluateApprovalFreshness, evaluateCausalBasis, evaluateCanaryEvent, evaluateCanaryRequest, evaluateCausalContinuity, evaluateConsensusProvenance, evaluateControlFlow, evaluateDelegationFreshness, evaluateFrontierGap, evaluateIntentNormalization, evaluateMemoryContext, evaluateMemoryGraft, evaluateOutcomeIntegrity, evaluatePolicyGravity, evaluateProvenanceBoundary, evaluateQuarantineReentry, evaluateRecoveryClaim, evaluateResourceClass, evaluateRevocationLineage, evaluateScopeAccumulation, evaluateSecondLock, evaluateSkillDescriptor, evaluateTrustDebt, evaluateWorkflowGraph, verifyToolAttestation } from '../src/agentic-defense.mjs';
+import { evaluateAdaptiveContext, evaluateAgentBoundary, evaluateApprovalAge, evaluateApprovalFreshness, evaluateAudienceMismatch, evaluateCausalBasis, evaluateCanaryEvent, evaluateCanaryRequest, evaluateCausalContinuity, evaluateClockSplit, evaluateConsensusProvenance, evaluateControlFlow, evaluateDelegationFreshness, evaluateEvidenceMasquerade, evaluateExportDrift, evaluateFrontierGap, evaluateHiddenCaptureState, evaluateIntentNormalization, evaluateIntentTrajectory, evaluateKeystreamRetention, evaluateMemoryContext, evaluateMemoryGraft, evaluateOutcomeIntegrity, evaluatePolicyGravity, evaluateProvenanceBoundary, evaluateQuarantineReentry, evaluateRecoveryClaim, evaluateBackgroundListener, evaluateRedactionGap, evaluateReconstructionRisk, evaluateResourceClass, evaluateRevocationLineage, evaluateScopeAccumulation, evaluateSecondLock, evaluateSecretFocus, evaluateSkillDescriptor, evaluateTenantMirror, evaluateTrustDebt, evaluateWorkflowGraph, verifyToolAttestation } from '../src/agentic-defense.mjs';
 
 const manifest = { schema: 'contextseal.tool-attestation.v1', tool: 'weather.get_forecast', version: '1.0.0', owner: 'contextseal-demo', capabilities: ['read:forecast'], signatureStatus: 'verified', digest: 'sha256:synthetic-weather-v1' };
 
@@ -191,4 +191,82 @@ test('policy gravity blocks and steps-up based on highest impact decision', () =
   assert.equal(evaluatePolicyGravity({ highestImpactDecision: 'block' }).reasonCode, 'policy-gravity-impact-requires-block');
   assert.equal(evaluatePolicyGravity({ highestImpactDecision: 'step-up' }).reasonCode, 'policy-gravity-impact-requires-step-up');
   assert.equal(evaluatePolicyGravity({ highestImpactDecision: 'allow' }).allowed, true);
+});
+
+// Batch I: compound-boundary
+test('intent trajectory blocks when fragments accumulate to sensitive intent drift', () => {
+  assert.equal(evaluateIntentTrajectory({ fragmentCount: 3, finalSensitivity: 'sensitive', intentDrift: true }).reasonCode, 'intent-trajectory-triggered');
+  assert.equal(evaluateIntentTrajectory({ fragmentCount: 2, finalSensitivity: 'sensitive', intentDrift: true }).allowed, true);
+  assert.equal(evaluateIntentTrajectory({ fragmentCount: 3, finalSensitivity: 'benign', intentDrift: true }).allowed, true);
+  assert.equal(evaluateIntentTrajectory({ fragmentCount: -1 }).reasonCode, 'intent-trajectory-metadata-invalid');
+});
+
+test('clock split blocks when primary expired and secondary valid but clocks disagree', () => {
+  assert.equal(evaluateClockSplit({ primaryExpired: true, secondaryValid: true, clockAgreement: false }).reasonCode, 'clock-disagreement-blocked');
+  assert.equal(evaluateClockSplit({ primaryExpired: true, secondaryValid: true, clockAgreement: true }).allowed, true);
+  assert.equal(evaluateClockSplit({ primaryExpired: false, secondaryValid: true, clockAgreement: false }).allowed, true);
+});
+
+test('tenant mirror blocks when label matches but tenants differ', () => {
+  assert.equal(evaluateTenantMirror({ resourceLabelMatches: true, resourceTenant: 'a', requestTenant: 'b' }).reasonCode, 'tenant-label-binding-mismatch');
+  assert.equal(evaluateTenantMirror({ resourceLabelMatches: true, resourceTenant: 'a', requestTenant: 'a' }).allowed, true);
+  assert.equal(evaluateTenantMirror({ resourceLabelMatches: false, resourceTenant: 'a', requestTenant: 'b' }).allowed, true);
+});
+
+test('evidence masquerade blocks when claimed approval lacks authoritative provenance', () => {
+  assert.equal(evaluateEvidenceMasquerade({ claimedApproval: true, authoritativeRecord: 'missing', provenanceVerified: false }).reasonCode, 'claimed-approval-provenance-missing');
+  assert.equal(evaluateEvidenceMasquerade({ claimedApproval: true, authoritativeRecord: 'present', provenanceVerified: false }).reasonCode, 'claimed-approval-provenance-missing');
+  assert.equal(evaluateEvidenceMasquerade({ claimedApproval: true, authoritativeRecord: 'present', provenanceVerified: true }).allowed, true);
+  assert.equal(evaluateEvidenceMasquerade({ claimedApproval: false, authoritativeRecord: 'missing' }).allowed, true);
+});
+
+// Batch J: input-capture
+test('secret focus blocks keyboard observer on secret field without consent', () => {
+  assert.equal(evaluateSecretFocus({ channel: 'keyboard', secretFieldFocused: true, consent: 'missing' }).reasonCode, 'secret-field-observer-blocked');
+  assert.equal(evaluateSecretFocus({ channel: 'keyboard', secretFieldFocused: true, consent: 'granted' }).allowed, true);
+  assert.equal(evaluateSecretFocus({ channel: 'mouse', secretFieldFocused: true, consent: 'missing' }).allowed, true);
+});
+
+test('background listener blocks when scope is background and owner has not approved', () => {
+  assert.equal(evaluateBackgroundListener({ scope: 'background', ownerApproved: false }).reasonCode, 'background-listener-unapproved');
+  assert.equal(evaluateBackgroundListener({ scope: 'background', ownerApproved: true }).allowed, true);
+  assert.equal(evaluateBackgroundListener({ scope: 'foreground', ownerApproved: false }).allowed, true);
+});
+
+test('keystream retention blocks durable keyboard retention without declared purpose', () => {
+  assert.equal(evaluateKeystreamRetention({ channel: 'keyboard', retention: 'durable', purposeDeclared: false }).reasonCode, 'keystroke-retention-purpose-missing');
+  assert.equal(evaluateKeystreamRetention({ channel: 'keyboard', retention: 'durable', purposeDeclared: true }).allowed, true);
+  assert.equal(evaluateKeystreamRetention({ channel: 'keyboard', retention: 'ephemeral', purposeDeclared: false }).allowed, true);
+});
+
+test('hidden capture state blocks when capture is active but hidden', () => {
+  assert.equal(evaluateHiddenCaptureState({ visibility: 'hidden', captureState: 'active' }).reasonCode, 'hidden-capture-active');
+  assert.equal(evaluateHiddenCaptureState({ visibility: 'visible', captureState: 'active' }).allowed, true);
+  assert.equal(evaluateHiddenCaptureState({ visibility: 'hidden', captureState: 'inactive' }).allowed, true);
+});
+
+// Batch K: forensic-leak
+test('redaction gap blocks sensitive field in report without redaction marker', () => {
+  assert.equal(evaluateRedactionGap({ sensitiveFieldPresent: true, redactionMarkerPresent: false }).reasonCode, 'report-redaction-gap');
+  assert.equal(evaluateRedactionGap({ sensitiveFieldPresent: true, redactionMarkerPresent: true }).allowed, true);
+  assert.equal(evaluateRedactionGap({ sensitiveFieldPresent: false, redactionMarkerPresent: false }).allowed, true);
+});
+
+test('audience mismatch blocks private evidence on a public export audience', () => {
+  assert.equal(evaluateAudienceMismatch({ audience: 'public', evidenceClass: 'private' }).reasonCode, 'evidence-audience-mismatch');
+  assert.equal(evaluateAudienceMismatch({ audience: 'private', evidenceClass: 'private' }).allowed, true);
+  assert.equal(evaluateAudienceMismatch({ audience: 'public', evidenceClass: 'public' }).allowed, true);
+});
+
+test('reconstruction risk blocks when linkable field count and identity risk are elevated', () => {
+  assert.equal(evaluateReconstructionRisk({ linkableFieldCount: 3, identityRisk: 'elevated' }).reasonCode, 'linkage-reconstruction-risk');
+  assert.equal(evaluateReconstructionRisk({ linkableFieldCount: 2, identityRisk: 'elevated' }).allowed, true);
+  assert.equal(evaluateReconstructionRisk({ linkableFieldCount: 3, identityRisk: 'low' }).allowed, true);
+  assert.equal(evaluateReconstructionRisk({ linkableFieldCount: -1 }).reasonCode, 'reconstruction-metadata-invalid');
+});
+
+test('export drift blocks when source is redacted but export is not', () => {
+  assert.equal(evaluateExportDrift({ sourceRedacted: true, exportRedacted: false }).reasonCode, 'export-redaction-drift');
+  assert.equal(evaluateExportDrift({ sourceRedacted: true, exportRedacted: true }).allowed, true);
+  assert.equal(evaluateExportDrift({ sourceRedacted: false, exportRedacted: false }).allowed, true);
 });

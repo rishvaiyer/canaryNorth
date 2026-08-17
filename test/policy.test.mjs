@@ -118,3 +118,19 @@ test('control-flow, approval-freshness, outcome-integrity, quarantine-reentry, s
   assert.equal(authorize({ ...base, approvalAgeContext: { approvalAgeSeconds: 7200, maxApprovalAgeSeconds: 900 }, now }).code, 'approval-age-exceeded');
   assert.equal(authorize({ ...base, policyGravityContext: { highestImpactDecision: 'block' }, now }).code, 'policy-gravity-impact-requires-block');
 });
+
+test('authorize gates batch I-K compound-boundary, input-capture, forensic-leak contexts', () => {
+  const now = new Date('2026-06-01T12:00:00.000Z');
+  assert.equal(authorize({ ...base, intentTrajectoryContext: { fragmentCount: 3, finalSensitivity: 'sensitive', intentDrift: true }, now }).code, 'intent-trajectory-triggered');
+  assert.equal(authorize({ ...base, clockSplitContext: { primaryExpired: true, secondaryValid: true, clockAgreement: false }, now }).code, 'clock-disagreement-blocked');
+  assert.equal(authorize({ ...base, tenantMirrorContext: { resourceLabelMatches: true, resourceTenant: 'a', requestTenant: 'b' }, now }).code, 'tenant-label-binding-mismatch');
+  assert.equal(authorize({ ...base, evidenceMasqueradeContext: { claimedApproval: true, authoritativeRecord: 'missing', provenanceVerified: false }, now }).code, 'claimed-approval-provenance-missing');
+  assert.equal(authorize({ ...base, secretFocusContext: { channel: 'keyboard', secretFieldFocused: true, consent: 'missing' }, now }).code, 'secret-field-observer-blocked');
+  assert.equal(authorize({ ...base, backgroundListenerContext: { scope: 'background', ownerApproved: false }, now }).code, 'background-listener-unapproved');
+  assert.equal(authorize({ ...base, keystreamRetentionContext: { channel: 'keyboard', retention: 'durable', purposeDeclared: false }, now }).code, 'keystroke-retention-purpose-missing');
+  assert.equal(authorize({ ...base, hiddenCaptureStateContext: { visibility: 'hidden', captureState: 'active' }, now }).code, 'hidden-capture-active');
+  assert.equal(authorize({ ...base, redactionGapContext: { sensitiveFieldPresent: true, redactionMarkerPresent: false }, now }).code, 'report-redaction-gap');
+  assert.equal(authorize({ ...base, audienceMismatchContext: { audience: 'public', evidenceClass: 'private' }, now }).code, 'evidence-audience-mismatch');
+  assert.equal(authorize({ ...base, reconstructionRiskContext: { linkableFieldCount: 3, identityRisk: 'elevated' }, now }).code, 'linkage-reconstruction-risk');
+  assert.equal(authorize({ ...base, exportDriftContext: { sourceRedacted: true, exportRedacted: false }, now }).code, 'export-redaction-drift');
+});

@@ -206,6 +206,71 @@ export function evaluatePolicyGravity({ highestImpactDecision, monotonicEvidence
   return result(true, 'policy-gravity-within-threshold', { reviewRequired: false });
 }
 
+// Batch I: compound-boundary
+export function evaluateIntentTrajectory({ fragmentCount = 0, finalSensitivity, intentDrift = false } = {}) {
+  if (!Number.isInteger(fragmentCount) || fragmentCount < 0) return result(false, 'intent-trajectory-metadata-invalid', { reviewRequired: true });
+  if (fragmentCount >= 3 && finalSensitivity === 'sensitive' && intentDrift === true) return result(false, 'intent-trajectory-triggered', { reviewRequired: true, fragmentCount });
+  return result(true, 'intent-trajectory-benign', { reviewRequired: false });
+}
+
+export function evaluateClockSplit({ primaryExpired = false, secondaryValid = false, clockAgreement } = {}) {
+  if (primaryExpired === true && secondaryValid === true && clockAgreement !== true) return result(false, 'clock-disagreement-blocked', { reviewRequired: true });
+  return result(true, 'clock-agreement-confirmed', { reviewRequired: false });
+}
+
+export function evaluateTenantMirror({ resourceLabelMatches = false, resourceTenant, requestTenant } = {}) {
+  if (resourceLabelMatches === true && resourceTenant !== undefined && requestTenant !== undefined && resourceTenant !== requestTenant) return result(false, 'tenant-label-binding-mismatch', { reviewRequired: true });
+  return result(true, 'tenant-binding-confirmed', { reviewRequired: false });
+}
+
+export function evaluateEvidenceMasquerade({ claimedApproval = false, authoritativeRecord, provenanceVerified } = {}) {
+  if (claimedApproval === true && (authoritativeRecord === 'missing' || provenanceVerified !== true)) return result(false, 'claimed-approval-provenance-missing', { reviewRequired: true });
+  return result(true, 'evidence-provenance-confirmed', { reviewRequired: false });
+}
+
+// Batch J: input-capture
+export function evaluateSecretFocus({ channel, secretFieldFocused = false, consent } = {}) {
+  if (channel === 'keyboard' && secretFieldFocused === true && consent === 'missing') return result(false, 'secret-field-observer-blocked', { reviewRequired: true });
+  return result(true, 'input-focus-safe', { reviewRequired: false });
+}
+
+export function evaluateBackgroundListener({ scope, ownerApproved } = {}) {
+  if (scope === 'background' && ownerApproved !== true) return result(false, 'background-listener-unapproved', { reviewRequired: true });
+  return result(true, 'listener-scope-approved', { reviewRequired: false });
+}
+
+export function evaluateKeystreamRetention({ channel, retention, purposeDeclared } = {}) {
+  if (channel === 'keyboard' && retention === 'durable' && purposeDeclared !== true) return result(false, 'keystroke-retention-purpose-missing', { reviewRequired: true });
+  return result(true, 'keystream-retention-safe', { reviewRequired: false });
+}
+
+export function evaluateHiddenCaptureState({ visibility, captureState } = {}) {
+  if (visibility === 'hidden' && captureState === 'active') return result(false, 'hidden-capture-active', { reviewRequired: true });
+  return result(true, 'capture-state-disclosed', { reviewRequired: false });
+}
+
+// Batch K: forensic-leak
+export function evaluateRedactionGap({ sensitiveFieldPresent = false, redactionMarkerPresent } = {}) {
+  if (sensitiveFieldPresent === true && redactionMarkerPresent !== true) return result(false, 'report-redaction-gap', { reviewRequired: true });
+  return result(true, 'redaction-complete', { reviewRequired: false });
+}
+
+export function evaluateAudienceMismatch({ audience, evidenceClass } = {}) {
+  if (audience === 'public' && evidenceClass === 'private') return result(false, 'evidence-audience-mismatch', { reviewRequired: true });
+  return result(true, 'audience-class-matched', { reviewRequired: false });
+}
+
+export function evaluateReconstructionRisk({ linkableFieldCount = 0, identityRisk } = {}) {
+  if (!Number.isInteger(linkableFieldCount) || linkableFieldCount < 0) return result(false, 'reconstruction-metadata-invalid', { reviewRequired: true });
+  if (linkableFieldCount >= 3 && identityRisk === 'elevated') return result(false, 'linkage-reconstruction-risk', { reviewRequired: true, linkableFieldCount });
+  return result(true, 'reconstruction-risk-low', { reviewRequired: false });
+}
+
+export function evaluateExportDrift({ sourceRedacted, exportRedacted } = {}) {
+  if (sourceRedacted === true && exportRedacted !== true) return result(false, 'export-redaction-drift', { reviewRequired: true });
+  return result(true, 'export-redaction-preserved', { reviewRequired: false });
+}
+
 export function evaluateFrontierGap({ provenanceChanged, rewardScoreChanged, userObjectiveChanged, serviceListed, serviceConnected, rogueAgentCount, collusionObserved, verifiedAgentId, signedEnvelopePresent, cascadePredicted, dependentAgentCount, fanoutBudget, contextItems, contextBudget } = {}) {
   if (provenanceChanged === true) return result(false, 'model-provenance-drift', { reviewRequired: true });
   if (rewardScoreChanged === true && userObjectiveChanged === true) return result(false, 'objective-score-divergence', { reviewRequired: true });

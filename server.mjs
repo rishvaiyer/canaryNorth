@@ -260,7 +260,70 @@ function validateAgenticMetadata(request) {
     if (policyGravityContext.highestImpactDecision !== undefined && (typeof policyGravityContext.highestImpactDecision !== 'string' || policyGravityContext.highestImpactDecision.length > 64)) throw new Error('invalid-policy-gravity-highest-impact');
     if (policyGravityContext.monotonicEvidence !== undefined && typeof policyGravityContext.monotonicEvidence !== 'boolean') throw new Error('invalid-policy-gravity-monotonic-evidence');
   }
-  return { toolManifest, memoryContext, provenance, canaryContext, adaptiveContext, causalContext, trustDebtContext, delegationContext, causalBasisContext, revocationLineageContext, intentNormContext, resourceClassContext, recoveryClaimContext, skillDescriptorContext, memoryGraftContext, agentBoundaryContext, canaryEventContext, secondLockContext, frontierGapContext, controlFlowContext, approvalFreshnessContext, outcomeIntegrityContext, quarantineReentryContext, scopeAccumulationContext, workflowGraphContext, consensusProvenanceContext, approvalAgeContext, policyGravityContext };
+  const intentTrajectoryContext = optionalObject('intentTrajectoryContext');
+  if (intentTrajectoryContext) {
+    if (intentTrajectoryContext.fragmentCount !== undefined && (typeof intentTrajectoryContext.fragmentCount !== 'number' || intentTrajectoryContext.fragmentCount < 0)) throw new Error('invalid-intent-trajectory-fragment-count');
+    if (intentTrajectoryContext.finalSensitivity !== undefined && (typeof intentTrajectoryContext.finalSensitivity !== 'string' || intentTrajectoryContext.finalSensitivity.length > 64)) throw new Error('invalid-intent-trajectory-final-sensitivity');
+    if (intentTrajectoryContext.intentDrift !== undefined && typeof intentTrajectoryContext.intentDrift !== 'boolean') throw new Error('invalid-intent-trajectory-intent-drift');
+  }
+  const clockSplitContext = optionalObject('clockSplitContext');
+  if (clockSplitContext) {
+    for (const field of ['primaryExpired', 'secondaryValid', 'clockAgreement']) if (clockSplitContext[field] !== undefined && typeof clockSplitContext[field] !== 'boolean') throw new Error(`invalid-clock-split-${field}`);
+  }
+  const tenantMirrorContext = optionalObject('tenantMirrorContext');
+  if (tenantMirrorContext) {
+    if (tenantMirrorContext.resourceLabelMatches !== undefined && typeof tenantMirrorContext.resourceLabelMatches !== 'boolean') throw new Error('invalid-tenant-mirror-resource-label-matches');
+    for (const field of ['resourceTenant', 'requestTenant']) if (tenantMirrorContext[field] !== undefined && (typeof tenantMirrorContext[field] !== 'string' || tenantMirrorContext[field].length > 128)) throw new Error(`invalid-tenant-mirror-${field}`);
+  }
+  const evidenceMasqueradeContext = optionalObject('evidenceMasqueradeContext');
+  if (evidenceMasqueradeContext) {
+    if (evidenceMasqueradeContext.claimedApproval !== undefined && typeof evidenceMasqueradeContext.claimedApproval !== 'boolean') throw new Error('invalid-evidence-masquerade-claimed-approval');
+    if (evidenceMasqueradeContext.authoritativeRecord !== undefined && (typeof evidenceMasqueradeContext.authoritativeRecord !== 'string' || evidenceMasqueradeContext.authoritativeRecord.length > 64)) throw new Error('invalid-evidence-masquerade-authoritative-record');
+    if (evidenceMasqueradeContext.provenanceVerified !== undefined && typeof evidenceMasqueradeContext.provenanceVerified !== 'boolean') throw new Error('invalid-evidence-masquerade-provenance-verified');
+  }
+  const secretFocusContext = optionalObject('secretFocusContext');
+  if (secretFocusContext) {
+    if (secretFocusContext.channel !== undefined && (typeof secretFocusContext.channel !== 'string' || secretFocusContext.channel.length > 64)) throw new Error('invalid-secret-focus-channel');
+    if (secretFocusContext.secretFieldFocused !== undefined && typeof secretFocusContext.secretFieldFocused !== 'boolean') throw new Error('invalid-secret-focus-secret-field-focused');
+    if (secretFocusContext.consent !== undefined && (typeof secretFocusContext.consent !== 'string' || secretFocusContext.consent.length > 64)) throw new Error('invalid-secret-focus-consent');
+  }
+  const backgroundListenerContext = optionalObject('backgroundListenerContext');
+  if (backgroundListenerContext) {
+    if (backgroundListenerContext.scope !== undefined && (typeof backgroundListenerContext.scope !== 'string' || backgroundListenerContext.scope.length > 64)) throw new Error('invalid-background-listener-scope');
+    if (backgroundListenerContext.ownerApproved !== undefined && typeof backgroundListenerContext.ownerApproved !== 'boolean') throw new Error('invalid-background-listener-owner-approved');
+  }
+  const keystreamRetentionContext = optionalObject('keystreamRetentionContext');
+  if (keystreamRetentionContext) {
+    if (keystreamRetentionContext.channel !== undefined && (typeof keystreamRetentionContext.channel !== 'string' || keystreamRetentionContext.channel.length > 64)) throw new Error('invalid-keystream-retention-channel');
+    if (keystreamRetentionContext.retention !== undefined && (typeof keystreamRetentionContext.retention !== 'string' || keystreamRetentionContext.retention.length > 64)) throw new Error('invalid-keystream-retention-retention');
+    if (keystreamRetentionContext.purposeDeclared !== undefined && typeof keystreamRetentionContext.purposeDeclared !== 'boolean') throw new Error('invalid-keystream-retention-purpose-declared');
+  }
+  const hiddenCaptureStateContext = optionalObject('hiddenCaptureStateContext');
+  if (hiddenCaptureStateContext) {
+    if (hiddenCaptureStateContext.visibility !== undefined && (typeof hiddenCaptureStateContext.visibility !== 'string' || hiddenCaptureStateContext.visibility.length > 64)) throw new Error('invalid-hidden-capture-state-visibility');
+    if (hiddenCaptureStateContext.captureState !== undefined && (typeof hiddenCaptureStateContext.captureState !== 'string' || hiddenCaptureStateContext.captureState.length > 64)) throw new Error('invalid-hidden-capture-state-capture-state');
+  }
+  const redactionGapContext = optionalObject('redactionGapContext');
+  if (redactionGapContext) {
+    if (redactionGapContext.sensitiveFieldPresent !== undefined && typeof redactionGapContext.sensitiveFieldPresent !== 'boolean') throw new Error('invalid-redaction-gap-sensitive-field-present');
+    if (redactionGapContext.redactionMarkerPresent !== undefined && typeof redactionGapContext.redactionMarkerPresent !== 'boolean') throw new Error('invalid-redaction-gap-redaction-marker-present');
+  }
+  const audienceMismatchContext = optionalObject('audienceMismatchContext');
+  if (audienceMismatchContext) {
+    if (audienceMismatchContext.audience !== undefined && (typeof audienceMismatchContext.audience !== 'string' || audienceMismatchContext.audience.length > 64)) throw new Error('invalid-audience-mismatch-audience');
+    if (audienceMismatchContext.evidenceClass !== undefined && (typeof audienceMismatchContext.evidenceClass !== 'string' || audienceMismatchContext.evidenceClass.length > 64)) throw new Error('invalid-audience-mismatch-evidence-class');
+  }
+  const reconstructionRiskContext = optionalObject('reconstructionRiskContext');
+  if (reconstructionRiskContext) {
+    if (reconstructionRiskContext.linkableFieldCount !== undefined && (typeof reconstructionRiskContext.linkableFieldCount !== 'number' || reconstructionRiskContext.linkableFieldCount < 0)) throw new Error('invalid-reconstruction-risk-linkable-field-count');
+    if (reconstructionRiskContext.identityRisk !== undefined && (typeof reconstructionRiskContext.identityRisk !== 'string' || reconstructionRiskContext.identityRisk.length > 64)) throw new Error('invalid-reconstruction-risk-identity-risk');
+  }
+  const exportDriftContext = optionalObject('exportDriftContext');
+  if (exportDriftContext) {
+    if (exportDriftContext.sourceRedacted !== undefined && typeof exportDriftContext.sourceRedacted !== 'boolean') throw new Error('invalid-export-drift-source-redacted');
+    if (exportDriftContext.exportRedacted !== undefined && typeof exportDriftContext.exportRedacted !== 'boolean') throw new Error('invalid-export-drift-export-redacted');
+  }
+  return { toolManifest, memoryContext, provenance, canaryContext, adaptiveContext, causalContext, trustDebtContext, delegationContext, causalBasisContext, revocationLineageContext, intentNormContext, resourceClassContext, recoveryClaimContext, skillDescriptorContext, memoryGraftContext, agentBoundaryContext, canaryEventContext, secondLockContext, frontierGapContext, controlFlowContext, approvalFreshnessContext, outcomeIntegrityContext, quarantineReentryContext, scopeAccumulationContext, workflowGraphContext, consensusProvenanceContext, approvalAgeContext, policyGravityContext, intentTrajectoryContext, clockSplitContext, tenantMirrorContext, evidenceMasqueradeContext, secretFocusContext, backgroundListenerContext, keystreamRetentionContext, hiddenCaptureStateContext, redactionGapContext, audienceMismatchContext, reconstructionRiskContext, exportDriftContext };
 }
 function validateAuthorizationRequest(request) {
   if (!request || Array.isArray(request) || typeof request !== 'object') throw new Error('request-object-required');

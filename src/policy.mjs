@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { evaluateAdaptiveContext, evaluateAgentBoundary, evaluateApprovalAge, evaluateApprovalFreshness, evaluateCausalBasis, evaluateCanaryEvent, evaluateCanaryRequest, evaluateCausalContinuity, evaluateConsensusProvenance, evaluateControlFlow, evaluateDelegationFreshness, evaluateFrontierGap, evaluateIntentNormalization, evaluateMemoryContext, evaluateMemoryGraft, evaluateOutcomeIntegrity, evaluatePolicyGravity, evaluateProvenanceBoundary, evaluateQuarantineReentry, evaluateRecoveryClaim, evaluateResourceClass, evaluateRevocationLineage, evaluateScopeAccumulation, evaluateSecondLock, evaluateSkillDescriptor, evaluateTrustDebt, evaluateWorkflowGraph, verifyToolAttestation } from './agentic-defense.mjs';
+import { evaluateAdaptiveContext, evaluateAgentBoundary, evaluateApprovalAge, evaluateApprovalFreshness, evaluateAudienceMismatch, evaluateCausalBasis, evaluateCanaryEvent, evaluateCanaryRequest, evaluateCausalContinuity, evaluateClockSplit, evaluateConsensusProvenance, evaluateControlFlow, evaluateDelegationFreshness, evaluateEvidenceMasquerade, evaluateExportDrift, evaluateFrontierGap, evaluateHiddenCaptureState, evaluateIntentNormalization, evaluateIntentTrajectory, evaluateKeystreamRetention, evaluateMemoryContext, evaluateMemoryGraft, evaluateOutcomeIntegrity, evaluatePolicyGravity, evaluateProvenanceBoundary, evaluateQuarantineReentry, evaluateRecoveryClaim, evaluateBackgroundListener, evaluateRedactionGap, evaluateReconstructionRisk, evaluateResourceClass, evaluateRevocationLineage, evaluateScopeAccumulation, evaluateSecondLock, evaluateSecretFocus, evaluateSkillDescriptor, evaluateTenantMirror, evaluateTrustDebt, evaluateWorkflowGraph, verifyToolAttestation } from './agentic-defense.mjs';
 
 export const POLICY_VERSION = 'contextseal-policy-v2';
 export const DEMO_TENANT_ID = 'tenant_demo';
@@ -67,7 +67,7 @@ export function inspectInput(input = '') {
   };
 }
 
-export function authorize({ capabilityId, action, resource, input = '', now = new Date(), principal, audience, tenantId, workspaceId, policyVersion = POLICY_VERSION, nonce, replayDetected = false, toolManifest, memoryContext, provenance, canaryContext, adaptiveContext, causalContext, trustDebtContext, delegationContext, causalBasisContext, revocationLineageContext, intentNormContext, resourceClassContext, recoveryClaimContext, skillDescriptorContext, memoryGraftContext, agentBoundaryContext, canaryEventContext, secondLockContext, frontierGapContext, controlFlowContext, approvalFreshnessContext, outcomeIntegrityContext, quarantineReentryContext, scopeAccumulationContext, workflowGraphContext, consensusProvenanceContext, approvalAgeContext, policyGravityContext, demoControls = {} }) {
+export function authorize({ capabilityId, action, resource, input = '', now = new Date(), principal, audience, tenantId, workspaceId, policyVersion = POLICY_VERSION, nonce, replayDetected = false, toolManifest, memoryContext, provenance, canaryContext, adaptiveContext, causalContext, trustDebtContext, delegationContext, causalBasisContext, revocationLineageContext, intentNormContext, resourceClassContext, recoveryClaimContext, skillDescriptorContext, memoryGraftContext, agentBoundaryContext, canaryEventContext, secondLockContext, frontierGapContext, controlFlowContext, approvalFreshnessContext, outcomeIntegrityContext, quarantineReentryContext, scopeAccumulationContext, workflowGraphContext, consensusProvenanceContext, approvalAgeContext, policyGravityContext, intentTrajectoryContext, clockSplitContext, tenantMirrorContext, evidenceMasqueradeContext, secretFocusContext, backgroundListenerContext, keystreamRetentionContext, hiddenCaptureStateContext, redactionGapContext, audienceMismatchContext, reconstructionRiskContext, exportDriftContext, demoControls = {} }) {
   const capability = DEMO_CAPABILITIES.find((item) => item.id === capabilityId);
   if (!capability) return deny('unknown-capability', 'Capability reference is not recognized.', null);
   if (canaryContext !== undefined) {
@@ -191,6 +191,54 @@ export function authorize({ capabilityId, action, resource, input = '', now = ne
   if (policyGravityContext !== undefined) {
     const gravity = evaluatePolicyGravity(policyGravityContext);
     if (!gravity.allowed) return deny(gravity.reasonCode, 'Action impact requires a higher authorization level.', capability, { clean: false, signals: [gravity.reasonCode], agenticDefense: gravity });
+  }
+  if (intentTrajectoryContext !== undefined) {
+    const traj = evaluateIntentTrajectory(intentTrajectoryContext);
+    if (!traj.allowed) return deny(traj.reasonCode, 'Accumulated intent trajectory triggered a step-up or block.', capability, { clean: false, signals: [traj.reasonCode], agenticDefense: traj });
+  }
+  if (clockSplitContext !== undefined) {
+    const cs = evaluateClockSplit(clockSplitContext);
+    if (!cs.allowed) return deny(cs.reasonCode, 'Conflicting clock signals may make an expired approval appear current.', capability, { clean: false, signals: [cs.reasonCode], agenticDefense: cs });
+  }
+  if (tenantMirrorContext !== undefined) {
+    const tm = evaluateTenantMirror(tenantMirrorContext);
+    if (!tm.allowed) return deny(tm.reasonCode, 'Resource label matches but tenant binding differs.', capability, { clean: false, signals: [tm.reasonCode], agenticDefense: tm });
+  }
+  if (evidenceMasqueradeContext !== undefined) {
+    const em = evaluateEvidenceMasquerade(evidenceMasqueradeContext);
+    if (!em.allowed) return deny(em.reasonCode, 'Claimed approval lacks authoritative provenance.', capability, { clean: false, signals: [em.reasonCode], agenticDefense: em });
+  }
+  if (secretFocusContext !== undefined) {
+    const sf = evaluateSecretFocus(secretFocusContext);
+    if (!sf.allowed) return deny(sf.reasonCode, 'Keyboard listener observed a secret field without consent.', capability, { clean: false, signals: [sf.reasonCode], agenticDefense: sf });
+  }
+  if (backgroundListenerContext !== undefined) {
+    const bl = evaluateBackgroundListener(backgroundListenerContext);
+    if (!bl.allowed) return deny(bl.reasonCode, 'Background input listener lacks owner approval.', capability, { clean: false, signals: [bl.reasonCode], agenticDefense: bl });
+  }
+  if (keystreamRetentionContext !== undefined) {
+    const kr = evaluateKeystreamRetention(keystreamRetentionContext);
+    if (!kr.allowed) return deny(kr.reasonCode, 'Durable keystroke retention lacks declared purpose.', capability, { clean: false, signals: [kr.reasonCode], agenticDefense: kr });
+  }
+  if (hiddenCaptureStateContext !== undefined) {
+    const hcs = evaluateHiddenCaptureState(hiddenCaptureStateContext);
+    if (!hcs.allowed) return deny(hcs.reasonCode, 'Hidden capture state is active.', capability, { clean: false, signals: [hcs.reasonCode], agenticDefense: hcs });
+  }
+  if (redactionGapContext !== undefined) {
+    const rg = evaluateRedactionGap(redactionGapContext);
+    if (!rg.allowed) return deny(rg.reasonCode, 'Sensitive field in report lacks a redaction marker.', capability, { clean: false, signals: [rg.reasonCode], agenticDefense: rg });
+  }
+  if (audienceMismatchContext !== undefined) {
+    const am = evaluateAudienceMismatch(audienceMismatchContext);
+    if (!am.allowed) return deny(am.reasonCode, 'Private evidence is bound to a public export audience.', capability, { clean: false, signals: [am.reasonCode], agenticDefense: am });
+  }
+  if (reconstructionRiskContext !== undefined) {
+    const rr = evaluateReconstructionRisk(reconstructionRiskContext);
+    if (!rr.allowed) return deny(rr.reasonCode, 'Linkable field count and identity risk require step-up.', capability, { clean: false, signals: [rr.reasonCode], agenticDefense: rr });
+  }
+  if (exportDriftContext !== undefined) {
+    const ed = evaluateExportDrift(exportDriftContext);
+    if (!ed.allowed) return deny(ed.reasonCode, 'Export does not preserve source redaction constraints.', capability, { clean: false, signals: [ed.reasonCode], agenticDefense: ed });
   }
   const inspection = demoControls.contentFirewall === false ? { clean: true, injection: null, dlp: null, signals: [], bypassed: true } : inspectInput(input);
   if (inspection.injection) return deny('prompt-injection', 'Untrusted instruction pattern was quarantined.', capability, inspection);
