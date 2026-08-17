@@ -1,6 +1,6 @@
 # CanaryNorth: AI Action Receipts
 
-Every AI-generated file should carry its own provenance, privately.
+
 
 CanaryNorth is a trust and policy layer for AI-generated work. Its proxy keeps raw credentials out of model context while producing signed, hash-chained receipts that explain which actions were approved, which were blocked, and what remains unverified. The current demo is synthetic and shows decision-level receipts plus a portable artifact sidecar.
 
@@ -25,7 +25,7 @@ Compatibility note: repository paths, package names, API routes, schemas, databa
 
 The sample data is synthetic. The demo does not call an external tool or connect to a secret vault. After running the safe path, use **[bind artifact]** to download `weather-brief.md` plus a `.receipt.json` sidecar containing the artifact hash, receipt hash, and signed manifest. This proves a policy decision and file integrity. It does not prove that the content is correct, safe, original, or human-approved.
 
-For a plain-language walkthrough, use the **Explain like I'm five** link in the demo or open [public/learn.html](public/learn.html). For the interview-style story, open `/pen-entry.html` and then `/threat-lab.html`; those pages are a synthetic visualization only. The concise owner-facing iteration record is [docs/ITERATION_LOG.md](docs/ITERATION_LOG.md). The future-facing research is in [docs/RESEARCH_AI_SECURITY_2026.md](docs/RESEARCH_AI_SECURITY_2026.md), [docs/RESEARCH_FILE_THREATS_2026.md](docs/RESEARCH_FILE_THREATS_2026.md), [docs/PRODUCT_OPPORTUNITIES_2026.md](docs/PRODUCT_OPPORTUNITIES_2026.md), and [docs/ML_RISK_LAYER_ROADMAP.md](docs/ML_RISK_LAYER_ROADMAP.md).
+For a plain-language walkthrough, use the **Explain like I'm five** link in the demo or open [public/learn.html](public/learn.html). 
 
 ## Run
 
@@ -75,17 +75,7 @@ The current metadata-policy work is explained in [`DEFENSE_EVALUATORS_FOR_HUMANS
 
 This is a focused reference implementation. Capabilities, approvals, and evidence events are fixture-backed, the public deployment remains synthetic, and the DLP/injection detectors are intentionally small deterministic signals, not a general classifier. They are defense in depth, not the boundary: the capability allowlist, expiry, nonce, and scope checks are what actually enforce, and they do not depend on the wording of an input. The active private pairing map has 115 passing fixture-to-CanaryNorth evaluator checks; the four `dormant-rehearsal-variants` remain disabled by default and lower priority. That pairing result is not a claim of universal protection, live target detection, scanner coverage, malware or steganography detection, or production safety. The evidence module is an encrypted package format, not a malware scanner, steganography detector, or production retention service. The ML risk layer is a roadmap, not a trained security model. The PostgreSQL path is a durable persistence foundation, not a complete enterprise security platform. A small-business release still needs a real identity provider, durable approval and evidence persistence, tenant administration, policy management, secret-manager integration, structured logging, monitoring, backup/restore procedures, key rotation, independent security review, and a broader content-security test corpus.
 
-## Small-business product direction
 
-The most credible product is a narrow AI action gateway for one to three workflows, such as customer-support ticket updates, document exports, or scheduled reporting. The customer would get:
-
-1. One protected workspace.
-2. A few allowlisted actions and resources.
-3. Human approval for higher-risk actions.
-4. Durable receipts that answer who requested what, what policy decided, and what evidence exists.
-5. A simple dashboard instead of a full security operations center.
-
-That is a practical path toward enterprise-grade controls for small businesses without claiming to be a universal AI firewall.
 
 ## Receipt signing and independent verification
 
