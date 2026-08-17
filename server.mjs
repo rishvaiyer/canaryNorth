@@ -9,6 +9,7 @@ import { createReceiptStore } from './src/storage.mjs';
 import { createApprovalStore } from './src/approvals.mjs';
 import { createEvidenceEvent, createEvidencePackage } from './src/evidence.mjs';
 import { createSigner, ed25519Enabled } from './src/signing.mjs';
+import { createMcpHandler, MCP_PROTOCOL_VERSION } from './src/mcp.mjs';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.join(root, 'public');
@@ -67,6 +68,7 @@ const syntheticEvidence = SYNTHETIC_EVIDENCE_EVENTS.map((event) => createEvidenc
 
 function securityHeaders() { return { 'content-security-policy': "default-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'", 'x-content-type-options': 'nosniff', 'x-frame-options': 'DENY', 'referrer-policy': 'no-referrer', 'permissions-policy': 'camera=(), microphone=(), geolocation=()', ...(isProduction ? { 'strict-transport-security': 'max-age=31536000; includeSubDomains' } : {}) }; }
 function json(res, status, body) { res.writeHead(status, { ...securityHeaders(), 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }); res.end(JSON.stringify(body)); }
+function mcpJson(res, status, body) { res.writeHead(status, { ...securityHeaders(), 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'mcp-protocol-version': MCP_PROTOCOL_VERSION }); res.end(JSON.stringify(body)); }
 function graph() {
   return { nodes: [
     { id: 'agent', label: 'Agent context', type: 'agent', note: 'opaque refs only' }, { id: 'proxy', label: 'CanaryNorth', type: 'proxy', note: 'policy + DLP + expiry' },
@@ -102,6 +104,22 @@ function authorized(req) {
   const provided = header.startsWith('Bearer ') ? Buffer.from(header.slice(7)) : Buffer.alloc(0);
   const expected = Buffer.from(authToken);
   return provided.length === expected.length && crypto.timingSafeEqual(provided, expected);
+}
+function mcpOriginAllowed(req) {
+  const origin = req.headers.origin;
+  if (!origin) return true;
+  const configured = (process.env.CONTEXTSEAL_MCP_ALLOWED_ORIGINS || '').split(',').map((value) => value.trim()).filter(Boolean);
+  if (configured.includes(origin)) return true;
+  try {
+    const parsed = new URL(origin);
+    const host = String(req.headers.host || '').toLowerCase();
+    const sameOrigin = `${secureCookie(req) ? 'https' : 'http'}://${host}`;
+    if (origin === sameOrigin) return true;
+    const loopbackHosts = new Set(['localhost', '127.0.0.1', '[::1]']);
+    return loopbackHosts.has(parsed.hostname.toLowerCase()) && loopbackHosts.has(host.split(':')[0].toLowerCase()) && parsed.port === host.split(':').at(-1);
+  } catch {
+    return false;
+  }
 }
 function cookieValue(req, name) {
   const cookies = req.headers.cookie || '';
@@ -612,12 +630,42 @@ function receiptForResponse(receipt) {
   if (!signer.legacy) return receipt;
   return { ...receipt, signature: `${receipt.signature.slice(0, 14)}\u2026` };
 }
+function mcpToolError(code, message) {
+  const error = new Error(message);
+  error.code = code;
+  return error;
+}
+async function mcpCallTool({ name, arguments: args, context = {} }) {
+  if (name !== 'weather.get_forecast') throw mcpToolError('mcp-tool-not-found', `Unknown MCP tool: ${name}`);
+  if (!args || typeof args !== 'object' || Array.isArray(args)) throw mcpToolError('mcp-invalid-params', 'Tool arguments must be an object.');
+  const request = validateAuthorizationRequest({ ...args, action: name });
+  const scope = context.scope || {};
+  if (scope.tenantId && (request.tenantId !== scope.tenantId || request.workspaceId !== scope.workspaceId)) throw mcpToolError('mcp-scope-binding-required', 'MCP request scope does not match the authenticated workspace.');
+  let result = authorize(request);
+  if (result.allowed && request.nonce && !(await receiptStore.claimNonce({ principal: result.capability.principal, nonce: request.nonce, expiresAt: result.capability.expiresAt }))) result = authorize({ ...request, replayDetected: true });
+  const entry = await receiptStore.appendEntry(({ sequence, previousReceipt }) => ({ receipt: makeReceipt(result, request, { sequence, previousReceipt }), execution: result.allowed ? 'would-forward-to-tool' : 'quarantined' }));
+  const receipt = receiptForResponse(entry.receipt);
+  if (!result.allowed) {
+    const blocked = { allowed: false, execution: 'quarantined', code: result.code, reason: result.reason, receipt };
+    return { isError: true, structuredContent: blocked, content: [{ type: 'text', text: JSON.stringify(blocked) }] };
+  }
+  const allowed = {
+    allowed: true,
+    execution: 'would-forward-to-tool',
+    tool: name,
+    resource: request.resource,
+    syntheticResult: { city: 'New York', condition: 'clear skies', temperatureC: 22 },
+    receipt
+  };
+  return { structuredContent: allowed, content: [{ type: 'text', text: JSON.stringify(allowed) }] };
+}
+const mcpHandler = createMcpHandler({ callTool: mcpCallTool });
 function staticFile(res, pathname) {
   const safe = pathname === '/' ? '/index.html' : pathname;
   const file = path.normalize(path.join(publicDir, safe));
   const relative = path.relative(publicDir, file);
   if (relative.startsWith('..') || path.isAbsolute(relative)) return json(res, 403, { error: 'forbidden' });
-  fs.readFile(file, (err, content) => { if (err) return json(res, 404, { error: 'not-found' }); const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml' }; res.writeHead(200, { ...securityHeaders(), 'content-type': types[path.extname(file)] || 'text/plain; charset=utf-8', 'cache-control': 'no-store' }); res.end(content); });
+  fs.readFile(file, (err, content) => { if (err) return json(res, 404, { error: 'not-found' }); const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.gif': 'image/gif', '.ico': 'image/x-icon', '.avif': 'image/avif' }; res.writeHead(200, { ...securityHeaders(), 'content-type': types[path.extname(file).toLowerCase()] || 'text/plain; charset=utf-8', 'cache-control': 'no-store' }); res.end(content); });
 }
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
@@ -639,7 +687,7 @@ const server = http.createServer(async (req, res) => {
         verify: 'node scripts/verify-receipt.mjs <receipt.json> --url <origin>'
       });
     }
-    if (url.pathname.startsWith('/api/') || url.pathname === '/mcp/audit') {
+    if (url.pathname.startsWith('/api/') || url.pathname === '/mcp' || url.pathname === '/mcp/audit') {
       if (!authorized(req)) return json(res, 401, { error: 'authentication-required' });
       if (rateLimited(req)) return json(res, 429, { error: 'rate-limit-exceeded' });
     }
@@ -735,6 +783,23 @@ const server = http.createServer(async (req, res) => {
       });
       res.end();
       return;
+    }
+    if (url.pathname === '/mcp') {
+      if (!mcpOriginAllowed(req)) return mcpJson(res, 403, { jsonrpc: '2.0', id: null, error: { code: -32001, message: 'MCP Origin is not allowed.' } });
+      if (req.method !== 'POST') return mcpJson(res, 405, { jsonrpc: '2.0', id: null, error: { code: -32000, message: 'This stateless MCP endpoint accepts POST only.' } });
+      const accept = req.headers.accept || '';
+      if (accept !== '*/*' && (!accept.includes('application/json') || !accept.includes('text/event-stream'))) return mcpJson(res, 406, { jsonrpc: '2.0', id: null, error: { code: -32000, message: 'MCP clients must accept application/json and text/event-stream.' } });
+      const protocolVersion = req.headers['mcp-protocol-version'];
+      if (protocolVersion && protocolVersion !== MCP_PROTOCOL_VERSION) return mcpJson(res, 400, { jsonrpc: '2.0', id: null, error: { code: -32602, message: 'Unsupported MCP protocol version.', data: { supported: [MCP_PROTOCOL_VERSION] } } });
+      const message = await body(req);
+      if (message.method !== 'initialize' && !protocolVersion) return mcpJson(res, 400, { jsonrpc: '2.0', id: null, error: { code: -32602, message: 'MCP-Protocol-Version is required after initialization.', data: { supported: [MCP_PROTOCOL_VERSION] } } });
+      const result = await mcpHandler(message, { scope: scopeForRequest(req) });
+      if (result === null) {
+        res.writeHead(202, { ...securityHeaders(), 'mcp-protocol-version': MCP_PROTOCOL_VERSION, 'cache-control': 'no-store' });
+        res.end();
+        return;
+      }
+      return mcpJson(res, 200, result);
     }
     if (req.method === 'POST' && url.pathname === '/mcp/audit') { const request = validateAuditRequest(await body(req)); return json(res, 200, { jsonrpc: '2.0', result: { service: 'context-seal', capabilities: DEMO_CAPABILITIES.length, receipts: (await receiptStore.list(scopeForRequest(req))).map(({ receipt }) => receipt), policy: 'deny-by-default', policyVersion: POLICY_VERSION }, id: request.id ?? 1 }); }
     const isPenGateAsset = url.pathname === '/pen-console/gate.css';

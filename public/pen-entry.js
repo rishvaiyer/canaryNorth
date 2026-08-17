@@ -3,6 +3,8 @@ const LINES = [
   { id: "guide-2", text: "We sell pens.", x: 100, y: 446, size: 58, width: 56, pool: "pool-2" },
 ];
 
+const BOOT_MESSAGE = "welcome to penTell labs....";
+
 const FONT_STACK = '"Pinyon Script", "Allura", "Snell Roundhand", "Apple Chancery", cursive';
 const ASC = /[PTltbdfhkWS]/;
 const DESC = /[gjpqy,.]/;
@@ -170,6 +172,44 @@ function later(fn, ms) {
 
 function pause(ms) {
   return new Promise((resolve) => later(resolve, ms));
+}
+
+async function typeBootMessage() {
+  const message = $("#boot-message");
+  message.textContent = "";
+  if (reduced) {
+    message.textContent = BOOT_MESSAGE;
+    return;
+  }
+  for (const character of BOOT_MESSAGE) {
+    message.textContent += character;
+    await pause(42);
+  }
+}
+
+async function startEntryBoot() {
+  const boot = $("#entry-boot");
+  const loader = $("#boot-loader");
+  const terminal = $("#boot-terminal");
+
+  document.body.classList.add("is-booting");
+  setPhase("boot-loading");
+  await pause(1700);
+
+  loader.hidden = true;
+  terminal.hidden = false;
+  boot.classList.add("is-terminal");
+  setPhase("boot-typing");
+  await pause(420);
+  announce(BOOT_MESSAGE);
+  await typeBootMessage();
+  await pause(500);
+
+  document.body.classList.remove("is-booting");
+  document.body.classList.add("is-entered", "is-lab");
+  setPhase("terminal-ready");
+  boot.classList.add("is-exiting");
+  later(() => boot.remove(), 900);
 }
 
 // Web Audio API Sound Synthesizers
@@ -766,7 +806,7 @@ function resetDemo() {
   generating = false;
   clearTimers();
   selectedId = "fixture-03";
-  document.body.classList.remove("is-lab", "is-ripping");
+  document.body.classList.remove("is-lab", "is-entered", "is-booting", "is-ripping");
   clearRip();
   $("#gen-pill").textContent = "idle";
   $("#log-status").textContent = "awaiting generation";
@@ -832,7 +872,7 @@ function boot() {
   renderCards();
   renderEvidence(FIXTURES[2]);
   paintChain();
-  writeEntrance();
+  startEntryBoot();
 
   window.addEventListener("resize", () => {
     if (!document.body.classList.contains("is-lab")) {

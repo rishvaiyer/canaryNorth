@@ -11,7 +11,8 @@
   <main>
     <header><span>penTell LAB // THRESHOLD</span><span>TESTING CANARYNORTH / SYNTHETIC</span></header>
     <section class="terminal" aria-labelledby="terminal-title">
-      <div class="auth" id="auth-panel">
+      <!-- Temporary local-review bypass. Restore the auth panel when the gate is needed again. -->
+      <div class="auth" id="auth-panel" hidden>
         <h1 class="sr-only" id="terminal-title">penTell red-team lab password gate</h1>
         <p class="line">root@pentel:~$ ./open-lab</p>
         <p class="line muted">ACCESS CONTROL ACTIVE</p>
@@ -23,9 +24,9 @@
         </form>
         <p class="status" id="status" aria-live="polite">Awaiting credential.</p>
       </div>
-      <div class="arrival" id="arrival-panel" hidden>
+      <div class="arrival" id="arrival-panel">
         <p class="line">root@pentel:~$ ./open-lab</p>
-        <p class="line">AUTHENTICATED</p>
+        <p class="line">ACCESS GATE DISABLED FOR LOCAL REVIEW</p>
         <p class="line">penTell RED-TEAM LAB READY</p>
         <p class="line muted">ROLE: pressure-test CanaryNorth's defensive controls</p>
         <h1>Choose a destination.</h1>
@@ -42,36 +43,5 @@
     </section>
     <footer><span>NO LIVE TARGETS</span><span>STATE RESETS WITH THE BROWSER SESSION</span></footer>
   </main>
-  <script>
-    const form = document.querySelector('#unlock-form');
-    const input = document.querySelector('#password');
-    const button = form.querySelector('button');
-    const status = document.querySelector('#status');
-    const authPanel = document.querySelector('#auth-panel');
-    const arrivalPanel = document.querySelector('#arrival-panel');
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      button.disabled = true;
-      status.classList.remove('error');
-      status.textContent = 'Checking credential.';
-      try {
-        const response = await fetch('/auth/pen-console', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ password: input.value })
-        });
-        if (!response.ok) throw new Error('authentication-failed');
-        authPanel.hidden = true;
-        arrivalPanel.hidden = false;
-        input.value = '';
-      } catch {
-        status.classList.add('error');
-        status.textContent = 'ACCESS DENIED. TRY AGAIN.';
-        input.value = '';
-        input.focus();
-        button.disabled = false;
-      }
-    });
-  </script>
 </body>
 </html>

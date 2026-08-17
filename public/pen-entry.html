@@ -15,6 +15,16 @@
   <div class="live" aria-live="polite"></div>
   <p class="toast" role="status"></p>
 
+  <section class="entry-boot" id="entry-boot" aria-label="penTell lab startup">
+    <div class="boot-loader" id="boot-loader" aria-hidden="true">
+      <span>loading penTell labs</span><i></i><i></i><i></i>
+    </div>
+    <div class="boot-terminal" id="boot-terminal" aria-live="polite" hidden>
+      <span class="boot-prompt">guest@pentel:~$</span>
+      <span id="boot-message"></span><span class="boot-cursor" aria-hidden="true"></span>
+    </div>
+  </section>
+
   <!-- WORLD 2: penTell RED-TEAM LAB (BEHIND THE LETTER) -->
   <section class="term" id="term" aria-label="penTell red-team lab">
     <header class="term-bar">

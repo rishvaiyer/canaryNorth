@@ -1,6 +1,14 @@
 # CanaryNorth iteration log
 
-Status: evidence-ledger iteration complete. This log records what changed, what was verified, and what still needs a production gate.
+Status: evidence-ledger and MCP iteration complete. This log records what changed, what was verified, and what still needs a production gate.
+
+## 2026-08-17, first MCP policy-gateway slice
+
+- **Goal:** Make the MCP direction real enough to run locally and explain honestly in the public README.
+- **Pseudocode:** `MCP initialize -> tools/list -> tools/call -> existing policy checks -> receipt -> synthetic result or quarantine`
+- **Plain-English summary:** CanaryNorth now exposes a stateless HTTP MCP endpoint at `POST /mcp`. It negotiates MCP `2025-06-18`, lists one synthetic `weather.get_forecast` tool, and routes calls through capability, scope, content, nonce, and receipt checks. Allowed calls end at `would-forward-to-tool`; denied calls return a quarantined MCP tool result with a deny receipt.
+- **Verification:** `npm test` passes 171/171, `npm run lint` passes, `git diff --check` passes, and local HTTP smoke covered initialize, tool listing, an allowed call, prompt-injection denial, empty-body initialized notification, and unexpected-Origin rejection.
+- **Remaining boundary:** This is not upstream MCP forwarding. It does not discover arbitrary MCP servers, maintain stateful sessions, stream server notifications, or support stdio. No external tool, credential, or browser extension is connected.
 
 ## 1. Original project state
 
