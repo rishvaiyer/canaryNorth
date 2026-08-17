@@ -737,7 +737,8 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     if (req.method === 'POST' && url.pathname === '/mcp/audit') { const request = validateAuditRequest(await body(req)); return json(res, 200, { jsonrpc: '2.0', result: { service: 'context-seal', capabilities: DEMO_CAPABILITIES.length, receipts: (await receiptStore.list(scopeForRequest(req))).map(({ receipt }) => receipt), policy: 'deny-by-default', policyVersion: POLICY_VERSION }, id: request.id ?? 1 }); }
-    if (isPenConsolePath(url.pathname) && penGatePassword && !isPenGatePage(url.pathname) && !penGateSessionValid(req)) {
+    const isPenGateAsset = url.pathname === '/pen-console/gate.css';
+    if (isPenConsolePath(url.pathname) && penGatePassword && !isPenGatePage(url.pathname) && !isPenGateAsset && !penGateSessionValid(req)) {
       if (isHtmlRequest(req, url.pathname)) return redirectToPenGate(res, url.pathname);
       return json(res, 401, { error: 'authentication-required' });
     }
