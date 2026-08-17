@@ -1,5 +1,5 @@
 const LINES = [
-  { id: "guide-1", text: "PenTel Supply", x: 90, y: 340, size: 96, width: 80, pool: "pool-1" },
+  { id: "guide-1", text: "penTell Supply Co.", x: 90, y: 340, size: 96, width: 80, pool: "pool-1" },
   { id: "guide-2", text: "We sell pens.", x: 100, y: 446, size: 58, width: 56, pool: "pool-2" },
 ];
 
@@ -15,7 +15,7 @@ const FIXTURES = [
     severity: "review",
     state: "synthetic",
     signal: "example-only",
-    safeSummary: "A fictional invoice note used to stand in for a PenTel instruction-conflict attempt.",
+    safeSummary: "A fictional invoice note used to stand in for a penTell instruction-conflict attempt against CanaryNorth.",
     scanner: "not-connected",
     scannerVersion: null,
     evidenceHash: "demo-hash-a18c",
@@ -43,7 +43,7 @@ const FIXTURES = [
     severity: "blocked",
     state: "not-run",
     signal: "review-only",
-    safeSummary: "Example office file used to show a PenTel delivery stopping at the policy gate. Not opened or executed.",
+    safeSummary: "Example office file used to show a penTell delivery stopping at the CanaryNorth policy gate. Not opened or executed.",
     scanner: "not-run",
     scannerVersion: null,
     evidenceHash: "demo-hash-c09f",
@@ -71,7 +71,7 @@ const FIXTURES = [
     severity: "review",
     state: "synthetic",
     signal: "example-only",
-    safeSummary: "A fictional tool-call outline for a PenTel attempt. No live tools are invoked.",
+    safeSummary: "A fictional tool-call outline for a penTell attempt against CanaryNorth. No live tools are invoked.",
     scanner: "not-connected",
     scannerVersion: null,
     evidenceHash: "demo-hash-e71a",
@@ -83,7 +83,7 @@ const FIXTURES = [
 const CHAIN = ["input", "normalize", "classify", "policy", "ledger"];
 
 const CODE_WALK = `# synthetic · not-run · scanner=offline
-# actor = PenTel Supply (fictional)
+# actor = penTell Supply Co. (fictional red team)
 
 from seal import normalize, classify, policy, ledger
 
@@ -97,7 +97,7 @@ normalized = normalize(fixture)
 label = classify(normalized)
 
 decision = policy.gate(
-    actor="PenTel Supply",
+    actor="penTell Supply Co.",
     label=label,
     network="disabled",
 )
@@ -660,7 +660,7 @@ function inspect(id) {
   renderEvidence(item);
   if (document.body.classList.contains("is-lab")) {
     setPhase("inspecting-fixture");
-    announce(`Inspecting synthetic PenTel fixture ${item.filename}. Example only.`);
+    announce(`Inspecting synthetic penTell fixture ${item.filename} against CanaryNorth. Example only.`);
     paintChain();
   }
 }
