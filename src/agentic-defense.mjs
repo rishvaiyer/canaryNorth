@@ -109,3 +109,56 @@ export function evaluateRecoveryClaim({ claimedState, observedStateHash, approve
   if (!independentCheckPresent) return result(false, 'recovery-claim-unverified', { reviewRequired: true });
   return result(true, 'recovery-claim-verified', { reviewRequired: false });
 }
+
+export function evaluateSkillDescriptor({ signaturePresent = false, currentOwner, pinnedOwner, currentVersion, pinnedVersion, capabilitySetExpanded = false } = {}) {
+  if (!signaturePresent) return result(false, 'skill-signature-missing', { reviewRequired: true });
+  if (pinnedOwner !== undefined && currentOwner !== pinnedOwner) return result(false, 'descriptor-owner-changed', { reviewRequired: true });
+  if (pinnedVersion !== undefined && currentVersion !== undefined && currentVersion < pinnedVersion) return result(false, 'pinned-version-regressed', { reviewRequired: true });
+  if (capabilitySetExpanded) return result(false, 'declared-capability-set-expanded', { reviewRequired: true });
+  return result(true, 'skill-descriptor-valid', { reviewRequired: false });
+}
+
+export function evaluateMemoryGraft({ memoryReviewed = false, trustedRecords = 0, poisonedRecordsPresent = false, memoryAgeSeconds, maxAgeSeconds = 3600, tenantId, expectedTenantId } = {}) {
+  if (!memoryReviewed) return result(false, 'memory-origin-not-reviewed', { reviewRequired: true });
+  if (trustedRecords > 0 && poisonedRecordsPresent) return result(false, 'poisoned-and-reviewed-records-collide', { reviewRequired: true });
+  if (typeof memoryAgeSeconds === 'number' && memoryAgeSeconds > maxAgeSeconds) return result(false, 'experience-freshness-expired', { reviewRequired: true });
+  if (expectedTenantId !== undefined && tenantId !== expectedTenantId) return result(false, 'memory-tenant-mismatch', { reviewRequired: true });
+  return result(true, 'memory-graft-clear', { reviewRequired: false });
+}
+
+export function evaluateAgentBoundary({ summaryTrustAmplified = false, skillOriginMatch = true, delegationAudienceMatch = true, messageReplayed = false } = {}) {
+  if (summaryTrustAmplified) return result(false, 'summary-cannot-amplify-source-authority', { reviewRequired: true });
+  if (!skillOriginMatch) return result(false, 'skill-origin-mismatch', { reviewRequired: true });
+  if (!delegationAudienceMatch) return result(false, 'delegation-audience-mismatch', { reviewRequired: true });
+  if (messageReplayed) return result(false, 'agent-message-replayed-out-of-context', { reviewRequired: true });
+  return result(true, 'agent-boundary-clear', { reviewRequired: false });
+}
+
+export function evaluateCanaryEvent({ resourceIsCanary = false, exportIntended = false, eventRepeated = false } = {}) {
+  if (eventRepeated) return result(false, 'synthetic-canary-event-repeated', { alert: true });
+  if (exportIntended && resourceIsCanary) return result(false, 'synthetic-canary-export-intent', { alert: true });
+  if (resourceIsCanary) return result(false, 'synthetic-canary-resource-requested', { alert: true });
+  return result(true, 'canary-event-clear', { alert: false });
+}
+
+export function evaluateSecondLock({ pushCount = 0, sensitiveAction = false, recoveryPath = false, privilegedAction = false, authSessionId, actionSessionId, nonceFresh = true, factorType, carrierRisk, approvedScope, requestedScope, deviceTrusted = true, newDevice = false } = {}) {
+  if (pushCount >= 3 && sensitiveAction) return result(false, 'repeated-approval-pressure', { reviewRequired: true });
+  if (recoveryPath && privilegedAction) return result(false, 'recovery-needs-step-up', { reviewRequired: true });
+  if (authSessionId !== undefined && actionSessionId !== undefined && authSessionId !== actionSessionId) return result(false, 'session-binding-mismatch', { reviewRequired: true });
+  if (!nonceFresh && sensitiveAction) return result(false, 'authentication-challenge-stale', { reviewRequired: true });
+  if (factorType === 'sms' && carrierRisk === 'elevated' && sensitiveAction) return result(false, 'phone-factor-risk', { reviewRequired: true });
+  if (approvedScope !== undefined && requestedScope !== undefined && requestedScope !== approvedScope) return result(false, 'requested-scope-exceeds-approval', { reviewRequired: true });
+  if (!deviceTrusted && newDevice && privilegedAction) return result(false, 'device-step-up-required', { reviewRequired: true });
+  return result(true, 'second-lock-passed', { reviewRequired: false });
+}
+
+export function evaluateFrontierGap({ provenanceChanged, rewardScoreChanged, userObjectiveChanged, serviceListed, serviceConnected, rogueAgentCount, collusionObserved, verifiedAgentId, signedEnvelopePresent, cascadePredicted, dependentAgentCount, fanoutBudget, contextItems, contextBudget } = {}) {
+  if (provenanceChanged === true) return result(false, 'model-provenance-drift', { reviewRequired: true });
+  if (rewardScoreChanged === true && userObjectiveChanged === true) return result(false, 'objective-score-divergence', { reviewRequired: true });
+  if (serviceListed === true && serviceConnected !== true) return result(false, 'unapproved-bypass-service', { reviewRequired: true });
+  if ((typeof rogueAgentCount === 'number' && rogueAgentCount > 0) || collusionObserved === true) return result(false, 'agent-identity-unverified', { reviewRequired: true });
+  if (verifiedAgentId !== undefined && (verifiedAgentId !== true || signedEnvelopePresent !== true)) return result(false, 'a2a-identity-unverified', { reviewRequired: true });
+  if (cascadePredicted === true && typeof dependentAgentCount === 'number' && typeof fanoutBudget === 'number' && dependentAgentCount > fanoutBudget) return result(false, 'cascade-budget-exceeded', { reviewRequired: true });
+  if (typeof contextItems === 'number' && typeof contextBudget === 'number' && contextItems > contextBudget) return result(false, 'context-budget-pressure', { reviewRequired: true });
+  return result(true, 'frontier-gap-clear', { reviewRequired: false });
+}

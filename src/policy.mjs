@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { evaluateAdaptiveContext, evaluateCausalBasis, evaluateCanaryRequest, evaluateCausalContinuity, evaluateDelegationFreshness, evaluateIntentNormalization, evaluateMemoryContext, evaluateProvenanceBoundary, evaluateRecoveryClaim, evaluateResourceClass, evaluateRevocationLineage, evaluateTrustDebt, verifyToolAttestation } from './agentic-defense.mjs';
+import { evaluateAdaptiveContext, evaluateAgentBoundary, evaluateCausalBasis, evaluateCanaryEvent, evaluateCanaryRequest, evaluateCausalContinuity, evaluateDelegationFreshness, evaluateFrontierGap, evaluateIntentNormalization, evaluateMemoryContext, evaluateMemoryGraft, evaluateProvenanceBoundary, evaluateRecoveryClaim, evaluateResourceClass, evaluateRevocationLineage, evaluateSecondLock, evaluateSkillDescriptor, evaluateTrustDebt, verifyToolAttestation } from './agentic-defense.mjs';
 
 export const POLICY_VERSION = 'contextseal-policy-v2';
 export const DEMO_TENANT_ID = 'tenant_demo';
@@ -67,7 +67,7 @@ export function inspectInput(input = '') {
   };
 }
 
-export function authorize({ capabilityId, action, resource, input = '', now = new Date(), principal, audience, tenantId, workspaceId, policyVersion = POLICY_VERSION, nonce, replayDetected = false, toolManifest, memoryContext, provenance, canaryContext, adaptiveContext, causalContext, trustDebtContext, delegationContext, causalBasisContext, revocationLineageContext, intentNormContext, resourceClassContext, recoveryClaimContext, demoControls = {} }) {
+export function authorize({ capabilityId, action, resource, input = '', now = new Date(), principal, audience, tenantId, workspaceId, policyVersion = POLICY_VERSION, nonce, replayDetected = false, toolManifest, memoryContext, provenance, canaryContext, adaptiveContext, causalContext, trustDebtContext, delegationContext, causalBasisContext, revocationLineageContext, intentNormContext, resourceClassContext, recoveryClaimContext, skillDescriptorContext, memoryGraftContext, agentBoundaryContext, canaryEventContext, secondLockContext, frontierGapContext, demoControls = {} }) {
   const capability = DEMO_CAPABILITIES.find((item) => item.id === capabilityId);
   if (!capability) return deny('unknown-capability', 'Capability reference is not recognized.', null);
   if (canaryContext !== undefined) {
@@ -131,6 +131,30 @@ export function authorize({ capabilityId, action, resource, input = '', now = ne
   if (recoveryClaimContext !== undefined) {
     const recovery = evaluateRecoveryClaim(recoveryClaimContext);
     if (!recovery.allowed) return deny(recovery.reasonCode, 'Recovery claim could not be independently verified.', capability, { clean: false, signals: [recovery.reasonCode], agenticDefense: recovery });
+  }
+  if (skillDescriptorContext !== undefined) {
+    const skill = evaluateSkillDescriptor(skillDescriptorContext);
+    if (!skill.allowed) return deny(skill.reasonCode, 'Skill descriptor did not satisfy attestation requirements.', capability, { clean: false, signals: [skill.reasonCode], agenticDefense: skill });
+  }
+  if (memoryGraftContext !== undefined) {
+    const graft = evaluateMemoryGraft(memoryGraftContext);
+    if (!graft.allowed) return deny(graft.reasonCode, 'Memory graft check failed provenance or freshness requirements.', capability, { clean: false, signals: [graft.reasonCode], agenticDefense: graft });
+  }
+  if (agentBoundaryContext !== undefined) {
+    const boundary = evaluateAgentBoundary(agentBoundaryContext);
+    if (!boundary.allowed) return deny(boundary.reasonCode, 'Agent boundary violation detected at trust crossing.', capability, { clean: false, signals: [boundary.reasonCode], agenticDefense: boundary });
+  }
+  if (canaryEventContext !== undefined) {
+    const canaryEvent = evaluateCanaryEvent(canaryEventContext);
+    if (!canaryEvent.allowed) return deny(canaryEvent.reasonCode, 'Synthetic canary event was blocked and recorded.', capability, { clean: false, signals: [canaryEvent.reasonCode], agenticDefense: canaryEvent });
+  }
+  if (secondLockContext !== undefined) {
+    const secondLock = evaluateSecondLock(secondLockContext);
+    if (!secondLock.allowed) return deny(secondLock.reasonCode, 'Second authentication lock condition was not satisfied.', capability, { clean: false, signals: [secondLock.reasonCode], agenticDefense: secondLock });
+  }
+  if (frontierGapContext !== undefined) {
+    const frontier = evaluateFrontierGap(frontierGapContext);
+    if (!frontier.allowed) return deny(frontier.reasonCode, 'Frontier gap condition requires review before action.', capability, { clean: false, signals: [frontier.reasonCode], agenticDefense: frontier });
   }
   const inspection = demoControls.contentFirewall === false ? { clean: true, injection: null, dlp: null, signals: [], bypassed: true } : inspectInput(input);
   if (inspection.injection) return deny('prompt-injection', 'Untrusted instruction pattern was quarantined.', capability, inspection);

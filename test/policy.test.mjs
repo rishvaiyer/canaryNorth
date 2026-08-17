@@ -88,3 +88,20 @@ test('policy binds memory scope and delegated provenance to the capability', () 
   assert.equal(memory.code, 'memory-scope-mismatch');
   assert.equal(provenance.code, 'provenance-destination-not-capability');
 });
+
+
+test('skill-descriptor, memory-graft, agent-boundary, canary-event, second-lock, and frontier-gap gates are enforced by authorization', () => {
+  const now = new Date('2026-08-15T12:00:00Z');
+  const skillResult = authorize({ ...base, skillDescriptorContext: { signaturePresent: false }, now });
+  const graftResult = authorize({ ...base, memoryGraftContext: { memoryReviewed: false }, now });
+  const boundaryResult = authorize({ ...base, agentBoundaryContext: { summaryTrustAmplified: true }, now });
+  const canaryResult = authorize({ ...base, canaryEventContext: { resourceIsCanary: true }, now });
+  const lockResult = authorize({ ...base, secondLockContext: { pushCount: 4, sensitiveAction: true }, now });
+  const frontierResult = authorize({ ...base, frontierGapContext: { provenanceChanged: true }, now });
+  assert.equal(skillResult.code, 'skill-signature-missing');
+  assert.equal(graftResult.code, 'memory-origin-not-reviewed');
+  assert.equal(boundaryResult.code, 'summary-cannot-amplify-source-authority');
+  assert.equal(canaryResult.code, 'synthetic-canary-resource-requested');
+  assert.equal(lockResult.code, 'repeated-approval-pressure');
+  assert.equal(frontierResult.code, 'model-provenance-drift');
+});

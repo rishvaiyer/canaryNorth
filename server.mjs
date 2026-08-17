@@ -186,7 +186,37 @@ function validateAgenticMetadata(request) {
     for (const field of ['observedStateHash', 'approvedStateHash']) if (recoveryClaimContext[field] !== undefined && (typeof recoveryClaimContext[field] !== 'string' || recoveryClaimContext[field].length > 128)) throw new Error(`invalid-recovery-${field}`);
     if (recoveryClaimContext.independentCheckPresent !== undefined && typeof recoveryClaimContext.independentCheckPresent !== 'boolean') throw new Error('invalid-recovery-independent-check');
   }
-  return { toolManifest, memoryContext, provenance, canaryContext, adaptiveContext, causalContext, trustDebtContext, delegationContext, causalBasisContext, revocationLineageContext, intentNormContext, resourceClassContext, recoveryClaimContext };
+  const skillDescriptorContext = optionalObject('skillDescriptorContext');
+  if (skillDescriptorContext) {
+    for (const field of ['signaturePresent', 'capabilitySetExpanded']) if (skillDescriptorContext[field] !== undefined && typeof skillDescriptorContext[field] !== 'boolean') throw new Error(`invalid-skill-descriptor-${field}`);
+    for (const field of ['currentOwner', 'pinnedOwner', 'currentVersion', 'pinnedVersion']) if (skillDescriptorContext[field] !== undefined && (typeof skillDescriptorContext[field] !== 'string' || skillDescriptorContext[field].length > 128)) throw new Error(`invalid-skill-descriptor-${field}`);
+  }
+  const memoryGraftContext = optionalObject('memoryGraftContext');
+  if (memoryGraftContext) {
+    for (const field of ['memoryReviewed', 'poisonedRecordsPresent']) if (memoryGraftContext[field] !== undefined && typeof memoryGraftContext[field] !== 'boolean') throw new Error(`invalid-memory-graft-${field}`);
+    for (const field of ['trustedRecords', 'memoryAgeSeconds', 'maxAgeSeconds']) if (memoryGraftContext[field] !== undefined && (!Number.isInteger(memoryGraftContext[field]) || memoryGraftContext[field] < 0)) throw new Error(`invalid-memory-graft-${field}`);
+    for (const field of ['tenantId', 'expectedTenantId']) if (memoryGraftContext[field] !== undefined && (typeof memoryGraftContext[field] !== 'string' || memoryGraftContext[field].length > 128)) throw new Error(`invalid-memory-graft-${field}`);
+  }
+  const agentBoundaryContext = optionalObject('agentBoundaryContext');
+  if (agentBoundaryContext) {
+    for (const field of ['summaryTrustAmplified', 'skillOriginMatch', 'delegationAudienceMatch', 'messageReplayed']) if (agentBoundaryContext[field] !== undefined && typeof agentBoundaryContext[field] !== 'boolean') throw new Error(`invalid-agent-boundary-${field}`);
+  }
+  const canaryEventContext = optionalObject('canaryEventContext');
+  if (canaryEventContext) {
+    for (const field of ['resourceIsCanary', 'exportIntended', 'eventRepeated']) if (canaryEventContext[field] !== undefined && typeof canaryEventContext[field] !== 'boolean') throw new Error(`invalid-canary-event-${field}`);
+  }
+  const secondLockContext = optionalObject('secondLockContext');
+  if (secondLockContext) {
+    for (const field of ['sensitiveAction', 'recoveryPath', 'privilegedAction', 'nonceFresh', 'deviceTrusted', 'newDevice']) if (secondLockContext[field] !== undefined && typeof secondLockContext[field] !== 'boolean') throw new Error(`invalid-second-lock-${field}`);
+    if (secondLockContext.pushCount !== undefined && (!Number.isInteger(secondLockContext.pushCount) || secondLockContext.pushCount < 0)) throw new Error('invalid-second-lock-push-count');
+    for (const field of ['authSessionId', 'actionSessionId', 'factorType', 'carrierRisk', 'approvedScope', 'requestedScope']) if (secondLockContext[field] !== undefined && (typeof secondLockContext[field] !== 'string' || secondLockContext[field].length > 128)) throw new Error(`invalid-second-lock-${field}`);
+  }
+  const frontierGapContext = optionalObject('frontierGapContext');
+  if (frontierGapContext) {
+    for (const field of ['provenanceChanged', 'rewardScoreChanged', 'userObjectiveChanged', 'serviceListed', 'serviceConnected', 'collusionObserved', 'verifiedAgentId', 'signedEnvelopePresent', 'cascadePredicted']) if (frontierGapContext[field] !== undefined && typeof frontierGapContext[field] !== 'boolean') throw new Error(`invalid-frontier-gap-${field}`);
+    for (const field of ['rogueAgentCount', 'dependentAgentCount', 'fanoutBudget', 'contextItems', 'contextBudget']) if (frontierGapContext[field] !== undefined && (!Number.isInteger(frontierGapContext[field]) || frontierGapContext[field] < 0)) throw new Error(`invalid-frontier-gap-${field}`);
+  }
+  return { toolManifest, memoryContext, provenance, canaryContext, adaptiveContext, causalContext, trustDebtContext, delegationContext, causalBasisContext, revocationLineageContext, intentNormContext, resourceClassContext, recoveryClaimContext, skillDescriptorContext, memoryGraftContext, agentBoundaryContext, canaryEventContext, secondLockContext, frontierGapContext };
 }
 function validateAuthorizationRequest(request) {
   if (!request || Array.isArray(request) || typeof request !== 'object') throw new Error('request-object-required');
