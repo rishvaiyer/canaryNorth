@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { evaluateAdaptiveContext, evaluateAgentBoundary, evaluateCausalBasis, evaluateCanaryEvent, evaluateCanaryRequest, evaluateCausalContinuity, evaluateDelegationFreshness, evaluateFrontierGap, evaluateIntentNormalization, evaluateMemoryContext, evaluateMemoryGraft, evaluateProvenanceBoundary, evaluateRecoveryClaim, evaluateResourceClass, evaluateRevocationLineage, evaluateSecondLock, evaluateSkillDescriptor, evaluateTrustDebt, verifyToolAttestation } from './agentic-defense.mjs';
+import { evaluateAdaptiveContext, evaluateAgentBoundary, evaluateApprovalAge, evaluateApprovalFreshness, evaluateCausalBasis, evaluateCanaryEvent, evaluateCanaryRequest, evaluateCausalContinuity, evaluateConsensusProvenance, evaluateControlFlow, evaluateDelegationFreshness, evaluateFrontierGap, evaluateIntentNormalization, evaluateMemoryContext, evaluateMemoryGraft, evaluateOutcomeIntegrity, evaluatePolicyGravity, evaluateProvenanceBoundary, evaluateQuarantineReentry, evaluateRecoveryClaim, evaluateResourceClass, evaluateRevocationLineage, evaluateScopeAccumulation, evaluateSecondLock, evaluateSkillDescriptor, evaluateTrustDebt, evaluateWorkflowGraph, verifyToolAttestation } from './agentic-defense.mjs';
 
 export const POLICY_VERSION = 'contextseal-policy-v2';
 export const DEMO_TENANT_ID = 'tenant_demo';
@@ -67,7 +67,7 @@ export function inspectInput(input = '') {
   };
 }
 
-export function authorize({ capabilityId, action, resource, input = '', now = new Date(), principal, audience, tenantId, workspaceId, policyVersion = POLICY_VERSION, nonce, replayDetected = false, toolManifest, memoryContext, provenance, canaryContext, adaptiveContext, causalContext, trustDebtContext, delegationContext, causalBasisContext, revocationLineageContext, intentNormContext, resourceClassContext, recoveryClaimContext, skillDescriptorContext, memoryGraftContext, agentBoundaryContext, canaryEventContext, secondLockContext, frontierGapContext, demoControls = {} }) {
+export function authorize({ capabilityId, action, resource, input = '', now = new Date(), principal, audience, tenantId, workspaceId, policyVersion = POLICY_VERSION, nonce, replayDetected = false, toolManifest, memoryContext, provenance, canaryContext, adaptiveContext, causalContext, trustDebtContext, delegationContext, causalBasisContext, revocationLineageContext, intentNormContext, resourceClassContext, recoveryClaimContext, skillDescriptorContext, memoryGraftContext, agentBoundaryContext, canaryEventContext, secondLockContext, frontierGapContext, controlFlowContext, approvalFreshnessContext, outcomeIntegrityContext, quarantineReentryContext, scopeAccumulationContext, workflowGraphContext, consensusProvenanceContext, approvalAgeContext, policyGravityContext, demoControls = {} }) {
   const capability = DEMO_CAPABILITIES.find((item) => item.id === capabilityId);
   if (!capability) return deny('unknown-capability', 'Capability reference is not recognized.', null);
   if (canaryContext !== undefined) {
@@ -155,6 +155,42 @@ export function authorize({ capabilityId, action, resource, input = '', now = ne
   if (frontierGapContext !== undefined) {
     const frontier = evaluateFrontierGap(frontierGapContext);
     if (!frontier.allowed) return deny(frontier.reasonCode, 'Frontier gap condition requires review before action.', capability, { clean: false, signals: [frontier.reasonCode], agenticDefense: frontier });
+  }
+  if (controlFlowContext !== undefined) {
+    const controlFlow = evaluateControlFlow(controlFlowContext);
+    if (!controlFlow.allowed) return deny(controlFlow.reasonCode, 'Control flow safety condition was violated.', capability, { clean: false, signals: [controlFlow.reasonCode], agenticDefense: controlFlow });
+  }
+  if (approvalFreshnessContext !== undefined) {
+    const freshness = evaluateApprovalFreshness(approvalFreshnessContext);
+    if (!freshness.allowed) return deny(freshness.reasonCode, 'Expired approval cannot be replayed.', capability, { clean: false, signals: [freshness.reasonCode], agenticDefense: freshness });
+  }
+  if (outcomeIntegrityContext !== undefined) {
+    const outcome = evaluateOutcomeIntegrity(outcomeIntegrityContext);
+    if (!outcome.allowed) return deny(outcome.reasonCode, 'Claimed outcome does not match the receipt observation.', capability, { clean: false, signals: [outcome.reasonCode], agenticDefense: outcome });
+  }
+  if (quarantineReentryContext !== undefined) {
+    const quarantine = evaluateQuarantineReentry(quarantineReentryContext);
+    if (!quarantine.allowed) return deny(quarantine.reasonCode, 'Quarantined item cannot re-enter trusted context.', capability, { clean: false, signals: [quarantine.reasonCode], agenticDefense: quarantine });
+  }
+  if (scopeAccumulationContext !== undefined) {
+    const scope = evaluateScopeAccumulation(scopeAccumulationContext);
+    if (!scope.allowed) return deny(scope.reasonCode, 'Cumulative scope expansion was flagged before sensitive action.', capability, { clean: false, signals: [scope.reasonCode], agenticDefense: scope });
+  }
+  if (workflowGraphContext !== undefined) {
+    const graph = evaluateWorkflowGraph(workflowGraphContext);
+    if (!graph.allowed) return deny(graph.reasonCode, 'Observed workflow graph does not match the approved plan.', capability, { clean: false, signals: [graph.reasonCode], agenticDefense: graph });
+  }
+  if (consensusProvenanceContext !== undefined) {
+    const consensus = evaluateConsensusProvenance(consensusProvenanceContext);
+    if (!consensus.allowed) return deny(consensus.reasonCode, 'Agent consensus shares a single untrusted provenance root.', capability, { clean: false, signals: [consensus.reasonCode], agenticDefense: consensus });
+  }
+  if (approvalAgeContext !== undefined) {
+    const age = evaluateApprovalAge(approvalAgeContext);
+    if (!age.allowed) return deny(age.reasonCode, 'Approval age exceeds the allowed freshness window.', capability, { clean: false, signals: [age.reasonCode], agenticDefense: age });
+  }
+  if (policyGravityContext !== undefined) {
+    const gravity = evaluatePolicyGravity(policyGravityContext);
+    if (!gravity.allowed) return deny(gravity.reasonCode, 'Action impact requires a higher authorization level.', capability, { clean: false, signals: [gravity.reasonCode], agenticDefense: gravity });
   }
   const inspection = demoControls.contentFirewall === false ? { clean: true, injection: null, dlp: null, signals: [], bypassed: true } : inspectInput(input);
   if (inspection.injection) return deny('prompt-injection', 'Untrusted instruction pattern was quarantined.', capability, inspection);

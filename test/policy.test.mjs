@@ -105,3 +105,16 @@ test('skill-descriptor, memory-graft, agent-boundary, canary-event, second-lock,
   assert.equal(lockResult.code, 'repeated-approval-pressure');
   assert.equal(frontierResult.code, 'model-provenance-drift');
 });
+
+test('control-flow, approval-freshness, outcome-integrity, quarantine-reentry, scope-accumulation, workflow-graph, consensus-provenance, approval-age, and policy-gravity gates are enforced by authorization', () => {
+  const now = new Date('2026-08-15T12:00:00Z');
+  assert.equal(authorize({ ...base, controlFlowContext: { checkStatus: 'timeout', defaultAction: 'allow' }, now }).code, 'control-flow-fail-open');
+  assert.equal(authorize({ ...base, approvalFreshnessContext: { approvalExpired: true }, now }).code, 'approval-replay-blocked');
+  assert.equal(authorize({ ...base, outcomeIntegrityContext: { claimedSuccess: true, receiptMatchesObservation: false }, now }).code, 'outcome-receipt-mismatch');
+  assert.equal(authorize({ ...base, quarantineReentryContext: { quarantineState: 'quarantined' }, now }).code, 'quarantined-item-reentry-blocked');
+  assert.equal(authorize({ ...base, scopeAccumulationContext: { cumulativeRiskFlagged: true }, now }).code, 'cumulative-scope-risk-flagged');
+  assert.equal(authorize({ ...base, workflowGraphContext: { unexpectedEdgeCount: 1 }, now }).code, 'workflow-graph-unexpected-edge');
+  assert.equal(authorize({ ...base, consensusProvenanceContext: { apparentAgreement: 3, independentEvidence: 1, requiredIndependentEvidence: 2, sharedRoot: true }, now }).code, 'consensus-shared-root');
+  assert.equal(authorize({ ...base, approvalAgeContext: { approvalAgeSeconds: 7200, maxApprovalAgeSeconds: 900 }, now }).code, 'approval-age-exceeded');
+  assert.equal(authorize({ ...base, policyGravityContext: { highestImpactDecision: 'block' }, now }).code, 'policy-gravity-impact-requires-block');
+});

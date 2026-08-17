@@ -152,6 +152,60 @@ export function evaluateSecondLock({ pushCount = 0, sensitiveAction = false, rec
   return result(true, 'second-lock-passed', { reviewRequired: false });
 }
 
+export function evaluateControlFlow({ checkStatus, defaultAction, primaryStatus, fallbackStrength, requiredStrength, errorSourceTrust, errorContainsInstruction, denialCount, recoveryImpact } = {}) {
+  if (checkStatus === 'timeout' && defaultAction === 'allow') return result(false, 'control-flow-fail-open', { reviewRequired: true });
+  if (primaryStatus === 'unavailable' && typeof fallbackStrength === 'number' && typeof requiredStrength === 'number' && fallbackStrength < requiredStrength) return result(false, 'fallback-strength-insufficient', { reviewRequired: true });
+  if (errorSourceTrust !== 'trusted' && errorContainsInstruction === true) return result(false, 'error-channel-untrusted-instruction', { reviewRequired: true });
+  if (typeof denialCount === 'number' && denialCount > 0 && recoveryImpact === 'sensitive') return result(false, 'compensation-loop-sensitive', { reviewRequired: true });
+  return result(true, 'control-flow-safe', { reviewRequired: false });
+}
+
+export function evaluateApprovalFreshness({ approvalExpired = false } = {}) {
+  if (approvalExpired) return result(false, 'approval-replay-blocked', { reviewRequired: true });
+  return result(true, 'approval-current', { reviewRequired: false });
+}
+
+export function evaluateOutcomeIntegrity({ claimedSuccess = false, receiptMatchesObservation = true } = {}) {
+  if (claimedSuccess && !receiptMatchesObservation) return result(false, 'outcome-receipt-mismatch', { reviewRequired: true });
+  return result(true, 'outcome-integrity-confirmed', { reviewRequired: false });
+}
+
+export function evaluateQuarantineReentry({ quarantineState } = {}) {
+  if (quarantineState === 'quarantined') return result(false, 'quarantined-item-reentry-blocked', { reviewRequired: true });
+  return result(true, 'quarantine-boundary-clear', { reviewRequired: false });
+}
+
+export function evaluateScopeAccumulation({ cumulativeRiskFlagged = false, scopeExpanded = false } = {}) {
+  if (cumulativeRiskFlagged || scopeExpanded) return result(false, 'cumulative-scope-risk-flagged', { reviewRequired: true });
+  return result(true, 'scope-within-bounds', { reviewRequired: false });
+}
+
+export function evaluateWorkflowGraph({ unexpectedEdgeCount = 0, expectedEdgeCount, observedEdgeCount } = {}) {
+  if (!Number.isInteger(unexpectedEdgeCount) || unexpectedEdgeCount < 0) return result(false, 'workflow-graph-metadata-invalid', { reviewRequired: true });
+  if (unexpectedEdgeCount > 0) return result(false, 'workflow-graph-unexpected-edge', { reviewRequired: true, unexpectedEdgeCount });
+  if (typeof expectedEdgeCount === 'number' && typeof observedEdgeCount === 'number' && observedEdgeCount > expectedEdgeCount) return result(false, 'workflow-graph-unexpected-edge', { reviewRequired: true });
+  return result(true, 'workflow-graph-matches-plan', { reviewRequired: false });
+}
+
+export function evaluateConsensusProvenance({ apparentAgreement = 0, independentEvidence = 0, requiredIndependentEvidence = 2, sharedRoot = false } = {}) {
+  if (sharedRoot && independentEvidence < requiredIndependentEvidence) return result(false, 'consensus-shared-root', { reviewRequired: true, apparentAgreement, independentEvidence });
+  if (independentEvidence < requiredIndependentEvidence) return result(false, 'consensus-insufficient-independent-evidence', { reviewRequired: true });
+  return result(true, 'consensus-evidence-sufficient', { reviewRequired: false });
+}
+
+export function evaluateApprovalAge({ approvalAgeSeconds, maxApprovalAgeSeconds = 900 } = {}) {
+  if (!Number.isFinite(approvalAgeSeconds) || approvalAgeSeconds < 0) return result(false, 'approval-age-metadata-invalid', { reviewRequired: true });
+  if (approvalAgeSeconds > maxApprovalAgeSeconds) return result(false, 'approval-age-exceeded', { reviewRequired: true, approvalAgeSeconds, maxApprovalAgeSeconds });
+  return result(true, 'approval-age-current', { reviewRequired: false });
+}
+
+export function evaluatePolicyGravity({ highestImpactDecision, monotonicEvidence = false } = {}) {
+  if (typeof highestImpactDecision !== 'string') return result(false, 'policy-gravity-metadata-invalid', { reviewRequired: true });
+  if (highestImpactDecision === 'block') return result(false, 'policy-gravity-impact-requires-block', { reviewRequired: true, monotonicEvidence });
+  if (highestImpactDecision === 'step-up') return result(false, 'policy-gravity-impact-requires-step-up', { reviewRequired: true, monotonicEvidence });
+  return result(true, 'policy-gravity-within-threshold', { reviewRequired: false });
+}
+
 export function evaluateFrontierGap({ provenanceChanged, rewardScoreChanged, userObjectiveChanged, serviceListed, serviceConnected, rogueAgentCount, collusionObserved, verifiedAgentId, signedEnvelopePresent, cascadePredicted, dependentAgentCount, fanoutBudget, contextItems, contextBudget } = {}) {
   if (provenanceChanged === true) return result(false, 'model-provenance-drift', { reviewRequired: true });
   if (rewardScoreChanged === true && userObjectiveChanged === true) return result(false, 'objective-score-divergence', { reviewRequired: true });

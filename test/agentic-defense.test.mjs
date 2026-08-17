@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateAdaptiveContext, evaluateAgentBoundary, evaluateCausalBasis, evaluateCanaryEvent, evaluateCanaryRequest, evaluateCausalContinuity, evaluateDelegationFreshness, evaluateFrontierGap, evaluateIntentNormalization, evaluateMemoryContext, evaluateMemoryGraft, evaluateProvenanceBoundary, evaluateRecoveryClaim, evaluateResourceClass, evaluateRevocationLineage, evaluateSecondLock, evaluateSkillDescriptor, evaluateTrustDebt, verifyToolAttestation } from '../src/agentic-defense.mjs';
+import { evaluateAdaptiveContext, evaluateAgentBoundary, evaluateApprovalAge, evaluateApprovalFreshness, evaluateCausalBasis, evaluateCanaryEvent, evaluateCanaryRequest, evaluateCausalContinuity, evaluateConsensusProvenance, evaluateControlFlow, evaluateDelegationFreshness, evaluateFrontierGap, evaluateIntentNormalization, evaluateMemoryContext, evaluateMemoryGraft, evaluateOutcomeIntegrity, evaluatePolicyGravity, evaluateProvenanceBoundary, evaluateQuarantineReentry, evaluateRecoveryClaim, evaluateResourceClass, evaluateRevocationLineage, evaluateScopeAccumulation, evaluateSecondLock, evaluateSkillDescriptor, evaluateTrustDebt, evaluateWorkflowGraph, verifyToolAttestation } from '../src/agentic-defense.mjs';
 
 const manifest = { schema: 'contextseal.tool-attestation.v1', tool: 'weather.get_forecast', version: '1.0.0', owner: 'contextseal-demo', capabilities: ['read:forecast'], signatureStatus: 'verified', digest: 'sha256:synthetic-weather-v1' };
 
@@ -140,4 +140,55 @@ test('frontier gap blocks seven distinct gap conditions', () => {
   assert.equal(evaluateFrontierGap({ cascadePredicted: true, dependentAgentCount: 5, fanoutBudget: 2 }).reasonCode, 'cascade-budget-exceeded');
   assert.equal(evaluateFrontierGap({ contextItems: 120, contextBudget: 40 }).reasonCode, 'context-budget-pressure');
   assert.equal(evaluateFrontierGap({}).allowed, true);
+});
+
+test('control flow blocks fail-open, weak fallback, untrusted error channel, and sensitive compensation', () => {
+  assert.equal(evaluateControlFlow({ checkStatus: 'timeout', defaultAction: 'allow' }).reasonCode, 'control-flow-fail-open');
+  assert.equal(evaluateControlFlow({ primaryStatus: 'unavailable', fallbackStrength: 1, requiredStrength: 3 }).reasonCode, 'fallback-strength-insufficient');
+  assert.equal(evaluateControlFlow({ errorSourceTrust: 'untrusted', errorContainsInstruction: true }).reasonCode, 'error-channel-untrusted-instruction');
+  assert.equal(evaluateControlFlow({ denialCount: 1, recoveryImpact: 'sensitive' }).reasonCode, 'compensation-loop-sensitive');
+  assert.equal(evaluateControlFlow({}).allowed, true);
+});
+
+test('approval freshness blocks expired replay', () => {
+  assert.equal(evaluateApprovalFreshness({ approvalExpired: true }).reasonCode, 'approval-replay-blocked');
+  assert.equal(evaluateApprovalFreshness({ approvalExpired: false }).allowed, true);
+});
+
+test('outcome integrity blocks mismatched receipt', () => {
+  assert.equal(evaluateOutcomeIntegrity({ claimedSuccess: true, receiptMatchesObservation: false }).reasonCode, 'outcome-receipt-mismatch');
+  assert.equal(evaluateOutcomeIntegrity({ claimedSuccess: true, receiptMatchesObservation: true }).allowed, true);
+});
+
+test('quarantine reentry blocks quarantined items from re-entering trusted context', () => {
+  assert.equal(evaluateQuarantineReentry({ quarantineState: 'quarantined' }).reasonCode, 'quarantined-item-reentry-blocked');
+  assert.equal(evaluateQuarantineReentry({ quarantineState: 'cleared' }).allowed, true);
+});
+
+test('scope accumulation blocks cumulative risk and direct expansion', () => {
+  assert.equal(evaluateScopeAccumulation({ cumulativeRiskFlagged: true }).reasonCode, 'cumulative-scope-risk-flagged');
+  assert.equal(evaluateScopeAccumulation({ scopeExpanded: true }).reasonCode, 'cumulative-scope-risk-flagged');
+  assert.equal(evaluateScopeAccumulation({}).allowed, true);
+});
+
+test('workflow graph blocks unexpected edges', () => {
+  assert.equal(evaluateWorkflowGraph({ unexpectedEdgeCount: 1 }).reasonCode, 'workflow-graph-unexpected-edge');
+  assert.equal(evaluateWorkflowGraph({ unexpectedEdgeCount: 0, expectedEdgeCount: 3, observedEdgeCount: 4 }).reasonCode, 'workflow-graph-unexpected-edge');
+  assert.equal(evaluateWorkflowGraph({ unexpectedEdgeCount: 0, expectedEdgeCount: 3, observedEdgeCount: 3 }).allowed, true);
+});
+
+test('consensus provenance blocks shared-root agreements with insufficient independent evidence', () => {
+  assert.equal(evaluateConsensusProvenance({ apparentAgreement: 3, independentEvidence: 1, requiredIndependentEvidence: 2, sharedRoot: true }).reasonCode, 'consensus-shared-root');
+  assert.equal(evaluateConsensusProvenance({ apparentAgreement: 3, independentEvidence: 2, requiredIndependentEvidence: 2, sharedRoot: false }).allowed, true);
+});
+
+test('approval age blocks stale approvals exceeding freshness window', () => {
+  assert.equal(evaluateApprovalAge({ approvalAgeSeconds: 7200, maxApprovalAgeSeconds: 900 }).reasonCode, 'approval-age-exceeded');
+  assert.equal(evaluateApprovalAge({ approvalAgeSeconds: 300, maxApprovalAgeSeconds: 900 }).allowed, true);
+});
+
+test('policy gravity blocks and steps-up based on highest impact decision', () => {
+  assert.equal(evaluatePolicyGravity({ highestImpactDecision: 'block' }).reasonCode, 'policy-gravity-impact-requires-block');
+  assert.equal(evaluatePolicyGravity({ highestImpactDecision: 'step-up' }).reasonCode, 'policy-gravity-impact-requires-step-up');
+  assert.equal(evaluatePolicyGravity({ highestImpactDecision: 'allow' }).allowed, true);
 });

@@ -216,7 +216,51 @@ function validateAgenticMetadata(request) {
     for (const field of ['provenanceChanged', 'rewardScoreChanged', 'userObjectiveChanged', 'serviceListed', 'serviceConnected', 'collusionObserved', 'verifiedAgentId', 'signedEnvelopePresent', 'cascadePredicted']) if (frontierGapContext[field] !== undefined && typeof frontierGapContext[field] !== 'boolean') throw new Error(`invalid-frontier-gap-${field}`);
     for (const field of ['rogueAgentCount', 'dependentAgentCount', 'fanoutBudget', 'contextItems', 'contextBudget']) if (frontierGapContext[field] !== undefined && (!Number.isInteger(frontierGapContext[field]) || frontierGapContext[field] < 0)) throw new Error(`invalid-frontier-gap-${field}`);
   }
-  return { toolManifest, memoryContext, provenance, canaryContext, adaptiveContext, causalContext, trustDebtContext, delegationContext, causalBasisContext, revocationLineageContext, intentNormContext, resourceClassContext, recoveryClaimContext, skillDescriptorContext, memoryGraftContext, agentBoundaryContext, canaryEventContext, secondLockContext, frontierGapContext };
+  const controlFlowContext = optionalObject('controlFlowContext');
+  if (controlFlowContext) {
+    if (controlFlowContext.checkStatus !== undefined && (typeof controlFlowContext.checkStatus !== 'string' || controlFlowContext.checkStatus.length > 64)) throw new Error('invalid-control-flow-check-status');
+    if (controlFlowContext.defaultAction !== undefined && (typeof controlFlowContext.defaultAction !== 'string' || controlFlowContext.defaultAction.length > 64)) throw new Error('invalid-control-flow-default-action');
+    if (controlFlowContext.primaryStatus !== undefined && (typeof controlFlowContext.primaryStatus !== 'string' || controlFlowContext.primaryStatus.length > 64)) throw new Error('invalid-control-flow-primary-status');
+    for (const field of ['fallbackStrength', 'requiredStrength', 'denialCount']) if (controlFlowContext[field] !== undefined && (!Number.isFinite(controlFlowContext[field]) || controlFlowContext[field] < 0)) throw new Error(`invalid-control-flow-${field}`);
+    if (controlFlowContext.errorSourceTrust !== undefined && (typeof controlFlowContext.errorSourceTrust !== 'string' || controlFlowContext.errorSourceTrust.length > 64)) throw new Error('invalid-control-flow-error-source-trust');
+    if (controlFlowContext.errorContainsInstruction !== undefined && typeof controlFlowContext.errorContainsInstruction !== 'boolean') throw new Error('invalid-control-flow-error-contains-instruction');
+    if (controlFlowContext.recoveryImpact !== undefined && (typeof controlFlowContext.recoveryImpact !== 'string' || controlFlowContext.recoveryImpact.length > 64)) throw new Error('invalid-control-flow-recovery-impact');
+  }
+  const approvalFreshnessContext = optionalObject('approvalFreshnessContext');
+  if (approvalFreshnessContext) {
+    if (approvalFreshnessContext.approvalExpired !== undefined && typeof approvalFreshnessContext.approvalExpired !== 'boolean') throw new Error('invalid-approval-freshness-expired');
+  }
+  const outcomeIntegrityContext = optionalObject('outcomeIntegrityContext');
+  if (outcomeIntegrityContext) {
+    for (const field of ['claimedSuccess', 'receiptMatchesObservation']) if (outcomeIntegrityContext[field] !== undefined && typeof outcomeIntegrityContext[field] !== 'boolean') throw new Error(`invalid-outcome-integrity-${field}`);
+  }
+  const quarantineReentryContext = optionalObject('quarantineReentryContext');
+  if (quarantineReentryContext) {
+    if (quarantineReentryContext.quarantineState !== undefined && (typeof quarantineReentryContext.quarantineState !== 'string' || quarantineReentryContext.quarantineState.length > 64)) throw new Error('invalid-quarantine-reentry-state');
+  }
+  const scopeAccumulationContext = optionalObject('scopeAccumulationContext');
+  if (scopeAccumulationContext) {
+    for (const field of ['cumulativeRiskFlagged', 'scopeExpanded']) if (scopeAccumulationContext[field] !== undefined && typeof scopeAccumulationContext[field] !== 'boolean') throw new Error(`invalid-scope-accumulation-${field}`);
+  }
+  const workflowGraphContext = optionalObject('workflowGraphContext');
+  if (workflowGraphContext) {
+    for (const field of ['unexpectedEdgeCount', 'expectedEdgeCount', 'observedEdgeCount']) if (workflowGraphContext[field] !== undefined && (!Number.isInteger(workflowGraphContext[field]) || workflowGraphContext[field] < 0)) throw new Error(`invalid-workflow-graph-${field}`);
+  }
+  const consensusProvenanceContext = optionalObject('consensusProvenanceContext');
+  if (consensusProvenanceContext) {
+    for (const field of ['sharedRoot']) if (consensusProvenanceContext[field] !== undefined && typeof consensusProvenanceContext[field] !== 'boolean') throw new Error(`invalid-consensus-provenance-${field}`);
+    for (const field of ['apparentAgreement', 'independentEvidence', 'requiredIndependentEvidence']) if (consensusProvenanceContext[field] !== undefined && (!Number.isInteger(consensusProvenanceContext[field]) || consensusProvenanceContext[field] < 0)) throw new Error(`invalid-consensus-provenance-${field}`);
+  }
+  const approvalAgeContext = optionalObject('approvalAgeContext');
+  if (approvalAgeContext) {
+    for (const field of ['approvalAgeSeconds', 'maxApprovalAgeSeconds']) if (approvalAgeContext[field] !== undefined && (!Number.isFinite(approvalAgeContext[field]) || approvalAgeContext[field] < 0)) throw new Error(`invalid-approval-age-${field}`);
+  }
+  const policyGravityContext = optionalObject('policyGravityContext');
+  if (policyGravityContext) {
+    if (policyGravityContext.highestImpactDecision !== undefined && (typeof policyGravityContext.highestImpactDecision !== 'string' || policyGravityContext.highestImpactDecision.length > 64)) throw new Error('invalid-policy-gravity-highest-impact');
+    if (policyGravityContext.monotonicEvidence !== undefined && typeof policyGravityContext.monotonicEvidence !== 'boolean') throw new Error('invalid-policy-gravity-monotonic-evidence');
+  }
+  return { toolManifest, memoryContext, provenance, canaryContext, adaptiveContext, causalContext, trustDebtContext, delegationContext, causalBasisContext, revocationLineageContext, intentNormContext, resourceClassContext, recoveryClaimContext, skillDescriptorContext, memoryGraftContext, agentBoundaryContext, canaryEventContext, secondLockContext, frontierGapContext, controlFlowContext, approvalFreshnessContext, outcomeIntegrityContext, quarantineReentryContext, scopeAccumulationContext, workflowGraphContext, consensusProvenanceContext, approvalAgeContext, policyGravityContext };
 }
 function validateAuthorizationRequest(request) {
   if (!request || Array.isArray(request) || typeof request !== 'object') throw new Error('request-object-required');
