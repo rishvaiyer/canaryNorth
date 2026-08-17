@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#ffffff"><title>Boundary Lab | PenTel Lab</title><link rel="stylesheet" href="./control-room.css"><link rel="stylesheet" href="./monochrome.css"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#ffffff"><title>Boundary Lab | penTell Red-Team Lab</title><link rel="stylesheet" href="./control-room.css"><link rel="stylesheet" href="./monochrome.css"></head>
 <body class="boundary-page"><main>
-  <header class="topbar"><a class="brand" href="./dashboard.html">PENTEL <i>/</i> CANARYNORTH</a><span class="badge"><i class="status-light safe"></i> DRY-RUN ONLY</span></header>
+  <header class="topbar"><a class="brand" href="./dashboard.html">penTell <i>/</i> CANARYNORTH TESTS</a><span class="badge"><i class="status-light safe"></i> DRY-RUN ONLY</span></header>
   <nav class="lab-nav" aria-label="Lab sections"><a href="./dashboard.html">Mission Board</a><a href="./attack-console.html">Case Console</a><a class="active" aria-current="page" href="./safety-lab.html">Boundary Lab</a><a href="./coverage.html">Coverage</a><a href="./index.html">Walkthrough</a><a href="./documentation.html">Guide</a></nav>
   <section class="hero"><div><div class="eyebrow">Section 03 / OS Boundary Lab / sealed apparatus</div><h1>OS<br>Boundary</h1><p>Choose a synthetic process, file, permission, or network request. The lab records the decision in memory and never calls the operating system.</p><div class="hero-status"><span>OS calls disabled</span><span>Network disabled</span><span>Dry-run receipts</span></div></div><div class="mission-readiness" aria-label="Apparatus state"><span>Apparatus</span><strong><i></i>Sealed</strong><small>Six dry-run operations. Every UI-accessible operation stays blocked and non-executing.</small></div></section>
   <section class="boundary-metrics" id="boundary-metrics"></section>
@@ -15,6 +15,6 @@
     <section class="panel boundary-panel"><div class="panel-head"><span>Privacy cloak inspector</span><span class="pill control">REDACTION</span></div><p class="panel-copy">This protects the demo data, not your real network identity.</p><label class="toggle-row"><input id="redaction-toggle" type="checkbox" checked><span>redact fixture identity and raw content</span></label><div class="cloak-readout" id="cloak-readout"></div><div class="notice"><b>Honest limit:</b> this does not spoof an IP, create anonymity, or conceal an external request.</div></section>
   </section>
   <section class="panel boundary-panel ledger-panel"><div class="panel-head"><span>Redacted event ledger</span><span id="ledger-count">0 events</span></div><div class="ledger-output" id="ledger-output">[ready] no simulated OS action recorded</div><div class="result-label">generated defensive pseudocode</div><textarea class="generated-code" id="boundary-code" readonly></textarea></section>
-  <span class="folio">PENTEL / OS BOUNDARY LAB / 03</span>
+  <span class="folio">penTell / OS BOUNDARY LAB / 03</span>
   <div class="notice" style="margin-top:18px"><b>Hard boundary:</b> this page contains no child-process launcher, file API, socket API, shell command, browser automation, credential store, or external endpoint.</div>
 </main><script type="module" src="./safety-lab.mjs"></script></body></html>
