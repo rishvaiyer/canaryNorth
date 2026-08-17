@@ -2,6 +2,14 @@
 
 Status: evidence-ledger and MCP iteration complete. This log records what changed, what was verified, and what still needs a production gate.
 
+## 2026-08-17, allowlisted MCP upstream forwarding
+
+- **Goal:** Make the first upstream MCP forwarding boundary functional without turning the public demo into an unbounded external connector.
+- **Pseudocode:** `allowlist upstream origin -> MCP initialize -> policy allow -> upstream tools/call -> normalized result + receipt; policy deny -> no upstream request`
+- **Plain-English summary:** The server can now be configured with one `CONTEXTSEAL_MCP_UPSTREAM_URL`, but only when its exact origin appears in `CONTEXTSEAL_MCP_UPSTREAM_ALLOWED_ORIGINS`. An allowed call negotiates MCP `2025-06-18`, forwards `tools/call`, and returns `forwarded-to-upstream`. A denied prompt-injection request remains `quarantined` and never reaches the upstream server. Without both variables, the public demo stays synthetic.
+- **Verification:** Focused MCP and upstream integration tests pass 11/11. The integration test uses a local synthetic HTTP upstream and proves one allowed call reaches it while the denied call leaves the upstream call count unchanged. Full suite and live deployment verification remain the release gate.
+- **Remaining boundary:** Upstream discovery, stateful sessions, server notifications, streaming, stdio, MCP-specific human approval, and browser UI remain future work. No external server or credential is configured in the public deployment.
+
 ## 2026-08-17, first MCP policy-gateway slice
 
 - **Goal:** Make the MCP direction real enough to run locally and explain honestly in the public README.

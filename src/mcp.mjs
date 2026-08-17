@@ -2,13 +2,13 @@ export const MCP_PROTOCOL_VERSION = '2025-06-18';
 
 export const MCP_SERVER_INFO = Object.freeze({
   name: 'canarynorth-mcp-gateway',
-  version: '0.1.0'
+  version: '0.2.0'
 });
 
 export const MCP_TOOLS = Object.freeze([
   Object.freeze({
     name: 'weather.get_forecast',
-    description: 'Return a synthetic forecast after CanaryNorth policy checks. No external weather service is called.',
+    description: 'Return a forecast after CanaryNorth policy checks. The public demo is synthetic; configured deployments may forward only to a server-allowlisted MCP upstream.',
     inputSchema: Object.freeze({
       type: 'object',
       additionalProperties: false,
@@ -73,7 +73,7 @@ export function createMcpHandler({ callTool, tools = MCP_TOOLS, serverInfo = MCP
         protocolVersion,
         capabilities: { tools: { listChanged: false } },
         serverInfo,
-        instructions: 'All tool calls pass through CanaryNorth policy checks and produce a receipt. The weather tool is synthetic only.'
+        instructions: 'All tool calls pass through CanaryNorth policy checks and produce a receipt. The public demo uses a synthetic result; an explicitly configured deployment may forward only to an origin-allowlisted MCP upstream.'
       });
     }
 

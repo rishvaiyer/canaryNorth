@@ -46,11 +46,11 @@ flowchart LR
 
 ### What exists today
 
-The current repository is a Node.js policy proxy with a stateless HTTP MCP endpoint at `POST /mcp`. It implements JSON-RPC `initialize`, `ping`, `tools/list`, `tools/call`, and `notifications/initialized` for one synthetic `weather.get_forecast` tool. Every call passes through the existing capability, scope, content, nonce, and receipt logic. The original `POST /mcp/audit` route remains as a read-only audit surface.
+The current repository is a Node.js policy proxy with a stateless HTTP MCP endpoint at `POST /mcp`. It implements JSON-RPC `initialize`, `ping`, `tools/list`, `tools/call`, and `notifications/initialized` for one guarded `weather.get_forecast` tool. Every call passes through the existing capability, scope, content, nonce, and receipt logic. An explicitly configured deployment can forward an allowed call to one origin-allowlisted MCP upstream. The original `POST /mcp/audit` route remains as a read-only audit surface.
 
-This is a real, narrow MCP implementation, but it is not yet a full upstream MCP gateway. It does not discover or forward to arbitrary MCP servers, maintain stateful sessions, stream server notifications, or support the stdio transport.
+This is a real, narrow MCP implementation with its first forwarding boundary. It does not discover arbitrary MCP servers, maintain stateful sessions, stream server notifications, or support the stdio transport. The public deployment has no upstream configured and stays on the synthetic path.
 
-### The next step: an upstream MCP policy gateway
+### The next step: complete the upstream MCP policy gateway
 
 Extending this slice into an upstream MCP policy gateway is both possible and strategically coherent. MCP uses a client-host-server architecture with JSON-RPC, lifecycle negotiation, and tool capabilities. A real CanaryNorth gateway would sit between an MCP client and one or more MCP servers:
 
@@ -69,9 +69,10 @@ The implemented MCP slice is intentionally small:
 2. One synthetic tool exposed through `tools/list`.
 3. `tools/call` routed through the existing capability, scope, content, nonce, and receipt logic.
 4. Stateless HTTP JSON-RPC with the MCP protocol-version header, authentication, and Origin validation.
-5. A visible distinction between `allow`, `deny`, `approval-required`, and `would-forward-to-tool`.
+5. A server-configured, origin-allowlisted upstream forwarding adapter for approved calls.
+6. A visible distinction between `allow`, `deny`, `quarantined`, `upstream-error`, and `forwarded-to-upstream`.
 
-The next gateway increment is upstream MCP forwarding, with a separate upstream server allowlist, session handling, transport coverage, and tests that prove denied calls never cross the forwarding boundary. The adapter remains intentionally separate from the policy core.
+The next gateway increment is upstream discovery and stateful session handling, with approval-aware forwarding, transport coverage, and replay-safe session tests. The adapter remains intentionally separate from the policy core.
 
 ### Where a browser extension fits
 
@@ -88,10 +89,10 @@ The extension would not replace the server-side gateway. Browser code cannot pro
 | Layer | Role | Status |
 | --- | --- | --- |
 | CanaryNorth policy core | Scope, approval, content signals, receipts, and storage | Implemented reference layer |
-| Upstream MCP gateway | Protect real MCP `tools/list` and `tools/call` flows | Recommended next build |
+| Upstream MCP gateway | Protect allowlisted MCP `tools/call` flows | First forwarding slice implemented |
 | Browser companion | Human approvals, browser context, and receipt visibility | Optional follow-on |
 
-The public README uses this roadmap language so the project can be ambitious without claiming that the MCP server or browser extension already exists.
+The public README keeps the boundary explicit: the forwarding adapter exists, but arbitrary MCP discovery, stateful sessions, and the browser extension do not.
 
 ## A quick UI tour
 
@@ -246,7 +247,17 @@ curl -s "$MCP_ORIGIN/mcp" \
   --data '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"weather.get_forecast","arguments":{"capabilityId":"cap_weather_read_7f3d","resource":"weather://nyc","input":"Synthetic request: forecast for NYC","nonce":"nonce_readme_mcp_001"}}}' | jq
 ```
 
-The final response contains `execution: "would-forward-to-tool"` and a receipt. It returns a synthetic forecast and calls no external service. Replace the input with a prompt-injection phrase and MCP returns a tool error with `execution: "quarantined"`, a reason code, and a deny receipt.
+The final response contains `execution: "would-forward-to-tool"` and a receipt when no upstream is configured. It returns a synthetic forecast and calls no external service. In an explicitly configured deployment, an allowed call instead returns `execution: "forwarded-to-upstream"` after MCP initialize and a call to the allowlisted upstream. Replace the input with a prompt-injection phrase and MCP returns a tool error with `execution: "quarantined"`, a reason code, and a deny receipt. The upstream call count remains zero for that denied request.
+
+To opt into the forwarding adapter locally, configure one upstream endpoint and its exact origin. The server refuses to start if the endpoint origin is not allowlisted:
+
+```bash
+CONTEXTSEAL_MCP_UPSTREAM_URL=http://127.0.0.1:9000/mcp
+CONTEXTSEAL_MCP_UPSTREAM_ALLOWED_ORIGINS=http://127.0.0.1:9000
+npm start
+```
+
+The upstream server must speak the same MCP protocol version, `2025-06-18`. This configuration is opt-in. The public demo does not set it.
 
 ### API surface
 
@@ -280,7 +291,7 @@ RECEIPT_SIGNING_KEY=<at least 32 characters, or use CONTEXTSEAL_SIGNING_KEY for 
 DATABASE_URL=<PostgreSQL URL>
 ```
 
-Outside demo mode, configure either `DATABASE_URL` for PostgreSQL or `RECEIPT_LEDGER_PATH` for an append-only JSONL ledger. Mount JSONL storage on durable, access-controlled storage. Do not put signing keys, auth tokens, or evidence-wrapping keys in browser code or committed files. MCP requests reject unexpected browser origins; set `CONTEXTSEAL_MCP_ALLOWED_ORIGINS` to a comma-separated allowlist when a trusted browser client uses a different origin.
+Outside demo mode, configure either `DATABASE_URL` for PostgreSQL or `RECEIPT_LEDGER_PATH` for an append-only JSONL ledger. Mount JSONL storage on durable, access-controlled storage. Do not put signing keys, auth tokens, or evidence-wrapping keys in browser code or committed files. MCP requests reject unexpected browser origins; set `CONTEXTSEAL_MCP_ALLOWED_ORIGINS` to a comma-separated allowlist when a trusted browser client uses a different origin. Upstream forwarding is disabled unless both `CONTEXTSEAL_MCP_UPSTREAM_URL` and `CONTEXTSEAL_MCP_UPSTREAM_ALLOWED_ORIGINS` are configured, and the URL origin must match the allowlist exactly.
 
 ## Verify a signed receipt
 
@@ -303,12 +314,12 @@ Exit code `0` means the receipt verifies against the published public key. A cha
 
 At the current checkout:
 
-- `npm test`: **171 passing automated tests**.
+- `npm test`: **174 passing automated tests**.
 - `npm run lint`: syntax checks pass for the server and core browser modules.
 - The active private fixture map contains **115 connected CanaryNorth evaluator checks** across 114 scenario IDs.
 - Four lower-priority `dormant-rehearsal-variants` are excluded from the active count.
 
-The 115 number is a count of tested evaluator pairings, not 115 universal defenses. The 171 number is the automated test-suite count, not a claim that 171 independent security controls exist. The detailed defense boundary is documented in [`DEFENSE_EVALUATORS_FOR_HUMANS.md`](./DEFENSE_EVALUATORS_FOR_HUMANS.md).
+The 115 number is a count of tested evaluator pairings, not 115 universal defenses. The 174 number is the automated test-suite count, not a claim that 174 independent security controls exist. The detailed defense boundary is documented in [`DEFENSE_EVALUATORS_FOR_HUMANS.md`](./DEFENSE_EVALUATORS_FOR_HUMANS.md).
 
 ## Production posture
 
@@ -337,6 +348,7 @@ The public demo does not claim universal AI protection, live target detection, p
 | [`src/evidence.mjs`](./src/evidence.mjs) | Redacted evidence events and encrypted package format |
 | [`src/artifacts.mjs`](./src/artifacts.mjs) | Artifact-to-receipt binding and verification |
 | [`src/mcp.mjs`](./src/mcp.mjs) | MCP JSON-RPC lifecycle, tool catalog, and guarded tool-call adapter |
+| [`src/mcp-upstream.mjs`](./src/mcp-upstream.mjs) | Origin-allowlisted MCP upstream initialization and `tools/call` forwarding |
 | [`public/index.html`](./public/index.html) | Guided request-to-receipt UI |
 | [`public/learn.html`](./public/learn.html) | Plain-language walkthrough |
 | [`public/threat-lab.html`](./public/threat-lab.html) | Controlled synthetic rehearsal UI |

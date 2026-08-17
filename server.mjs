@@ -10,6 +10,7 @@ import { createApprovalStore } from './src/approvals.mjs';
 import { createEvidenceEvent, createEvidencePackage } from './src/evidence.mjs';
 import { createSigner, ed25519Enabled } from './src/signing.mjs';
 import { createMcpHandler, MCP_PROTOCOL_VERSION } from './src/mcp.mjs';
+import { createMcpUpstreamForwarder, parseMcpUpstreamAllowedOrigins } from './src/mcp-upstream.mjs';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.join(root, 'public');
@@ -51,6 +52,10 @@ const ledgerPath = process.env.RECEIPT_LEDGER_PATH || null;
 if (isProduction && !demoMode && !databaseUrl && !ledgerPath) throw new Error('DATABASE_URL or RECEIPT_LEDGER_PATH is required outside synthetic demo mode');
 const receiptStore = await createReceiptStore({ databaseUrl, ledgerPath });
 await receiptStore.initialize();
+const mcpUpstream = createMcpUpstreamForwarder({
+  url: process.env.CONTEXTSEAL_MCP_UPSTREAM_URL || null,
+  allowedOrigins: parseMcpUpstreamAllowedOrigins(process.env.CONTEXTSEAL_MCP_UPSTREAM_ALLOWED_ORIGINS)
+});
 const approvalTtlMs = Number(process.env.CONTEXTSEAL_APPROVAL_TTL_MS || 5 * 60 * 1000);
 const approvalStore = createApprovalStore({ ttlMs: approvalTtlMs });
 const requestWindows = new Map();
@@ -643,11 +648,30 @@ async function mcpCallTool({ name, arguments: args, context = {} }) {
   if (scope.tenantId && (request.tenantId !== scope.tenantId || request.workspaceId !== scope.workspaceId)) throw mcpToolError('mcp-scope-binding-required', 'MCP request scope does not match the authenticated workspace.');
   let result = authorize(request);
   if (result.allowed && request.nonce && !(await receiptStore.claimNonce({ principal: result.capability.principal, nonce: request.nonce, expiresAt: result.capability.expiresAt }))) result = authorize({ ...request, replayDetected: true });
-  const entry = await receiptStore.appendEntry(({ sequence, previousReceipt }) => ({ receipt: makeReceipt(result, request, { sequence, previousReceipt }), execution: result.allowed ? 'would-forward-to-tool' : 'quarantined' }));
+  const execution = result.allowed ? (mcpUpstream.configured ? 'forwarded-to-upstream' : 'would-forward-to-tool') : 'quarantined';
+  const entry = await receiptStore.appendEntry(({ sequence, previousReceipt }) => ({ receipt: makeReceipt(result, request, { sequence, previousReceipt }), execution }));
   const receipt = receiptForResponse(entry.receipt);
   if (!result.allowed) {
     const blocked = { allowed: false, execution: 'quarantined', code: result.code, reason: result.reason, receipt };
     return { isError: true, structuredContent: blocked, content: [{ type: 'text', text: JSON.stringify(blocked) }] };
+  }
+  if (mcpUpstream.configured) {
+    try {
+      const upstreamResult = await mcpUpstream.forward({ name, arguments: args });
+      const forwarded = {
+        allowed: true,
+        execution: 'forwarded-to-upstream',
+        tool: name,
+        resource: request.resource,
+        upstream: upstreamResult.upstream,
+        upstreamResult: upstreamResult.structuredContent || null,
+        receipt
+      };
+      return { isError: upstreamResult.isError === true, structuredContent: forwarded, content: [{ type: 'text', text: JSON.stringify(forwarded) }] };
+    } catch (error) {
+      const failed = { allowed: true, execution: 'upstream-error', code: error.code || 'mcp-upstream-failed', reason: error.message, upstream: { origin: mcpUpstream.origin }, receipt };
+      return { isError: true, structuredContent: failed, content: [{ type: 'text', text: JSON.stringify(failed) }] };
+    }
   }
   const allowed = {
     allowed: true,
@@ -670,7 +694,7 @@ function staticFile(res, pathname) {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   try {
-    if (req.method === 'GET' && url.pathname === '/health') return json(res, 200, { ok: true, service: 'context-seal', mode: demoMode ? 'synthetic-demo' : (isProduction ? 'production' : 'local-demo'), storage: receiptStore.mode, evidence: { ledger: 'synthetic-demo', encryptedExport: Boolean(evidenceWrappingKey) }, ...(signer.legacy ? {} : { signing: { algorithm: signer.algorithm, keyId: signer.keyId, ephemeralKey: signer.ephemeral } }) });
+    if (req.method === 'GET' && url.pathname === '/health') return json(res, 200, { ok: true, service: 'context-seal', mode: demoMode ? 'synthetic-demo' : (isProduction ? 'production' : 'local-demo'), storage: receiptStore.mode, mcp: { upstream: { mode: mcpUpstream.mode, origin: mcpUpstream.origin } }, evidence: { ledger: 'synthetic-demo', encryptedExport: Boolean(evidenceWrappingKey) }, ...(signer.legacy ? {} : { signing: { algorithm: signer.algorithm, keyId: signer.keyId, ephemeralKey: signer.ephemeral } }) });
     // The signing key is public by design and deliberately sits above the auth
     // gate: a receipt is only independently verifiable if the verifier can fetch
     // the key without credentials.
