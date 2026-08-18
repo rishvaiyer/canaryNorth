@@ -44,7 +44,7 @@ Outside demo mode, configure either `DATABASE_URL` for PostgreSQL or `RECEIPT_LE
 
 ### Railway with PostgreSQL
 
-The intended small-business deployment shape is one CanaryNorth service plus one Railway PostgreSQL service:
+A minimal deployment shape is one CanaryNorth service plus one Railway PostgreSQL service:
 
 ```bash
 railway add --database postgres --json
@@ -52,7 +52,7 @@ railway variable set CONTEXTSEAL_DEMO_MODE=1 --service context-seal
 railway up
 ```
 
-Connect the database service's `DATABASE_URL` to the app service using Railway's variable reference UI or CLI. Keep demo mode enabled only for synthetic demonstrations. For real small-business workloads, disable demo mode, configure identity-bound authentication, and use a separate environment for testing.
+Connect the database service's `DATABASE_URL` to the app service using Railway's variable reference UI or CLI. Keep demo mode enabled only for synthetic demonstrations. For a real deployment, disable demo mode, configure identity-bound authentication, and use a separate environment for testing.
 
 The hosted synthetic demo is [context-seal-production.up.railway.app](https://context-seal-production.up.railway.app/). It contains no external tool connection, real capability store, identity provider, or user data. A real deployment must disable demo mode, add identity-bound authorization, configure durable ledger storage, and complete an independent security review before exposing receipt APIs.
 
@@ -73,7 +73,7 @@ The current metadata-policy work is explained in [`DEFENSE_EVALUATORS_FOR_HUMANS
 
 ## Limits
 
-This is a focused reference implementation. Capabilities, approvals, and evidence events are fixture-backed, the public deployment remains synthetic, and the DLP/injection detectors are intentionally small deterministic signals, not a general classifier. They are defense in depth, not the boundary: the capability allowlist, expiry, nonce, and scope checks are what actually enforce, and they do not depend on the wording of an input. The active private pairing map has 115 passing fixture-to-CanaryNorth evaluator checks; the four `dormant-rehearsal-variants` remain disabled by default and lower priority. That pairing result is not a claim of universal protection, live target detection, scanner coverage, malware or steganography detection, or production safety. The evidence module is an encrypted package format, not a malware scanner, steganography detector, or production retention service. The ML risk layer is a roadmap, not a trained security model. The PostgreSQL path is a durable persistence foundation, not a complete enterprise security platform. A small-business release still needs a real identity provider, durable approval and evidence persistence, tenant administration, policy management, secret-manager integration, structured logging, monitoring, backup/restore procedures, key rotation, independent security review, and a broader content-security test corpus.
+This is a focused reference implementation. Capabilities, approvals, and evidence events are fixture-backed, the public deployment remains synthetic, and the DLP/injection detectors are intentionally small deterministic signals, not a general classifier. They are defense in depth, not the boundary: the capability allowlist, expiry, nonce, and scope checks are what actually enforce, and they do not depend on the wording of an input. The active private pairing map has 115 passing fixture-to-CanaryNorth evaluator checks; the four `dormant-rehearsal-variants` remain disabled by default and lower priority. That pairing result is not a claim of universal protection, live target detection, scanner coverage, malware or steganography detection, or production safety. The evidence module is an encrypted package format, not a malware scanner, steganography detector, or production retention service. The ML risk layer is a roadmap, not a trained security model. The PostgreSQL path is a durable persistence foundation, not a finished security platform. A production release still needs a real identity provider, durable approval and evidence persistence, tenant administration, policy management, secret-manager integration, structured logging, monitoring, backup/restore procedures, key rotation, independent security review, and a broader content-security test corpus.
 
 
 
