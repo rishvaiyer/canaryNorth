@@ -3,7 +3,7 @@ const LINES = [
   { id: "guide-2", text: "We sell pens.", x: 100, y: 446, size: 58, width: 56, pool: "pool-2" },
 ];
 
-const BOOT_MESSAGE = "welcome to penTell labs....";
+const BOOT_MESSAGE = "welcome to penTell Supply Co.";
 
 const FONT_STACK = '"Pinyon Script", "Allura", "Snell Roundhand", "Apple Chancery", cursive';
 const ASC = /[PTltbdfhkWS]/;
