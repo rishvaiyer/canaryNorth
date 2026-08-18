@@ -156,8 +156,7 @@ These are deterministic signals that add defense in depth. They are not a genera
 
 - Every authorization path appends an allow or deny receipt.
 - Receipts carry the decision, reason code, policy version, scope, capability reference, artifact hash when applicable, and a link to the previous receipt.
-- HMAC-SHA256 remains the default signing behavior for compatibility.
-- Optional Ed25519 signing publishes a public key at `GET /api/signing-key` so an independent verifier can check receipts without signing material.
+- Ed25519 is the default signing scheme: the service holds the private key, publishes the public key at `GET /api/signing-key`, and an independent verifier can check any receipt with the public key alone, no signing material. HMAC-SHA256 remains only to verify receipts issued before this default, and can be forced back on with `CONTEXTSEAL_ED25519=0`.
 - Higher-risk synthetic approval requests expire, can be approved or denied, and are rechecked before the final receipt is written.
 - Evidence events use redacted summaries, hashes, retention metadata, and explicit `not-run` labels where a scanner is not connected.
 - Evidence packages support local AES-256-GCM envelope encryption when an operator-managed wrapping key is configured.
@@ -287,7 +286,8 @@ Use [`.env.example`](./.env.example) as the starting point. The important produc
 NODE_ENV=production
 CONTEXTSEAL_DEMO_MODE=0
 CONTEXTSEAL_AUTH_TOKEN=<at least 32 characters>
-RECEIPT_SIGNING_KEY=<at least 32 characters, or use CONTEXTSEAL_SIGNING_KEY for Ed25519>
+CONTEXTSEAL_SIGNING_KEY=<Ed25519 private key: PEM, or a 32-byte seed as hex/base64 - required outside demo mode>
+RECEIPT_SIGNING_KEY=<at least 32 characters, legacy HMAC secret, still required to verify pre-Ed25519 receipts>
 DATABASE_URL=<PostgreSQL URL>
 ```
 
@@ -295,10 +295,10 @@ Outside demo mode, configure either `DATABASE_URL` for PostgreSQL or `RECEIPT_LE
 
 ## Verify a signed receipt
 
-Ed25519 is built in but off by default to preserve the existing HMAC behavior. Enable it for a local run:
+Ed25519 signing is on by default. A local demo run needs no signing config (it uses an ephemeral key and reports that on `/health`); outside demo mode a stable `CONTEXTSEAL_SIGNING_KEY` is required or the server refuses to boot rather than mint a key that stops verifying after a restart. To fall back to legacy HMAC:
 
 ```bash
-CONTEXTSEAL_ED25519=1 npm start
+CONTEXTSEAL_ED25519=0 npm start
 ```
 
 Then fetch a receipt and verify it with the repository script:
@@ -342,7 +342,7 @@ The public demo does not claim universal AI protection, live target detection, p
 | [`server.mjs`](./server.mjs) | HTTP server, route validation, authorization path, approvals, artifact and audit endpoints |
 | [`src/policy.mjs`](./src/policy.mjs) | Capability lookup, structural policy, content signals, and receipt hashing |
 | [`src/agentic-defense.mjs`](./src/agentic-defense.mjs) | Metadata-only evaluator functions used by the extended policy path |
-| [`src/signing.mjs`](./src/signing.mjs) | HMAC compatibility signer and optional Ed25519 signer |
+| [`src/signing.mjs`](./src/signing.mjs) | Default Ed25519 signer with legacy HMAC verification for older receipts |
 | [`src/storage.mjs`](./src/storage.mjs) | Memory, JSONL, and PostgreSQL receipt stores |
 | [`src/approvals.mjs`](./src/approvals.mjs) | Short-lived synthetic approval state |
 | [`src/evidence.mjs`](./src/evidence.mjs) | Redacted evidence events and encrypted package format |
