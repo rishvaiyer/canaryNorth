@@ -18,33 +18,36 @@ import crypto from 'node:crypto';
 // verify. Nothing signs with HMAC anymore.
 
 // ---------------------------------------------------------------------------
-// TOGGLE: Ed25519 signing is OFF by default.
+// TOGGLE: Ed25519 signing is ON by default.
 //
-// While it is off, CanaryNorth behaves exactly as it did before this module
-// existed: receipts and manifests are signed with HMAC-SHA256 using
-// RECEIPT_SIGNING_KEY, they carry no signatureAlgorithm or keyId field,
-// /api/signing-key is not served, and /health reports no signing block. The
-// deployed demo and open PR are unaffected until this is switched on.
+// Receipts and manifests are signed with Ed25519: the service holds the private
+// key and signs, the public key is published at /api/signing-key, and anyone can
+// verify a receipt offline with the public key alone. Receipts carry
+// signatureAlgorithm and keyId, and /health reports the signing block. This is
+// the property that makes the ledger worth having: a stranger can check the
+// evidence without being handed anything that would let them forge it.
 //
-// Turn it ON, either way:
+// PRODUCTION REQUIRES A STABLE KEY. With Ed25519 on, set CONTEXTSEAL_SIGNING_KEY
+// (PEM, or a 32-byte seed as hex/base64) to a stable value. server.mjs refuses
+// to boot in production without one rather than silently generating an ephemeral
+// key that would stop verifying after the next restart. In demo/dev an ephemeral
+// key is allowed, and /health and /api/signing-key both report that condition.
 //
-//   1. One run only, no file edits:
-//        CONTEXTSEAL_ED25519=1 npm start
-//
-//   2. Always on: change the line below from `false` to `true`.
-//        const ED25519_ENABLED_BY_DEFAULT = true;
-//
-// Turn it OFF again: drop the variable, or set the line back to `false`.
-//
-// Before switching it on in production, set CONTEXTSEAL_SIGNING_KEY to a stable
-// key. Without one, an ephemeral key is generated per process and receipts stop
-// verifying after a restart. /health and /api/signing-key both report that.
+// Turn it OFF again (fall back to legacy HMAC): set CONTEXTSEAL_ED25519=0, or set
+// the line below back to `false`. HMAC is symmetric, so anyone who can verify a
+// receipt can also forge one and no outside reviewer can verify without the
+// secret. It is retained only for receipts issued before this default flipped.
 // ---------------------------------------------------------------------------
 
-const ED25519_ENABLED_BY_DEFAULT = false;
+const ED25519_ENABLED_BY_DEFAULT = true;
 
 export function ed25519Enabled(env = process.env) {
-  return ED25519_ENABLED_BY_DEFAULT || env.CONTEXTSEAL_ED25519 === '1';
+  // An explicit CONTEXTSEAL_ED25519 value always wins over the compiled default,
+  // so the signing scheme can be forced on or off per deployment without an edit.
+  const flag = env.CONTEXTSEAL_ED25519;
+  if (flag === '1' || flag === 'true') return true;
+  if (flag === '0' || flag === 'false') return false;
+  return ED25519_ENABLED_BY_DEFAULT;
 }
 
 export const SIGNATURE_ALGORITHM = 'ed25519';

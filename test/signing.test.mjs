@@ -110,10 +110,13 @@ test('signature truncation is gated on the Ed25519 toggle, never unconditional',
     'a signature is truncated outside receiptForResponse');
 });
 
-test('Ed25519 is off by default, so the shipped behavior is unchanged', () => {
-  assert.equal(ed25519Enabled({}), false);
+test('Ed25519 is on by default, and an explicit env value overrides it either way', () => {
+  assert.equal(ed25519Enabled({}), true);
   assert.equal(ed25519Enabled({ CONTEXTSEAL_ED25519: '1' }), true);
-  const signer = createSigner({ legacySecret: 'context-seal-dev-signing-key' });
+  assert.equal(ed25519Enabled({ CONTEXTSEAL_ED25519: '0' }), false);
+  assert.equal(ed25519Enabled({ CONTEXTSEAL_ED25519: 'false' }), false);
+  // The legacy HMAC signer is still reachable by disabling the toggle explicitly.
+  const signer = createSigner({ enabled: false, legacySecret: 'context-seal-dev-signing-key' });
   assert.equal(signer.legacy, true);
   assert.equal(signer.algorithm, 'hmac-sha256');
   assert.equal(signer.keyId, null);
@@ -124,7 +127,7 @@ test('with the toggle off, signatures are byte-identical to the pre-Ed25519 impl
   const receiptPayload = { id: 'rcpt_0001', decision: 'allow', receiptHash: 'a'.repeat(64) };
   // This is verbatim the old signReceipt() body.
   const original = crypto.createHmac('sha256', secret).update(JSON.stringify(receiptPayload)).digest('hex');
-  assert.equal(createSigner({ legacySecret: secret }).sign(receiptPayload), original);
+  assert.equal(createSigner({ enabled: false, legacySecret: secret }).sign(receiptPayload), original);
   assert.equal(createLegacySigner(secret).sign(receiptPayload), original);
 });
 
