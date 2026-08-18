@@ -2,7 +2,7 @@
 
 Status: design direction, not a shipped ML detector.
 
-## Product thesis
+## Design thesis
 
 CanaryNorth should learn whether an AI workflow is behaving unusually, while deterministic policy remains the final security gate. The ML layer recommends observe, review, or quarantine. It must not silently authorize a request that policy denied.
 
@@ -30,7 +30,7 @@ CanaryNorth should learn whether an AI workflow is behaving unusually, while det
 - Detector categories such as prompt-injection signal, DLP signal, malware result, or steganography signal.
 - Agent, workflow, tenant, and policy-version changes.
 
-## Distinctive product features
+## Distinctive features
 
 ### Behavior fingerprint
 

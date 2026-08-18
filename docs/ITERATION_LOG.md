@@ -77,7 +77,7 @@ Status: evidence-ledger iteration complete. This log records what changed, what 
 - **Goal:** Find a defensible future wedge instead of overclaiming a universal AI firewall.
 - **Pseudocode:** `redacted behavior features -> per-workflow baseline -> shadow score -> human label -> replay evaluation -> review recommendation`
 - **Plain-English summary:** Current research points to agent identity, authorization, memory poisoning, prompt injection, and continuous monitoring as high-value control areas. The strongest product wedge is a workflow-bound action firewall with human-readable evidence. The ML layer should learn unusual action chains and drift, while deterministic policy stays in control.
-- **Sources:** See `docs/RESEARCH_AI_SECURITY_2026.md`, `docs/RESEARCH_FILE_THREATS_2026.md`, and `docs/PRODUCT_OPPORTUNITIES_2026.md`.
+- **Sources:** See `docs/RESEARCH_AI_SECURITY_2026.md`, `docs/RESEARCH_FILE_THREATS_2026.md`.
 - **Remaining boundary:** No trained model is shipped. The next gate is a redacted feature schema, seeded threat corpus, shadow-mode baseline, calibration report, and rollback plan.
 
 ## 10. Project Pentesting and PenTel private rehearsal
