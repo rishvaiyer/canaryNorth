@@ -56,7 +56,7 @@ Connect the database service's `DATABASE_URL` to the app service using Railway's
 
 The hosted synthetic demo is [context-seal-production.up.railway.app](https://context-seal-production.up.railway.app/). It contains no external tool connection, real capability store, identity provider, or user data. A real deployment must disable demo mode, add identity-bound authorization, configure durable ledger storage, and complete an independent security review before exposing receipt APIs.
 
-The current metadata-policy work is explained in [`DEFENSE_EVALUATORS_FOR_HUMANS.md`](./DEFENSE_EVALUATORS_FOR_HUMANS.md) at a high level. The active private fixture catalog now has 115 connected CanaryNorth evaluator pairings, each covered by a passing direct or authorization-path test. The separate `dormant-rehearsal-variants` family has four lower-priority, opt-in variants and remains excluded from the active count. These are deterministic metadata authorization controls, not malware scanners or trained ML.
+The current metadata-policy work uses deterministic evaluators over request metadata. The active private fixture catalog now has 115 connected CanaryNorth evaluator pairings, each covered by a passing direct or authorization-path test. The separate `dormant-rehearsal-variants` family has four lower-priority, opt-in variants and remains excluded from the active count. These are deterministic metadata authorization controls, not malware scanners or trained ML.
 
 ## API
 
