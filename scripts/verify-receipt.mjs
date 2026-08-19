@@ -15,6 +15,7 @@
 
 import fs from 'node:fs';
 import { canonicalize, verifySignature } from '../src/signing.mjs';
+import { verifyReleaseEvidence } from '../src/release-evidence.mjs';
 
 const args = process.argv.slice(2);
 const file = args.find((a) => !a.startsWith('--'));
@@ -51,6 +52,17 @@ if (keyPath) {
 } else {
   console.error('supply --url <origin> to fetch the published key, or --key <public-key.pem>');
   process.exit(2);
+}
+
+if (subject.schema === 'contextseal.release-evidence.v1') {
+  const verification = verifyReleaseEvidence(subject, publicKey);
+  console.log(`subject      ${subject.candidateRelease || '(unnamed release)'}`);
+  console.log(`algorithm    ${subject.signing?.algorithm || '(absent)'}`);
+  console.log(`key id       ${subject.signing?.keyId || '(absent)'}`);
+  console.log(`release gate ${subject.gate?.passed ? 'PASS' : 'BLOCK'}`);
+  console.log(`signature    ${verification.checks?.signature ? 'VERIFIED' : 'FAILED'}`);
+  console.log(`evidence     ${verification.valid ? 'VERIFIED' : 'FAILED'}`);
+  process.exit(verification.valid ? 0 : 1);
 }
 
 const { signature, signatureAlgorithm, keyId, ...payload } = subject;
