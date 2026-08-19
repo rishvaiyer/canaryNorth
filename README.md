@@ -18,6 +18,7 @@ Compatibility note: repository paths, package names, API routes, schemas, databa
 - **Workspace boundaries:** production requests can bind to a tenant and workspace, with explicit principal, audience, nonce, and policy-version checks.
 - **Durable storage:** memory, append-only JSONL, and PostgreSQL receipt stores use the same storage interface.
 - **Human approval:** the synthetic `tickets.update` flow creates a short-lived approval, supports approve or deny, re-checks policy and nonce state, and records the decision in a signed receipt.
+- **Verified release gate:** a fixed synthetic replay suite compares reviewed and candidate policy outcomes, records version changes, blocks regressions in CI, and emits Ed25519-verifiable release evidence.
 - **Safe evidence ledger:** synthetic prompt-injection, DLP, replay, approval, malware-scan, and steganography-signal events use a versioned, redaction-aware schema. Malware and steganography rows are explicitly labeled as not-run or example-only.
 - **Local evidence encryption:** the evidence package format uses envelope encryption with AES-256-GCM, a random data key, a wrapped customer key, retention metadata, tamper checks, and a separate integrity signature. Decryption is designed to happen locally with an operator-managed key.
 - **ML direction:** the planned risk layer learns redacted workflow behavior in shadow mode and recommends review or quarantine. It cannot override deterministic deny rules and is not shipped as a trained detector yet.
@@ -31,6 +32,7 @@ For a plain-language walkthrough, use the **Explain like I'm five** link in the 
 
 ```bash
 npm test
+npm run release:verify
 npm run lint
 npm start
 open http://localhost:4178
@@ -70,6 +72,8 @@ The current metadata-policy work uses deterministic evaluators over request meta
 - `POST /mcp/audit` - read-only JSON-RPC audit (`{ "method": "contextseal.audit", "id": 1 }`).
 - `POST /api/artifacts/export` - bind an allowed receipt to a synthetic artifact and return the artifact plus signed receipt sidecar.
 - `POST /api/artifacts/verify` - verify the artifact hash, manifest hash, and server signature.
+
+The [verified release walkthrough](docs/VERIFIED_RELEASE_WALKTHROUGH.md) explains the deterministic replay suite, PostgreSQL integration check, signed evidence output, and its limits.
 
 ## Limits
 
