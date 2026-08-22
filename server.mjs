@@ -9,17 +9,11 @@ import { createReceiptStore } from './src/storage.mjs';
 import { createApprovalStore } from './src/approvals.mjs';
 import { createEvidenceEvent, createEvidencePackage } from './src/evidence.mjs';
 import { createSigner, ed25519Enabled } from './src/signing.mjs';
+import { config } from './config.mjs';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.join(root, 'public');
-const port = Number(process.env.PORT || 4178);
-const isProduction = process.env.NODE_ENV === 'production';
-const host = process.env.HOST || (isProduction ? '0.0.0.0' : '127.0.0.1');
-const demoMode = process.env.CONTEXTSEAL_DEMO_MODE === '1' || !isProduction;
-const requireAuth = !demoMode && (isProduction || process.env.CONTEXTSEAL_REQUIRE_AUTH === '1');
-const signingSecret = process.env.RECEIPT_SIGNING_KEY || (isProduction ? null : 'context-seal-dev-signing-key');
-const authToken = process.env.CONTEXTSEAL_AUTH_TOKEN || null;
-const penGatePassword = process.env.PENTEL_LAB_PASSWORD || null;
+const { port, isProduction, host, demoMode, requireAuth, signingSecret, authToken, penGatePassword } = config;
 const penGateSessions = new Map();
 const PEN_GATE_COOKIE = 'pentel_session';
 const PEN_GATE_SESSION_TTL_MS = 12 * 60 * 60 * 1000;
@@ -32,29 +26,20 @@ const PEN_GATE_SESSION_TTL_MS = 12 * 60 * 60 * 1000;
 // exactly as it did before Ed25519 existed.
 const signer = createSigner({
   enabled: ed25519Enabled(),
-  privateKey: process.env.CONTEXTSEAL_SIGNING_KEY,
+  privateKey: config.ed25519PrivateKey,
   allowEphemeral: !isProduction || demoMode,
   legacySecret: signingSecret
 });
-function parseEvidenceWrappingKey(value) {
-  if (!value) return null;
-  const key = /^[0-9a-f]{64}$/i.test(value) ? Buffer.from(value, 'hex') : Buffer.from(value, 'base64');
-  if (key.length !== 32) throw new Error('CONTEXTSEAL_EVIDENCE_WRAPPING_KEY must decode to exactly 32 bytes');
-  return key;
-}
-const evidenceWrappingKey = parseEvidenceWrappingKey(process.env.CONTEXTSEAL_EVIDENCE_WRAPPING_KEY);
+const evidenceWrappingKey = config.evidenceWrappingKey;
 if (isProduction && !demoMode && (!signingSecret || signingSecret.length < 32)) throw new Error('RECEIPT_SIGNING_KEY must be at least 32 characters in production');
 if (requireAuth && (!authToken || authToken.length < 32)) throw new Error('CONTEXTSEAL_AUTH_TOKEN must be at least 32 characters when authentication is enabled');
-const databaseUrl = process.env.DATABASE_URL || null;
-const ledgerPath = process.env.RECEIPT_LEDGER_PATH || null;
-if (isProduction && !demoMode && !databaseUrl && !ledgerPath) throw new Error('DATABASE_URL or RECEIPT_LEDGER_PATH is required outside synthetic demo mode');
-const receiptStore = await createReceiptStore({ databaseUrl, ledgerPath });
+if (isProduction && !demoMode && !config.databaseUrl && !config.ledgerPath) throw new Error('DATABASE_URL or RECEIPT_LEDGER_PATH is required outside synthetic demo mode');
+const receiptStore = await createReceiptStore({ databaseUrl: config.databaseUrl, ledgerPath: config.ledgerPath });
 await receiptStore.initialize();
-const approvalTtlMs = Number(process.env.CONTEXTSEAL_APPROVAL_TTL_MS || 5 * 60 * 1000);
+const approvalTtlMs = config.approvalTtlMs;
 const approvalStore = createApprovalStore({ ttlMs: approvalTtlMs });
 const requestWindows = new Map();
-const configuredRateLimit = Number(process.env.CONTEXTSEAL_MAX_REQUESTS_PER_MINUTE || 60);
-const MAX_REQUESTS_PER_MINUTE = Number.isFinite(configuredRateLimit) && configuredRateLimit > 0 ? configuredRateLimit : 60;
+const MAX_REQUESTS_PER_MINUTE = config.maxRequestsPerMinute;
 const SYNTHETIC_EVIDENCE_EVENTS = Object.freeze([
   { id: 'syn-evt-001', type: 'prompt-injection', severity: 'high', summary: 'Instruction-conflict example stopped at the policy boundary.', details: { payload: '[REDACTED]' }, metadata: { status: 'blocked', source: 'synthetic-demo' } },
   { id: 'syn-evt-002', type: 'dlp', severity: 'high', summary: 'Secret-like pattern example stopped before tool forwarding.', details: { matchedValue: '[REDACTED]' }, metadata: { status: 'blocked', source: 'synthetic-demo' } },
@@ -718,7 +703,7 @@ const server = http.createServer(async (req, res) => {
       const request = validateEvidencePackageRequest(await body(req));
       const selected = request.eventIds?.length ? syntheticEvidence.filter((event) => request.eventIds.includes(event.id)) : syntheticEvidence;
       if (!selected.length || selected.length !== (request.eventIds?.length || selected.length)) throw new Error('evidence-event-not-found');
-      const evidencePackage = createEvidencePackage({ events: selected, wrappingKey: evidenceWrappingKey, keyId: process.env.CONTEXTSEAL_EVIDENCE_KEY_ID || 'contextseal-evidence-key', retentionDeadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() });
+      const evidencePackage = createEvidencePackage({ events: selected, wrappingKey: evidenceWrappingKey, keyId: config.evidenceKeyId, retentionDeadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() });
       return json(res, 200, { syntheticOnly: true, decryptLocally: true, package: evidencePackage });
     }
     if (req.method === 'POST' && url.pathname === '/auth/pen-console') {
