@@ -358,7 +358,7 @@ function renderEvidenceLedger() {
 }
 
 function renderReceipts(items) {
-  $('#receipts').innerHTML = items.length ? items.slice().reverse().map(({ receipt }) => `<div class="receipt"><span class="decision ${receipt.decision === 'deny' ? 'deny' : ''}">${esc(receipt.decision.toUpperCase())}</span><div class="receipt-main"><b>${esc(receipt.action)}</b><div class="receipt-meta">${esc(receipt.id)} · ${esc(receipt.reasonCode)} · hash ${esc(receipt.receiptHash)}</div></div><span class="receipt-meta receipt-time">${new Date(receipt.timestamp).toLocaleTimeString()}</span></div>`).join('') : '<div class="empty">Run a policy decision to mint the first receipt.</div>';
+  $('#receipts').innerHTML = items.length ? items.slice().reverse().map(({ receipt }) => `<div class="receipt${receipt.decision === 'deny' ? ' receipt-deny' : ''}"><span class="decision ${receipt.decision === 'deny' ? 'deny' : ''}">${esc(receipt.decision.toUpperCase())}</span><div class="receipt-main"><b>${esc(receipt.action)}</b><div class="receipt-meta">${esc(receipt.id)} · ${esc(receipt.reasonCode)}</div><div class="receipt-meta">${esc(receipt.receiptHash)}</div></div><span class="receipt-meta receipt-time">${new Date(receipt.timestamp).toLocaleTimeString()}</span></div>`).join('') : '<div class="empty">Run a case to mint the first synthetic receipt.</div>';
 }
 
 function renderInspector(id = state.selected) {
@@ -639,6 +639,15 @@ async function init() {
 }
 
 document.addEventListener('click', (event) => {
+  const drawer = event.target.closest('[data-drawer]');
+  if (drawer) {
+    const stepId = drawer.dataset.drawer;
+    const step = document.getElementById(stepId);
+    if (step && !step.classList.contains('is-current')) {
+      document.querySelectorAll('.timeline-step').forEach((s) => s.classList.remove('is-current'));
+      step.classList.add('is-current');
+    }
+  }
   const demo = event.target.closest('[data-demo]')?.dataset.demo;
   const scenario = event.target.closest('[data-scenario]')?.dataset.scenario;
   const step = event.target.closest('[data-step]')?.dataset.step;

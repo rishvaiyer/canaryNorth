@@ -167,6 +167,13 @@ function validateAgenticMetadata(request) {
   }
   const canaryContext = optionalObject('canaryContext');
   if (canaryContext && canaryContext.resource !== undefined && (typeof canaryContext.resource !== 'string' || canaryContext.resource.length > 256)) throw new Error('invalid-canary-resource');
+  const scannerFindingContext = optionalObject('scannerFindingContext');
+  if (scannerFindingContext) {
+    const allowed = new Set(['source', 'findingClass', 'verificationState', 'rawValueStored', 'detectorVersionPinned', 'provenancePreserved', 'activeValidationRequested', 'humanApproved', 'ownedTarget', 'validatorAllowlisted', 'rateWithinBudget']);
+    if (Object.keys(scannerFindingContext).some((field) => !allowed.has(field))) throw new Error('scanner-finding-field-forbidden');
+    for (const field of ['source', 'findingClass', 'verificationState']) if (scannerFindingContext[field] !== undefined && (typeof scannerFindingContext[field] !== 'string' || scannerFindingContext[field].length < 1 || scannerFindingContext[field].length > 128)) throw new Error(`invalid-scanner-finding-${field}`);
+    for (const field of ['rawValueStored', 'detectorVersionPinned', 'provenancePreserved', 'activeValidationRequested', 'humanApproved', 'ownedTarget', 'validatorAllowlisted', 'rateWithinBudget']) if (scannerFindingContext[field] !== undefined && typeof scannerFindingContext[field] !== 'boolean') throw new Error(`invalid-scanner-finding-${field}`);
+  }
   const delegationContext = optionalObject('delegationContext');
   if (delegationContext) {
     if (delegationContext.delegationExpiresAt !== undefined && (typeof delegationContext.delegationExpiresAt !== 'string' || delegationContext.delegationExpiresAt.length < 1 || delegationContext.delegationExpiresAt.length > 128)) throw new Error('invalid-delegation-expiry');
@@ -176,7 +183,7 @@ function validateAgenticMetadata(request) {
   if (approvalFreshnessContext) {
     if (approvalFreshnessContext.approvalExpired !== undefined && typeof approvalFreshnessContext.approvalExpired !== 'boolean') throw new Error('invalid-approval-freshness-expired');
   }
-  return { toolManifest, memoryContext, provenance, canaryContext, delegationContext, approvalFreshnessContext };
+  return { toolManifest, memoryContext, provenance, canaryContext, scannerFindingContext, delegationContext, approvalFreshnessContext };
 }
 
 function validateAuthorizationRequest(request) {

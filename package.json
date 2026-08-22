@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node server.mjs",
     "test": "node --test",
-    "lint": "node --check server.mjs && node --check src/policy.mjs && node --check src/release-evidence.mjs && node --check scripts/verify-release.mjs && node --check scripts/verify-receipt.mjs && node --check public/app.js && node --check public/graph.mjs",
+    "scan:passive": "node scripts/passive-scan.mjs",
+    "lint": "node --check server.mjs && node --check src/policy.mjs && node --check src/scanner-findings.mjs && node --check src/security-tools.mjs && node --check src/passive-scanner.mjs && node --check src/release-evidence.mjs && node --check scripts/verify-release.mjs && node --check scripts/verify-receipt.mjs && node --check public/app.js && node --check public/graph.mjs",
     "release:verify": "node scripts/verify-release.mjs"
   },
   "engines": {

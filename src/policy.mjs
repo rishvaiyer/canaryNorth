@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { verifyToolAttestation, evaluateMemoryContext, evaluateProvenanceBoundary, evaluateCanaryRequest, evaluateDelegationFreshness, evaluateApprovalFreshness } from './agentic-defense.mjs';
+import { verifyToolAttestation, evaluateMemoryContext, evaluateProvenanceBoundary, evaluateCanaryRequest, evaluateDelegationFreshness, evaluateApprovalFreshness, evaluateScannerFinding } from './agentic-defense.mjs';
 
 export const POLICY_VERSION = 'contextseal-policy-v2';
 export const DEMO_TENANT_ID = 'tenant_demo';
@@ -67,7 +67,7 @@ export function inspectInput(input = '') {
   };
 }
 
-export function authorize({ capabilityId, action, resource, input = '', now = new Date(), principal, audience, tenantId, workspaceId, policyVersion = POLICY_VERSION, nonce, replayDetected = false, toolManifest, memoryContext, provenance, canaryContext, delegationContext, approvalFreshnessContext, demoControls = {} }) {
+export function authorize({ capabilityId, action, resource, input = '', now = new Date(), principal, audience, tenantId, workspaceId, policyVersion = POLICY_VERSION, nonce, replayDetected = false, toolManifest, memoryContext, provenance, canaryContext, delegationContext, approvalFreshnessContext, scannerFindingContext, demoControls = {} }) {
   const capability = DEMO_CAPABILITIES.find((item) => item.id === capabilityId);
   if (!capability) return deny('unknown-capability', 'Capability reference is not recognized.', null);
   if (canaryContext !== undefined) {
@@ -84,6 +84,10 @@ export function authorize({ capabilityId, action, resource, input = '', now = ne
   if (demoControls.expiry !== false && now >= new Date(capability.expiresAt)) return deny('expired-capability', 'Capability has expired.', capability);
   if (capability.tool !== action) return deny('action-not-allowlisted', 'Tool action is outside the capability allowlist.', capability);
   if (capability.resource !== resource) return deny('resource-out-of-scope', 'Resource is outside the capability scope.', capability);
+  if (scannerFindingContext !== undefined) {
+    const finding = evaluateScannerFinding(scannerFindingContext);
+    if (!finding.allowed) return deny(finding.reasonCode, 'Scanner findings require redaction, provenance, and human review before any action.', capability, { clean: false, signals: [finding.reasonCode], agenticDefense: finding });
+  }
   if (toolManifest !== undefined) {
     const attestation = verifyToolAttestation(toolManifest, { tool: capability.tool, capabilities: capability.scopes });
     if (!attestation.allowed) return deny(attestation.reasonCode, 'Tool attestation did not match the approved capability.', capability, { clean: false, signals: [attestation.reasonCode], agenticDefense: attestation });

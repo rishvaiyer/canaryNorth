@@ -57,3 +57,23 @@ export function evaluateApprovalFreshness({ approvalExpired = false } = {}) {
   if (approvalExpired) return result(false, 'approval-replay-blocked', { reviewRequired: true });
   return result(true, 'approval-current', { reviewRequired: false });
 }
+
+// Secret discovery is deliberately separate from secret validation. A detector
+// can produce only redacted metadata, and any live validation requires a
+// human-approved owned target plus an allowlisted validator and rate budget.
+export function evaluateScannerFinding({ source, findingClass, verificationState, rawValueStored = false, detectorVersionPinned = false, provenancePreserved = false, activeValidationRequested = false, humanApproved = false, ownedTarget = false, validatorAllowlisted = false, rateWithinBudget = false } = {}) {
+  if (!source || !findingClass || !verificationState) return result(false, 'scanner-finding-metadata-missing', { reviewRequired: true });
+  if (rawValueStored !== false) return result(false, 'raw-secret-retention-denied', { reviewRequired: true });
+  if (!detectorVersionPinned) return result(false, 'scanner-version-unpinned', { reviewRequired: true });
+  if (!provenancePreserved) return result(false, 'scanner-provenance-missing', { reviewRequired: true });
+  if (activeValidationRequested) {
+    if (!humanApproved) return result(false, 'validation-human-approval-required', { reviewRequired: true });
+    if (!ownedTarget) return result(false, 'validation-owned-target-required', { reviewRequired: true });
+    if (!validatorAllowlisted) return result(false, 'validation-validator-not-allowlisted', { reviewRequired: true });
+    if (!rateWithinBudget) return result(false, 'validation-rate-budget-exceeded', { reviewRequired: true });
+    return result(true, 'validation-approved-for-owned-target', { reviewRequired: false, validationMode: 'explicit-human-approved' });
+  }
+  if (verificationState === 'candidate' || verificationState === 'approved-for-validation') return result(false, 'secret-finding-review-required', { reviewRequired: true });
+  if (verificationState === 'false-positive' || verificationState === 'revoked') return result(true, 'scanner-finding-closed', { reviewRequired: false });
+  return result(false, 'scanner-finding-state-unresolved', { reviewRequired: true });
+}
