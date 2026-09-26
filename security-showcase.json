@@ -1,0 +1,32 @@
+{
+  "project": "CanaryNorth",
+  "category": "AI agent security policy boundary",
+  "one_liner": "A policy boundary for AI-assisted actions that checks scoped capabilities, identity context, replay state, approvals, and records signed decision receipts.",
+  "hook": "An agent asks for an action. CanaryNorth decides whether that exact action is allowed and leaves a verifiable receipt.",
+  "safe_demo_scenes": [
+    "Threat Lab: submit a synthetic suspicious request and show the deny decision plus reason without showing raw suspicious input.",
+    "Receipt flow: show a synthetic allowed request, then the chained signed receipt and verification state.",
+    "Approval flow: show a higher-risk synthetic action pause for short-lived human approval, then re-check policy before the decision."
+  ],
+  "verification_commands": [
+    "npm test",
+    "npm run release:verify",
+    "npm run lint"
+  ],
+  "allowed_claims": [
+    "The public demo uses synthetic capabilities and does not forward requests to an external tool.",
+    "Policy checks include scoped capability, expiry, identity context, policy version, nonce replay, and configured bounded signals.",
+    "Decisions are recorded as signed receipts and the repository includes receipt verification paths."
+  ],
+  "forbidden_claims": [
+    "Prevents all prompt injection or agent attacks.",
+    "Production-ready security boundary for arbitrary external tools.",
+    "Zero false positives or zero false negatives."
+  ],
+  "privacy": [
+    "Use only synthetic demo capabilities and redacted evidence.",
+    "Never capture real tokens, signing keys, tenant data, or external tool credentials."
+  ],
+  "tone": "polished, technical, evidence-first",
+  "preferred_duration_seconds": 22
+}\n
